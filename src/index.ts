@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+import { IAssignmentLogger } from './assignment-logger';
 import { BASE_URL, REQUEST_TIMEOUT_MILLIS } from './constants';
 import EppoClient, { IEppoClient } from './eppo-client';
 import ExperimentConfigurationRequestor from './experiment/experiment-configuration-requestor';
@@ -23,6 +24,11 @@ export interface IClientConfig {
    * Clients should use the default setting in most cases.
    */
   baseUrl?: string;
+
+  /**
+   * Pass a logging implementation to send variation assignments to your data warehouse.
+   */
+  assignmentLogger?: IAssignmentLogger;
 }
 
 export { IEppoClient } from './eppo-client';
@@ -52,7 +58,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     configurationStore,
     httpClient,
   );
-  clientInstance = new EppoClient(configurationRequestor);
+  clientInstance = new EppoClient(configurationRequestor, config.assignmentLogger);
   if (!configurationStore.isInitialized()) {
     await configurationRequestor.fetchAndStoreConfigurations();
   }
