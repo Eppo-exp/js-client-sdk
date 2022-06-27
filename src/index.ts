@@ -31,6 +31,7 @@ export interface IClientConfig {
   assignmentLogger?: IAssignmentLogger;
 }
 
+export { IAssignmentLogger, IAssignmentEvent } from './assignment-logger';
 export { IEppoClient } from './eppo-client';
 
 let clientInstance: IEppoClient = null;
