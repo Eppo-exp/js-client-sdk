@@ -1,10 +1,12 @@
 import { createHash } from 'crypto';
 
 import { IAssignmentLogger } from './assignment-logger';
+import { NULL_SENTINEL, SESSION_ASSIGNMENT_CONFIG_LOADED } from './constants';
 import { IExperimentConfiguration } from './experiment/experiment-configuration';
-import ExperimentConfigurationRequestor from './experiment/experiment-configuration-requestor';
+import { EppoLocalStorage } from './local-storage';
 import { Rule } from './rule';
 import { matchesAnyRule } from './rule_evaluator';
+import { EppoSessionStorage } from './session-storage';
 import { getShard, isShardInRange } from './shard';
 import { validateNotBlank } from './validation';
 
@@ -33,23 +35,34 @@ export interface IEppoClient {
 
 export default class EppoClient implements IEppoClient {
   constructor(
-    private configurationRequestor: ExperimentConfigurationRequestor,
+    private configurationStore: EppoLocalStorage,
+    private sessionStorage: EppoSessionStorage,
     private assignmentLogger?: IAssignmentLogger,
   ) {}
 
   getAssignment(subjectKey: string, experimentKey: string, subjectAttributes = {}): string {
     validateNotBlank(subjectKey, 'Invalid argument: subjectKey cannot be blank');
     validateNotBlank(experimentKey, 'Invalid argument: experimentKey cannot be blank');
-    const experimentConfig = this.configurationRequestor.getConfiguration(experimentKey);
+    // If getAssignment was called when the latest configuration were still being downloaded
+    // use the old assignment for the remainder of the session to avoid a flickering effect;
+    // we don't want a subject to switch between 2 variations during the same session.
+    const sessionOverrideKey = `${subjectKey}-${experimentKey}-session-override`;
+    const sessionOverride = this.sessionStorage.get(sessionOverrideKey);
+    if (sessionOverride) {
+      return sessionOverride === NULL_SENTINEL ? null : sessionOverride;
+    }
+    const experimentConfig = this.configurationStore.get<IExperimentConfiguration>(experimentKey);
     if (
       !experimentConfig?.enabled ||
       !this.subjectAttributesSatisfyRules(subjectAttributes, experimentConfig.rules) ||
       !this.isInExperimentSample(subjectKey, experimentKey, experimentConfig)
     ) {
+      this.setSessionOverrideIfLoadingConfigurations(sessionOverrideKey, NULL_SENTINEL);
       return null;
     }
     const override = this.getSubjectVariationOverride(subjectKey, experimentConfig);
     if (override) {
+      this.setSessionOverrideIfLoadingConfigurations(sessionOverrideKey, override);
       return override;
     }
     const { variations, subjectShards } = experimentConfig;
@@ -68,7 +81,14 @@ export default class EppoClient implements IEppoClient {
     } catch (error) {
       console.error(`[Eppo SDK] Error logging assignment event: ${error.message}`);
     }
+    this.setSessionOverrideIfLoadingConfigurations(sessionOverrideKey, assignedVariation);
     return assignedVariation;
+  }
+
+  private setSessionOverrideIfLoadingConfigurations(overrideKey: string, assignmentValue: string) {
+    if (!this.sessionStorage.get(SESSION_ASSIGNMENT_CONFIG_LOADED)) {
+      this.sessionStorage.set(overrideKey, assignmentValue);
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

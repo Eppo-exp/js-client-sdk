@@ -9,14 +9,19 @@ import { IAssignmentTestCase, readAssignmentTestData } from '../test/testHelpers
 import { IAssignmentLogger } from './assignment-logger';
 import EppoClient from './eppo-client';
 import { IExperimentConfiguration } from './experiment/experiment-configuration';
-import ExperimentConfigurationRequestor from './experiment/experiment-configuration-requestor';
 import { IVariation } from './experiment/variation';
+import { EppoLocalStorage } from './local-storage';
 import { OperatorType } from './rule';
+import { EppoSessionStorage } from './session-storage';
 
 import { getInstance, init } from '.';
 
 describe('EppoClient E2E test', () => {
+  const sessionOverrideSubject = 'subject-14';
+  const sessionOverrideExperiment = 'exp-100';
+  const preloadedConfigExperiment = 'randomization_algo';
   beforeAll(async () => {
+    window.localStorage.clear();
     window.sessionStorage.clear();
     mock.setup();
     mock.get(/randomized_assignment\/config*/, (_req, res) => {
@@ -35,6 +40,19 @@ describe('EppoClient E2E test', () => {
       });
       return res.status(200).body(JSON.stringify({ experiments: assignmentConfig }));
     });
+    const preloadedConfig = {
+      name: preloadedConfigExperiment,
+      percentExposure: 1,
+      enabled: true,
+      subjectShards: 100,
+      variations: mockVariations,
+      overrides: {
+        '5160f8b1a59fb002f8535257206cb824': 'preloaded-config-variation',
+      },
+    };
+    window.localStorage.setItem(preloadedConfigExperiment, JSON.stringify(preloadedConfig));
+    getInstance().getAssignment(sessionOverrideSubject, preloadedConfigExperiment);
+    getInstance().getAssignment(sessionOverrideSubject, sessionOverrideExperiment);
     await init({ apiKey: 'dummy', baseUrl: 'http://127.0.0.1:4000' });
   });
 
@@ -90,38 +108,54 @@ describe('EppoClient E2E test', () => {
     );
   });
 
+  it('returns null if getAssignment was called for the subject before any RAC was loaded', () => {
+    expect(getInstance().getAssignment(sessionOverrideSubject, sessionOverrideExperiment)).toEqual(
+      null,
+    );
+  });
+
+  it('uses the same assignment during the session, even if it changes after local storage update', async () => {
+    expect(getInstance().getAssignment(sessionOverrideSubject, preloadedConfigExperiment)).toEqual(
+      'preloaded-config-variation',
+    );
+  });
+
   it('returns subject from overrides', () => {
-    const mockConfigRequestor = td.object<ExperimentConfigurationRequestor>();
     const experiment = 'experiment_5';
-    td.when(mockConfigRequestor.getConfiguration(experiment)).thenReturn({
-      name: experiment,
-      percentExposure: 1,
-      enabled: true,
-      subjectShards: 100,
-      variations: mockVariations,
-      overrides: {
-        a90ea45116d251a43da56e03d3dd7275: 'variant-2',
-      },
-    });
-    const client = new EppoClient(mockConfigRequestor);
+    window.localStorage.setItem(
+      experiment,
+      JSON.stringify({
+        name: experiment,
+        percentExposure: 1,
+        enabled: true,
+        subjectShards: 100,
+        variations: mockVariations,
+        overrides: {
+          a90ea45116d251a43da56e03d3dd7275: 'variant-2',
+        },
+      }),
+    );
+    const client = new EppoClient(new EppoLocalStorage(), new EppoSessionStorage());
     const assignment = client.getAssignment('subject-1', experiment);
     expect(assignment).toEqual('variant-2');
   });
 
   it('logs variation assignment', () => {
-    const mockConfigRequestor = td.object<ExperimentConfigurationRequestor>();
     const mockLogger = td.object<IAssignmentLogger>();
     const experiment = 'experiment_5';
-    td.when(mockConfigRequestor.getConfiguration(experiment)).thenReturn({
-      name: experiment,
-      percentExposure: 1,
-      enabled: true,
-      subjectShards: 100,
-      variations: mockVariations,
-      overrides: {},
-    });
+    window.localStorage.setItem(
+      experiment,
+      JSON.stringify({
+        name: experiment,
+        percentExposure: 1,
+        enabled: true,
+        subjectShards: 100,
+        variations: mockVariations,
+        overrides: {},
+      }),
+    );
     const subjectAttributes = { foo: 3 };
-    const client = new EppoClient(mockConfigRequestor, mockLogger);
+    const client = new EppoClient(new EppoLocalStorage(), new EppoSessionStorage(), mockLogger);
     const assignment = client.getAssignment('subject-1', experiment, subjectAttributes);
     expect(assignment).toEqual('control');
     expect(td.explain(mockLogger.logAssignment).callCount).toEqual(1);
@@ -129,47 +163,51 @@ describe('EppoClient E2E test', () => {
   });
 
   it('handles logging exception', () => {
-    const mockConfigRequestor = td.object<ExperimentConfigurationRequestor>();
     const mockLogger = td.object<IAssignmentLogger>();
     const experiment = 'experiment_5';
     td.when(mockLogger.logAssignment(td.matchers.anything())).thenThrow(new Error('logging error'));
-    td.when(mockConfigRequestor.getConfiguration(experiment)).thenReturn({
-      name: experiment,
-      percentExposure: 1,
-      enabled: true,
-      subjectShards: 100,
-      variations: mockVariations,
-      overrides: {},
-    });
+    window.localStorage.setItem(
+      experiment,
+      JSON.stringify({
+        name: experiment,
+        percentExposure: 1,
+        enabled: true,
+        subjectShards: 100,
+        variations: mockVariations,
+        overrides: {},
+      }),
+    );
     const subjectAttributes = { foo: 3 };
-    const client = new EppoClient(mockConfigRequestor, mockLogger);
+    const client = new EppoClient(new EppoLocalStorage(), new EppoSessionStorage(), mockLogger);
     const assignment = client.getAssignment('subject-1', experiment, subjectAttributes);
     expect(assignment).toEqual('control');
   });
 
   it('only returns variation if subject matches rules', () => {
-    const mockConfigRequestor = td.object<ExperimentConfigurationRequestor>();
     const experiment = 'experiment_5';
-    td.when(mockConfigRequestor.getConfiguration(experiment)).thenReturn({
-      name: experiment,
-      percentExposure: 1,
-      enabled: true,
-      subjectShards: 100,
-      variations: mockVariations,
-      overrides: {},
-      rules: [
-        {
-          conditions: [
-            {
-              operator: OperatorType.GT,
-              attribute: 'appVersion',
-              value: 10,
-            },
-          ],
-        },
-      ],
-    });
-    const client = new EppoClient(mockConfigRequestor);
+    window.localStorage.setItem(
+      experiment,
+      JSON.stringify({
+        name: experiment,
+        percentExposure: 1,
+        enabled: true,
+        subjectShards: 100,
+        variations: mockVariations,
+        overrides: {},
+        rules: [
+          {
+            conditions: [
+              {
+                operator: OperatorType.GT,
+                attribute: 'appVersion',
+                value: 10,
+              },
+            ],
+          },
+        ],
+      }),
+    );
+    const client = new EppoClient(new EppoLocalStorage(), new EppoSessionStorage());
     let assignment = client.getAssignment('subject-1', experiment, { appVersion: 9 });
     expect(assignment).toEqual(null);
     assignment = client.getAssignment('subject-1', experiment);
