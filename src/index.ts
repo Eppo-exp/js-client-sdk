@@ -51,7 +51,7 @@ export async function init(config: IClientConfig) {
     sdkVersion,
   });
   const configurationRequestor = new ExperimentConfigurationRequestor(localStorage, httpClient);
-  if (!sessionStorage.get(SESSION_ASSIGNMENT_CONFIG_LOADED)) {
+  if (sessionStorage.get(SESSION_ASSIGNMENT_CONFIG_LOADED) !== 'true') {
     await configurationRequestor.fetchAndStoreConfigurations();
     sessionStorage.set(SESSION_ASSIGNMENT_CONFIG_LOADED, 'true');
   }
