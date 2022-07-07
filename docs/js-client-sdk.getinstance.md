@@ -9,8 +9,15 @@ Used to access a singleton SDK client instance. Use the method after calling ini
 <b>Signature:</b>
 
 ```typescript
-export declare function getInstance(): IEppoClient;
+export declare function getInstance(assignmentLogger?: IAssignmentLogger): IEppoClient;
 ```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  assignmentLogger | [IAssignmentLogger](./js-client-sdk.iassignmentlogger.md) | <i>(Optional)</i> a logging implementation to send variation assignments to a data warehouse. |
+
 <b>Returns:</b>
 
 [IEppoClient](./js-client-sdk.ieppoclient.md)

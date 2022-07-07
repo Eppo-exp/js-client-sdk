@@ -25,11 +25,6 @@ export interface IClientConfig {
    * Clients should use the default setting in most cases.
    */
   baseUrl?: string;
-
-  /**
-   * Pass a logging implementation to send variation assignments to your data warehouse.
-   */
-  assignmentLogger?: IAssignmentLogger;
 }
 
 export { IAssignmentLogger, IAssignmentEvent } from './assignment-logger';
@@ -37,16 +32,14 @@ export { IEppoClient } from './eppo-client';
 
 const localStorage = new EppoLocalStorage();
 const sessionStorage = new EppoSessionStorage();
-let clientInstance: IEppoClient = new EppoClient(localStorage, sessionStorage);
 
 /**
  * Initializes the Eppo client with configuration parameters.
  * This method should be called once on application startup.
- * After invocation of this method, the SDK will poll Eppo's API at regular intervals to retrieve assignment configurations.
  * @param config client configuration
  * @public
  */
-export async function init(config: IClientConfig): Promise<IEppoClient> {
+export async function init(config: IClientConfig) {
   validateNotBlank(config.apiKey, 'API key required');
   const axiosInstance = axios.create({
     baseURL: config.baseUrl || BASE_URL,
@@ -58,19 +51,18 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     sdkVersion,
   });
   const configurationRequestor = new ExperimentConfigurationRequestor(localStorage, httpClient);
-  clientInstance = new EppoClient(localStorage, sessionStorage, config.assignmentLogger);
   if (!sessionStorage.get(SESSION_ASSIGNMENT_CONFIG_LOADED)) {
     await configurationRequestor.fetchAndStoreConfigurations();
     sessionStorage.set(SESSION_ASSIGNMENT_CONFIG_LOADED, 'true');
   }
-  return clientInstance;
 }
 
 /**
  * Used to access a singleton SDK client instance.
  * Use the method after calling init() to initialize the client.
+ * @param assignmentLogger a logging implementation to send variation assignments to a data warehouse.
  * @returns a singleton client instance
  */
-export function getInstance(): IEppoClient {
-  return clientInstance;
+export function getInstance(assignmentLogger?: IAssignmentLogger): IEppoClient {
+  return new EppoClient(localStorage, sessionStorage, assignmentLogger);
 }

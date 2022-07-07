@@ -4,12 +4,12 @@
 
 ## init() function
 
-Initializes the Eppo client with configuration parameters. This method should be called once on application startup. After invocation of this method, the SDK will poll Eppo's API at regular intervals to retrieve assignment configurations.
+Initializes the Eppo client with configuration parameters. This method should be called once on application startup.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function init(config: IClientConfig): Promise<IEppoClient>;
+export declare function init(config: IClientConfig): Promise<void>;
 ```
 
 ## Parameters
@@ -20,5 +20,5 @@ export declare function init(config: IClientConfig): Promise<IEppoClient>;
 
 <b>Returns:</b>
 
-Promise&lt;[IEppoClient](./js-client-sdk.ieppoclient.md)<!-- -->&gt;
+Promise&lt;void&gt;
 
