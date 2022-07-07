@@ -48,11 +48,13 @@ export default class EppoClient implements IEppoClient {
     // we don't want a subject to switch between 2 variations during the same session.
     const sessionOverrideKey = `${subjectKey}-${experimentKey}-session-override`;
     const sessionOverride = this.sessionStorage.get(sessionOverrideKey);
-    if (sessionOverride) {
-      return sessionOverride === NULL_SENTINEL ? null : sessionOverride;
+    if (sessionOverride && sessionOverride !== NULL_SENTINEL) {
+      this.logAssignment(experimentKey, sessionOverride, subjectKey, subjectAttributes);
+      return sessionOverride;
     }
     const experimentConfig = this.configurationStore.get<IExperimentConfiguration>(experimentKey);
     if (
+      sessionOverride === NULL_SENTINEL ||
       !experimentConfig?.enabled ||
       !this.subjectAttributesSatisfyRules(subjectAttributes, experimentConfig.rules) ||
       !this.isInExperimentSample(subjectKey, experimentKey, experimentConfig)
@@ -70,10 +72,22 @@ export default class EppoClient implements IEppoClient {
     const assignedVariation = variations.find((variation) =>
       isShardInRange(shard, variation.shardRange),
     ).name;
+    this.logAssignment(experimentKey, assignedVariation, subjectKey, subjectAttributes);
+    this.setSessionOverrideIfLoadingConfigurations(sessionOverrideKey, assignedVariation);
+    return assignedVariation;
+  }
+
+  private logAssignment(
+    experiment: string,
+    variation: string,
+    subjectKey: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    subjectAttributes: Record<string, any>,
+  ) {
     try {
       this.assignmentLogger?.logAssignment({
-        experiment: experimentKey,
-        variation: assignedVariation,
+        experiment,
+        variation,
         timestamp: new Date().toISOString(),
         subject: subjectKey,
         subjectAttributes,
@@ -81,8 +95,6 @@ export default class EppoClient implements IEppoClient {
     } catch (error) {
       console.error(`[Eppo SDK] Error logging assignment event: ${error.message}`);
     }
-    this.setSessionOverrideIfLoadingConfigurations(sessionOverrideKey, assignedVariation);
-    return assignedVariation;
   }
 
   private setSessionOverrideIfLoadingConfigurations(overrideKey: string, assignmentValue: string) {
