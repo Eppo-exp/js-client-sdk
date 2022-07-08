@@ -5,7 +5,7 @@
 ```ts
 
 // @public
-export function getInstance(assignmentLogger?: IAssignmentLogger): IEppoClient;
+export function getInstance(): IEppoClient;
 
 // @public
 export interface IAssignmentEvent {
@@ -25,6 +25,7 @@ export interface IAssignmentLogger {
 // @public
 export interface IClientConfig {
     apiKey: string;
+    assignmentLogger?: IAssignmentLogger;
     baseUrl?: string;
 }
 
@@ -34,7 +35,7 @@ export interface IEppoClient {
 }
 
 // @public
-export function init(config: IClientConfig): Promise<void>;
+export function init(config: IClientConfig): Promise<IEppoClient>;
 
 // (No @packageDocumentation comment for this package)
 

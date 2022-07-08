@@ -25,6 +25,11 @@ export interface IClientConfig {
    * Clients should use the default setting in most cases.
    */
   baseUrl?: string;
+
+  /**
+   * Pass a logging implementation to send variation assignments to your data warehouse.
+   */
+  assignmentLogger?: IAssignmentLogger;
 }
 
 export { IAssignmentLogger, IAssignmentEvent } from './assignment-logger';
@@ -32,6 +37,7 @@ export { IEppoClient } from './eppo-client';
 
 const localStorage = new EppoLocalStorage();
 const sessionStorage = new EppoSessionStorage();
+let clientInstance = new EppoClient(localStorage, sessionStorage);
 
 /**
  * Initializes the Eppo client with configuration parameters.
@@ -39,7 +45,7 @@ const sessionStorage = new EppoSessionStorage();
  * @param config client configuration
  * @public
  */
-export async function init(config: IClientConfig) {
+export async function init(config: IClientConfig): Promise<IEppoClient> {
   validateNotBlank(config.apiKey, 'API key required');
   const axiosInstance = axios.create({
     baseURL: config.baseUrl || BASE_URL,
@@ -50,19 +56,20 @@ export async function init(config: IClientConfig) {
     sdkName,
     sdkVersion,
   });
+  clientInstance = new EppoClient(localStorage, sessionStorage, config.assignmentLogger);
   const configurationRequestor = new ExperimentConfigurationRequestor(localStorage, httpClient);
   if (sessionStorage.get(SESSION_ASSIGNMENT_CONFIG_LOADED) !== 'true') {
     await configurationRequestor.fetchAndStoreConfigurations();
     sessionStorage.set(SESSION_ASSIGNMENT_CONFIG_LOADED, 'true');
   }
+  return clientInstance;
 }
 
 /**
  * Used to access a singleton SDK client instance.
  * Use the method after calling init() to initialize the client.
- * @param assignmentLogger a logging implementation to send variation assignments to a data warehouse.
  * @returns a singleton client instance
  */
-export function getInstance(assignmentLogger?: IAssignmentLogger): IEppoClient {
-  return new EppoClient(localStorage, sessionStorage, assignmentLogger);
+export function getInstance(): IEppoClient {
+  return clientInstance;
 }
