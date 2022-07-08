@@ -29,7 +29,7 @@ export interface IClientConfig {
   /**
    * Pass a logging implementation to send variation assignments to your data warehouse.
    */
-  assignmentLogger?: IAssignmentLogger;
+  assignmentLogger: IAssignmentLogger;
 }
 
 export { IAssignmentLogger, IAssignmentEvent } from './assignment-logger';
@@ -37,7 +37,6 @@ export { IEppoClient } from './eppo-client';
 
 const localStorage = new EppoLocalStorage();
 const sessionStorage = new EppoSessionStorage();
-let clientInstance = new EppoClient(localStorage, sessionStorage);
 
 /**
  * Initializes the Eppo client with configuration parameters.
@@ -56,13 +55,14 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     sdkName,
     sdkVersion,
   });
-  clientInstance = new EppoClient(localStorage, sessionStorage, config.assignmentLogger);
+  EppoClient.instance.setLogger(config.assignmentLogger);
+  EppoClient.instance.flushLoggerEvents();
   const configurationRequestor = new ExperimentConfigurationRequestor(localStorage, httpClient);
   if (sessionStorage.get(SESSION_ASSIGNMENT_CONFIG_LOADED) !== 'true') {
     await configurationRequestor.fetchAndStoreConfigurations();
     sessionStorage.set(SESSION_ASSIGNMENT_CONFIG_LOADED, 'true');
   }
-  return clientInstance;
+  return EppoClient.instance;
 }
 
 /**
@@ -71,5 +71,5 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
  * @returns a singleton client instance
  */
 export function getInstance(): IEppoClient {
-  return clientInstance;
+  return EppoClient.instance;
 }

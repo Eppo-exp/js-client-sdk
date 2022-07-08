@@ -1,7 +1,7 @@
 import { createHash } from 'crypto';
 
-import { IAssignmentLogger } from './assignment-logger';
-import { NULL_SENTINEL, SESSION_ASSIGNMENT_CONFIG_LOADED } from './constants';
+import { IAssignmentEvent, IAssignmentLogger } from './assignment-logger';
+import { MAX_EVENT_QUEUE_SIZE, NULL_SENTINEL, SESSION_ASSIGNMENT_CONFIG_LOADED } from './constants';
 import { IExperimentConfiguration } from './experiment/experiment-configuration';
 import { EppoLocalStorage } from './local-storage';
 import { Rule } from './rule';
@@ -34,10 +34,17 @@ export interface IEppoClient {
 }
 
 export default class EppoClient implements IEppoClient {
+  public static instance: EppoClient = new EppoClient(
+    new EppoLocalStorage(),
+    new EppoSessionStorage(),
+  );
+
+  private queuedEvents: IAssignmentEvent[] = [];
+  private assignmentLogger: IAssignmentLogger = null;
+
   constructor(
     private configurationStore: EppoLocalStorage,
     private sessionStorage: EppoSessionStorage,
-    private assignmentLogger?: IAssignmentLogger,
   ) {}
 
   getAssignment(subjectKey: string, experimentKey: string, subjectAttributes = {}): string {
@@ -77,6 +84,22 @@ export default class EppoClient implements IEppoClient {
     return assignedVariation;
   }
 
+  public setLogger(logger: IAssignmentLogger) {
+    this.assignmentLogger = logger;
+  }
+
+  public flushLoggerEvents() {
+    const eventsToFlush = this.queuedEvents;
+    this.queuedEvents = [];
+    try {
+      for (const event of eventsToFlush) {
+        this.assignmentLogger.logAssignment(event);
+      }
+    } catch (error) {
+      console.error(`[Eppo SDK] Error flushing assignment events: ${error.message}`);
+    }
+  }
+
   private logAssignment(
     experiment: string,
     variation: string,
@@ -84,14 +107,20 @@ export default class EppoClient implements IEppoClient {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     subjectAttributes: Record<string, any>,
   ) {
+    const event: IAssignmentEvent = {
+      experiment,
+      variation,
+      timestamp: new Date().toISOString(),
+      subject: subjectKey,
+      subjectAttributes,
+    };
+    // assignment logger may be null while waiting for initialization
+    if (this.assignmentLogger == null && this.queuedEvents.length < MAX_EVENT_QUEUE_SIZE) {
+      this.queuedEvents.push(event);
+      return;
+    }
     try {
-      this.assignmentLogger?.logAssignment({
-        experiment,
-        variation,
-        timestamp: new Date().toISOString(),
-        subject: subjectKey,
-        subjectAttributes,
-      });
+      this.assignmentLogger?.logAssignment(event);
     } catch (error) {
       console.error(`[Eppo SDK] Error logging assignment event: ${error.message}`);
     }

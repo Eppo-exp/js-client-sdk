@@ -7,6 +7,7 @@ import mock from 'xhr-mock';
 import { IAssignmentTestCase, readAssignmentTestData } from '../test/testHelpers';
 
 import { IAssignmentLogger } from './assignment-logger';
+import { MAX_EVENT_QUEUE_SIZE } from './constants';
 import EppoClient from './eppo-client';
 import { IExperimentConfiguration } from './experiment/experiment-configuration';
 import { IVariation } from './experiment/variation';
@@ -53,7 +54,12 @@ describe('EppoClient E2E test', () => {
     window.localStorage.setItem(preloadedConfigExperiment, JSON.stringify(preloadedConfig));
     getInstance().getAssignment(sessionOverrideSubject, preloadedConfigExperiment);
     getInstance().getAssignment(sessionOverrideSubject, sessionOverrideExperiment);
-    await init({ apiKey: 'dummy', baseUrl: 'http://127.0.0.1:4000' });
+    const assignmentLogger: IAssignmentLogger = {
+      logAssignment(assignment) {
+        console.log(`Logged assignment for subject ${assignment.subject}`);
+      },
+    };
+    await init({ apiKey: 'dummy', baseUrl: 'http://127.0.0.1:4000', assignmentLogger });
   });
 
   afterAll(() => {
@@ -83,6 +89,59 @@ describe('EppoClient E2E test', () => {
       },
     },
   ];
+
+  describe('flushLoggerEvents', () => {
+    const experiment = 'exp-111';
+    beforeAll(() => {
+      window.localStorage.setItem(
+        experiment,
+        JSON.stringify({
+          name: experiment,
+          percentExposure: 1,
+          enabled: true,
+          subjectShards: 100,
+          variations: mockVariations,
+          overrides: {},
+        }),
+      );
+    });
+
+    it('Invokes logger for queued events', () => {
+      const mockLogger = td.object<IAssignmentLogger>();
+      const client = new EppoClient(new EppoLocalStorage(), new EppoSessionStorage());
+      client.getAssignment('subject-to-be-logged', experiment);
+      client.setLogger(mockLogger);
+      expect(td.explain(mockLogger.logAssignment).callCount).toEqual(0);
+      client.flushLoggerEvents();
+      expect(td.explain(mockLogger.logAssignment).callCount).toEqual(1);
+      expect(td.explain(mockLogger.logAssignment).calls[0].args[0].subject).toEqual(
+        'subject-to-be-logged',
+      );
+    });
+
+    it('Does not log same queued event twice', () => {
+      const mockLogger = td.object<IAssignmentLogger>();
+      const client = new EppoClient(new EppoLocalStorage(), new EppoSessionStorage());
+      client.getAssignment('subject-to-be-logged', experiment);
+      client.setLogger(mockLogger);
+      client.flushLoggerEvents();
+      expect(td.explain(mockLogger.logAssignment).callCount).toEqual(1);
+      client.flushLoggerEvents();
+      expect(td.explain(mockLogger.logAssignment).callCount).toEqual(1);
+    });
+
+    it('Does not invoke logger for events that exceed queue size', () => {
+      const mockLogger = td.object<IAssignmentLogger>();
+      const client = new EppoClient(new EppoLocalStorage(), new EppoSessionStorage());
+      for (let i = 0; i < MAX_EVENT_QUEUE_SIZE + 100; i++) {
+        client.getAssignment('subject-to-be-logged', experiment);
+      }
+      client.setLogger(mockLogger);
+      expect(td.explain(mockLogger.logAssignment).callCount).toEqual(0);
+      client.flushLoggerEvents();
+      expect(td.explain(mockLogger.logAssignment).callCount).toEqual(MAX_EVENT_QUEUE_SIZE);
+    });
+  });
 
   describe('getAssignment', () => {
     it.each(readAssignmentTestData())(
@@ -155,7 +214,8 @@ describe('EppoClient E2E test', () => {
       }),
     );
     const subjectAttributes = { foo: 3 };
-    const client = new EppoClient(new EppoLocalStorage(), new EppoSessionStorage(), mockLogger);
+    const client = new EppoClient(new EppoLocalStorage(), new EppoSessionStorage());
+    client.setLogger(mockLogger);
     const assignment = client.getAssignment('subject-1', experiment, subjectAttributes);
     expect(assignment).toEqual('control');
     expect(td.explain(mockLogger.logAssignment).callCount).toEqual(1);
@@ -178,7 +238,8 @@ describe('EppoClient E2E test', () => {
       }),
     );
     const subjectAttributes = { foo: 3 };
-    const client = new EppoClient(new EppoLocalStorage(), new EppoSessionStorage(), mockLogger);
+    const client = new EppoClient(new EppoLocalStorage(), new EppoSessionStorage());
+    client.setLogger(mockLogger);
     const assignment = client.getAssignment('subject-1', experiment, subjectAttributes);
     expect(assignment).toEqual('control');
   });
