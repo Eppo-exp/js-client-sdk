@@ -115,12 +115,12 @@ export default class EppoClient implements IEppoClient {
       subjectAttributes,
     };
     // assignment logger may be null while waiting for initialization
-    if (this.assignmentLogger == null && this.queuedEvents.length < MAX_EVENT_QUEUE_SIZE) {
-      this.queuedEvents.push(event);
+    if (this.assignmentLogger == null) {
+      this.queuedEvents.length < MAX_EVENT_QUEUE_SIZE && this.queuedEvents.push(event);
       return;
     }
     try {
-      this.assignmentLogger?.logAssignment(event);
+      this.assignmentLogger.logAssignment(event);
     } catch (error) {
       console.error(`[Eppo SDK] Error logging assignment event: ${error.message}`);
     }
