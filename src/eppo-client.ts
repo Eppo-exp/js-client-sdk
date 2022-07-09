@@ -130,7 +130,7 @@ export default class EppoClient implements IEppoClient {
   }
 
   private setSessionOverrideIfLoadingConfigurations(overrideKey: string, assignmentValue: string) {
-    if (!this.sessionStorage.get(SESSION_ASSIGNMENT_CONFIG_LOADED)) {
+    if (this.sessionStorage.get(SESSION_ASSIGNMENT_CONFIG_LOADED) !== 'true') {
       this.sessionStorage.set(overrideKey, assignmentValue);
     }
   }
