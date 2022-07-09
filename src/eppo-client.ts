@@ -86,9 +86,10 @@ export default class EppoClient implements IEppoClient {
 
   public setLogger(logger: IAssignmentLogger) {
     this.assignmentLogger = logger;
+    this.flushQueuedEvents(); // log any events that may have been queued while initializing
   }
 
-  public flushLoggerEvents() {
+  private flushQueuedEvents() {
     const eventsToFlush = this.queuedEvents;
     this.queuedEvents = [];
     try {

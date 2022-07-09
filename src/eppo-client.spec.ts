@@ -71,14 +71,14 @@ describe('EppoClient E2E test', () => {
       name: 'control',
       shardRange: {
         start: 0,
-        end: 33,
+        end: 34,
       },
     },
     {
       name: 'variant-1',
       shardRange: {
         start: 34,
-        end: 66,
+        end: 67,
       },
     },
     {
@@ -90,7 +90,7 @@ describe('EppoClient E2E test', () => {
     },
   ];
 
-  describe('flushLoggerEvents', () => {
+  describe('setLogger', () => {
     const experiment = 'exp-111';
     beforeAll(() => {
       window.localStorage.setItem(
@@ -111,8 +111,6 @@ describe('EppoClient E2E test', () => {
       const client = new EppoClient(new EppoLocalStorage(), new EppoSessionStorage());
       client.getAssignment('subject-to-be-logged', experiment);
       client.setLogger(mockLogger);
-      expect(td.explain(mockLogger.logAssignment).callCount).toEqual(0);
-      client.flushLoggerEvents();
       expect(td.explain(mockLogger.logAssignment).callCount).toEqual(1);
       expect(td.explain(mockLogger.logAssignment).calls[0].args[0].subject).toEqual(
         'subject-to-be-logged',
@@ -124,9 +122,8 @@ describe('EppoClient E2E test', () => {
       const client = new EppoClient(new EppoLocalStorage(), new EppoSessionStorage());
       client.getAssignment('subject-to-be-logged', experiment);
       client.setLogger(mockLogger);
-      client.flushLoggerEvents();
       expect(td.explain(mockLogger.logAssignment).callCount).toEqual(1);
-      client.flushLoggerEvents();
+      client.setLogger(mockLogger);
       expect(td.explain(mockLogger.logAssignment).callCount).toEqual(1);
     });
 
@@ -134,11 +131,9 @@ describe('EppoClient E2E test', () => {
       const mockLogger = td.object<IAssignmentLogger>();
       const client = new EppoClient(new EppoLocalStorage(), new EppoSessionStorage());
       for (let i = 0; i < MAX_EVENT_QUEUE_SIZE + 100; i++) {
-        client.getAssignment('subject-to-be-logged', experiment);
+        client.getAssignment(`subject-to-be-logged-${i}`, experiment);
       }
       client.setLogger(mockLogger);
-      expect(td.explain(mockLogger.logAssignment).callCount).toEqual(0);
-      client.flushLoggerEvents();
       expect(td.explain(mockLogger.logAssignment).callCount).toEqual(MAX_EVENT_QUEUE_SIZE);
     });
   });

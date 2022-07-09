@@ -56,7 +56,6 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     sdkVersion,
   });
   EppoClient.instance.setLogger(config.assignmentLogger);
-  EppoClient.instance.flushLoggerEvents();
   const configurationRequestor = new ExperimentConfigurationRequestor(localStorage, httpClient);
   if (sessionStorage.get(SESSION_ASSIGNMENT_CONFIG_LOADED) !== 'true') {
     await configurationRequestor.fetchAndStoreConfigurations();
