@@ -55,7 +55,10 @@ export default class EppoClient implements IEppoClient {
     // we don't want a subject to switch between 2 variations during the same session.
     const sessionOverrideKey = `${subjectKey}-${experimentKey}-session-override`;
     const sessionOverride = this.sessionStorage.get(sessionOverrideKey);
-    if (sessionOverride && sessionOverride !== NULL_SENTINEL) {
+    if (sessionOverride) {
+      if (sessionOverride === NULL_SENTINEL) {
+        return null;
+      }
       this.logAssignment(experimentKey, sessionOverride, subjectKey, subjectAttributes);
       return sessionOverride;
     }
@@ -66,7 +69,6 @@ export default class EppoClient implements IEppoClient {
       return allowListOverride;
     }
     if (
-      sessionOverride === NULL_SENTINEL ||
       !experimentConfig?.enabled ||
       !this.subjectAttributesSatisfyRules(subjectAttributes, experimentConfig.rules) ||
       !this.isInExperimentSample(subjectKey, experimentKey, experimentConfig)
