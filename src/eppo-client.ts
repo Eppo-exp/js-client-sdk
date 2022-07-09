@@ -60,6 +60,11 @@ export default class EppoClient implements IEppoClient {
       return sessionOverride;
     }
     const experimentConfig = this.configurationStore.get<IExperimentConfiguration>(experimentKey);
+    const allowListOverride = this.getSubjectVariationOverride(subjectKey, experimentConfig);
+    if (allowListOverride) {
+      this.setSessionOverrideIfLoadingConfigurations(sessionOverrideKey, allowListOverride);
+      return allowListOverride;
+    }
     if (
       sessionOverride === NULL_SENTINEL ||
       !experimentConfig?.enabled ||
@@ -68,11 +73,6 @@ export default class EppoClient implements IEppoClient {
     ) {
       this.setSessionOverrideIfLoadingConfigurations(sessionOverrideKey, NULL_SENTINEL);
       return null;
-    }
-    const override = this.getSubjectVariationOverride(subjectKey, experimentConfig);
-    if (override) {
-      this.setSessionOverrideIfLoadingConfigurations(sessionOverrideKey, override);
-      return override;
     }
     const { variations, subjectShards } = experimentConfig;
     const shard = getShard(`assignment-${subjectKey}-${experimentKey}`, subjectShards);
@@ -145,7 +145,7 @@ export default class EppoClient implements IEppoClient {
     experimentConfig: IExperimentConfiguration,
   ): string {
     const subjectHash = createHash('md5').update(subjectKey).digest('hex');
-    return experimentConfig.overrides[subjectHash];
+    return experimentConfig?.overrides[subjectHash];
   }
 
   /**

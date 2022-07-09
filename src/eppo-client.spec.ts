@@ -179,7 +179,7 @@ describe('EppoClient E2E test', () => {
     );
   });
 
-  it('returns subject from overrides', () => {
+  it('returns subject from overrides when enabled is true', () => {
     const experiment = 'experiment_5';
     window.localStorage.setItem(
       experiment,
@@ -187,6 +187,26 @@ describe('EppoClient E2E test', () => {
         name: experiment,
         percentExposure: 1,
         enabled: true,
+        subjectShards: 100,
+        variations: mockVariations,
+        overrides: {
+          a90ea45116d251a43da56e03d3dd7275: 'variant-2',
+        },
+      }),
+    );
+    const client = new EppoClient(new EppoLocalStorage(), new EppoSessionStorage());
+    const assignment = client.getAssignment('subject-1', experiment);
+    expect(assignment).toEqual('variant-2');
+  });
+
+  it('returns subject from overrides when enabled is false', () => {
+    const experiment = 'experiment_5';
+    window.localStorage.setItem(
+      experiment,
+      JSON.stringify({
+        name: experiment,
+        percentExposure: 0,
+        enabled: false,
         subjectShards: 100,
         variations: mockVariations,
         overrides: {
