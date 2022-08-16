@@ -41,6 +41,7 @@ export default class EppoClient implements IEppoClient {
 
   private queuedEvents: IAssignmentEvent[] = [];
   private assignmentLogger: IAssignmentLogger = null;
+  private stickySessionsEnabled = false;
 
   constructor(
     private configurationStore: EppoLocalStorage,
@@ -65,7 +66,7 @@ export default class EppoClient implements IEppoClient {
     const experimentConfig = this.configurationStore.get<IExperimentConfiguration>(experimentKey);
     const allowListOverride = this.getSubjectVariationOverride(subjectKey, experimentConfig);
     if (allowListOverride) {
-      this.setSessionOverrideIfLoadingConfigurations(sessionOverrideKey, allowListOverride);
+      this.setSessionOverride(sessionOverrideKey, allowListOverride);
       return allowListOverride;
     }
     if (
@@ -73,7 +74,7 @@ export default class EppoClient implements IEppoClient {
       !this.subjectAttributesSatisfyRules(subjectAttributes, experimentConfig.rules) ||
       !this.isInExperimentSample(subjectKey, experimentKey, experimentConfig)
     ) {
-      this.setSessionOverrideIfLoadingConfigurations(sessionOverrideKey, NULL_SENTINEL);
+      this.setSessionOverride(sessionOverrideKey, NULL_SENTINEL);
       return null;
     }
     const { variations, subjectShards } = experimentConfig;
@@ -82,13 +83,17 @@ export default class EppoClient implements IEppoClient {
       isShardInRange(shard, variation.shardRange),
     ).name;
     this.logAssignment(experimentKey, assignedVariation, subjectKey, subjectAttributes);
-    this.setSessionOverrideIfLoadingConfigurations(sessionOverrideKey, assignedVariation);
+    this.setSessionOverride(sessionOverrideKey, assignedVariation);
     return assignedVariation;
   }
 
   public setLogger(logger: IAssignmentLogger) {
     this.assignmentLogger = logger;
     this.flushQueuedEvents(); // log any events that may have been queued while initializing
+  }
+
+  public setStickySessionsEnabled(isEnabled: boolean) {
+    this.stickySessionsEnabled = isEnabled;
   }
 
   private flushQueuedEvents() {
@@ -129,8 +134,11 @@ export default class EppoClient implements IEppoClient {
     }
   }
 
-  private setSessionOverrideIfLoadingConfigurations(overrideKey: string, assignmentValue: string) {
-    if (this.sessionStorage.get(SESSION_ASSIGNMENT_CONFIG_LOADED) !== 'true') {
+  private setSessionOverride(overrideKey: string, assignmentValue: string) {
+    if (
+      this.stickySessionsEnabled &&
+      this.sessionStorage.get(SESSION_ASSIGNMENT_CONFIG_LOADED) !== 'true'
+    ) {
       this.sessionStorage.set(overrideKey, assignmentValue);
     }
   }
