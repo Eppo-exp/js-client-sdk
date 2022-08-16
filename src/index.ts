@@ -30,11 +30,6 @@ export interface IClientConfig {
    * Pass a logging implementation to send variation assignments to your data warehouse.
    */
   assignmentLogger: IAssignmentLogger;
-
-  /**
-   * If enabled, the SDK getAssignment function will return the same assignment for the lifetime of the browser session.
-   */
-  stickySessionsEnabled?: boolean;
 }
 
 export { IAssignmentLogger, IAssignmentEvent } from './assignment-logger';
@@ -62,10 +57,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
   });
   EppoClient.instance.setLogger(config.assignmentLogger);
   const configurationRequestor = new ExperimentConfigurationRequestor(localStorage, httpClient);
-  if (
-    !config.stickySessionsEnabled || // always do request on initialize if sticky sessions disabled
-    sessionStorage.get(SESSION_ASSIGNMENT_CONFIG_LOADED) !== 'true'
-  ) {
+  if (sessionStorage.get(SESSION_ASSIGNMENT_CONFIG_LOADED) !== 'true') {
     await configurationRequestor.fetchAndStoreConfigurations();
     sessionStorage.set(SESSION_ASSIGNMENT_CONFIG_LOADED, 'true');
   }
