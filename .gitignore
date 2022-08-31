@@ -7,5 +7,4 @@ temp
 .env
 yarn-error.log
 
-test/assignment-v2
-test/rac-experiments.json
+test/data

@@ -24,7 +24,7 @@ help: Makefile
 	@sed -n 's/^##//p' $<
 
 ## test-data
-testDataDir := test/
+testDataDir := test/data/
 .PHONY: test-data
 test-data:
 	rm -rf $(testDataDir)

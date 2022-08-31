@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import { IExperimentConfiguration } from '../src/experiment/experiment-configuration';
 import { IVariation } from '../src/experiment/variation';
 
-export const TEST_DATA_DIR = './test/';
+export const TEST_DATA_DIR = './test/data/';
 export const ASSIGNMENT_TEST_DATA_DIR = TEST_DATA_DIR + 'assignment-v2/';
 export const MOCK_RAC_RESPONSE_FILE = 'rac-experiments.json';
 
