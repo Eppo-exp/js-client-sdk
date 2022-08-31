@@ -13,7 +13,6 @@ import {
 import { IAssignmentLogger } from './assignment-logger';
 import { MAX_EVENT_QUEUE_SIZE } from './constants';
 import EppoClient from './eppo-client';
-import { IExperimentConfiguration } from './experiment/experiment-configuration';
 import { EppoLocalStorage } from './local-storage';
 import { OperatorType } from './rule';
 import { EppoSessionStorage } from './session-storage';
