@@ -2,9 +2,9 @@ import * as md5 from 'md5';
 
 import { IAssignmentEvent, IAssignmentLogger } from './assignment-logger';
 import { MAX_EVENT_QUEUE_SIZE } from './constants';
-import { IExperimentConfiguration } from './experiment/experiment-configuration';
+import { IExperimentConfiguration } from './experiment/experiment-configuration-dto';
 import { EppoLocalStorage } from './local-storage';
-import { Rule } from './rule';
+import { Rule } from './rule-dto';
 import { matchesAnyRule } from './rule_evaluator';
 import { EppoSessionStorage } from './session-storage';
 import { getShard, isShardInRange } from './shard';

@@ -1,6 +1,6 @@
 import * as md5 from 'md5';
 
-import { IShardRange } from './experiment/variation';
+import { IShardRange } from './experiment/variation-dto';
 
 export function getShard(input: string, subjectShards: number): number {
   const hashOutput = md5(input);
