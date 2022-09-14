@@ -3,10 +3,10 @@ import { EppoLocalStorage } from '../local-storage';
 
 import { IExperimentConfiguration } from './experiment-configuration-dto';
 
-const RAC_ENDPOINT = '/randomized_assignment/config';
+const RAC_ENDPOINT = '/randomized_assignment/v2/config';
 
 interface IRandomizedAssignmentConfig {
-  experiments: Record<string, IExperimentConfiguration>;
+  flags: Record<string, IExperimentConfiguration>;
 }
 
 export default class ExperimentConfigurationRequestor {
@@ -14,7 +14,7 @@ export default class ExperimentConfigurationRequestor {
 
   async fetchAndStoreConfigurations(): Promise<Record<string, IExperimentConfiguration>> {
     const responseData = await this.httpClient.get<IRandomizedAssignmentConfig>(RAC_ENDPOINT);
-    this.configurationStore.setEntries<IExperimentConfiguration>(responseData.experiments);
-    return responseData.experiments;
+    this.configurationStore.setEntries<IExperimentConfiguration>(responseData.flags);
+    return responseData.flags;
   }
 }
