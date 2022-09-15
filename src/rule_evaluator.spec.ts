@@ -1,4 +1,4 @@
-import { OperatorType, Rule } from './rule-dto';
+import { OperatorType, Rule } from './dto/rule-dto';
 import { matchesAnyRule } from './rule_evaluator';
 
 describe('matchesAnyRule', () => {

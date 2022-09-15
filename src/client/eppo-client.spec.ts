@@ -4,20 +4,19 @@
 import * as td from 'testdouble';
 import mock from 'xhr-mock';
 
+import { getInstance, init } from '..';
 import {
   IAssignmentTestCase,
   readAssignmentTestData,
   readMockRacResponse,
-} from '../test/testHelpers';
+} from '../../test/testHelpers';
+import { IAssignmentLogger } from '../assignment-logger';
+import { MAX_EVENT_QUEUE_SIZE } from '../constants';
+import { OperatorType } from '../dto/rule-dto';
+import { EppoLocalStorage } from '../local-storage';
+import { EppoSessionStorage } from '../session-storage';
 
-import { IAssignmentLogger } from './assignment-logger';
-import { MAX_EVENT_QUEUE_SIZE } from './constants';
 import EppoClient from './eppo-client';
-import { EppoLocalStorage } from './local-storage';
-import { OperatorType } from './rule-dto';
-import { EppoSessionStorage } from './session-storage';
-
-import { getInstance, init } from '.';
 
 describe('EppoClient E2E test', () => {
   const sessionOverrideSubject = 'subject-14';

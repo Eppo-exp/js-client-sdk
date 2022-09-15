@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 
-import { IExperimentConfiguration } from '../src/experiment/experiment-configuration-dto';
+import { IExperimentConfiguration } from '../src/dto/experiment-configuration-dto';
 import { IVariation } from '../src/experiment/variation-dto';
 
 export const TEST_DATA_DIR = './test/data/';

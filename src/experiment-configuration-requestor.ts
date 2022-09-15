@@ -1,7 +1,6 @@
-import HttpClient from '../http-client';
-import { EppoLocalStorage } from '../local-storage';
-
-import { IExperimentConfiguration } from './experiment-configuration-dto';
+import { IExperimentConfiguration } from './dto/experiment-configuration-dto';
+import HttpClient from './http-client';
+import { EppoLocalStorage } from './local-storage';
 
 const RAC_ENDPOINT = '/randomized_assignment/v2/config';
 

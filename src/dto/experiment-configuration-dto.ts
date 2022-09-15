@@ -1,6 +1,5 @@
-import { IRule } from '../rule-dto';
-
 import { IAllocation } from './allocation-dto';
+import { IRule } from './rule-dto';
 
 export interface IExperimentConfiguration {
   name: string;
