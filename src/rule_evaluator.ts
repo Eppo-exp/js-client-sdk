@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Condition, OperatorType, IRule } from './dto/rule-dto';
 
-export function matchesAnyRule(subjectAttributes: Record<string, any>, rules: IRule[]): IRule {
+export function findMatchingRule(subjectAttributes: Record<string, any>, rules: IRule[]): IRule {
   for (const rule of rules) {
     if (matchesRule(subjectAttributes, rule)) {
       return rule;

@@ -5,7 +5,7 @@ import { MAX_EVENT_QUEUE_SIZE } from '../constants';
 import { IAllocation } from '../dto/allocation-dto';
 import { IExperimentConfiguration } from '../dto/experiment-configuration-dto';
 import { EppoLocalStorage } from '../local-storage';
-import { matchesAnyRule } from '../rule_evaluator';
+import { findMatchingRule } from '../rule_evaluator';
 import { EppoSessionStorage } from '../session-storage';
 import { getShard, isShardInRange } from '../shard';
 import { validateNotBlank } from '../validation';
@@ -55,11 +55,11 @@ export default class EppoClient implements IEppoClient {
 
     if (allowListOverride) return allowListOverride;
 
-    // Check for disabled flags and configuration with no rules.
-    if (!experimentConfig?.enabled || experimentConfig.rules.length === 0) return null;
+    // Check for disabled flag.
+    if (!experimentConfig?.enabled) return null;
 
     // Attempt to match a rule from the list.
-    const matchedRule = matchesAnyRule(subjectAttributes || {}, experimentConfig.rules);
+    const matchedRule = findMatchingRule(subjectAttributes || {}, experimentConfig.rules);
     if (!matchedRule) return null;
 
     // Check if subject is in allocation sample.

@@ -1,7 +1,7 @@
 import { OperatorType, Rule } from './dto/rule-dto';
-import { matchesAnyRule } from './rule_evaluator';
+import { findMatchingRule } from './rule_evaluator';
 
-describe('matchesAnyRule', () => {
+describe('findMatchingRule', () => {
   const ruleWithEmptyConditions: Rule = {
     conditions: [],
   };
@@ -31,39 +31,39 @@ describe('matchesAnyRule', () => {
 
   it('returns null if rules array is empty', () => {
     const rules: Rule[] = [];
-    expect(matchesAnyRule({ name: 'my-user' }, rules)).toEqual(null);
+    expect(findMatchingRule({ name: 'my-user' }, rules)).toEqual(null);
   });
 
   it('returns null if attributes do not match any rules', () => {
     const rules = [numericRule];
-    expect(matchesAnyRule({ totalSales: 101 }, rules)).toEqual(null);
+    expect(findMatchingRule({ totalSales: 101 }, rules)).toEqual(null);
   });
 
   it('returns the rule if attributes match AND conditions', () => {
     const rules = [numericRule];
-    expect(matchesAnyRule({ totalSales: 100 }, rules)).toEqual(numericRule);
+    expect(findMatchingRule({ totalSales: 100 }, rules)).toEqual(numericRule);
   });
 
   it('returns null if there is no attribute for the condition', () => {
     const rules = [numericRule];
-    expect(matchesAnyRule({ unknown: 'test' }, rules)).toEqual(null);
+    expect(findMatchingRule({ unknown: 'test' }, rules)).toEqual(null);
   });
 
   it('returns the rule if it has no conditions', () => {
     const rules = [ruleWithEmptyConditions];
-    expect(matchesAnyRule({ totalSales: 101 }, rules)).toEqual(ruleWithEmptyConditions);
+    expect(findMatchingRule({ totalSales: 101 }, rules)).toEqual(ruleWithEmptyConditions);
   });
 
   it('returns null if using numeric operator with string', () => {
     const rules = [numericRule, ruleWithMatchesCondition];
-    expect(matchesAnyRule({ totalSales: 'stringValue' }, rules)).toEqual(null);
-    expect(matchesAnyRule({ totalSales: '20' }, rules)).toEqual(null);
+    expect(findMatchingRule({ totalSales: 'stringValue' }, rules)).toEqual(null);
+    expect(findMatchingRule({ totalSales: '20' }, rules)).toEqual(null);
   });
 
   it('handles rule with matches operator', () => {
     const rules = [ruleWithMatchesCondition];
-    expect(matchesAnyRule({ user_id: '14' }, rules)).toEqual(ruleWithMatchesCondition);
-    expect(matchesAnyRule({ user_id: 14 }, rules)).toEqual(ruleWithMatchesCondition);
+    expect(findMatchingRule({ user_id: '14' }, rules)).toEqual(ruleWithMatchesCondition);
+    expect(findMatchingRule({ user_id: 14 }, rules)).toEqual(ruleWithMatchesCondition);
   });
 
   it('handles oneOf rule type with boolean', () => {
@@ -85,10 +85,10 @@ describe('matchesAnyRule', () => {
         },
       ],
     };
-    expect(matchesAnyRule({ enabled: true }, [oneOfRule])).toEqual(oneOfRule);
-    expect(matchesAnyRule({ enabled: false }, [oneOfRule])).toEqual(null);
-    expect(matchesAnyRule({ enabled: true }, [notOneOfRule])).toEqual(null);
-    expect(matchesAnyRule({ enabled: false }, [notOneOfRule])).toEqual(notOneOfRule);
+    expect(findMatchingRule({ enabled: true }, [oneOfRule])).toEqual(oneOfRule);
+    expect(findMatchingRule({ enabled: false }, [oneOfRule])).toEqual(null);
+    expect(findMatchingRule({ enabled: true }, [notOneOfRule])).toEqual(null);
+    expect(findMatchingRule({ enabled: false }, [notOneOfRule])).toEqual(notOneOfRule);
   });
 
   it('handles oneOf rule type with string', () => {
@@ -110,11 +110,11 @@ describe('matchesAnyRule', () => {
         },
       ],
     };
-    expect(matchesAnyRule({ userId: 'user1' }, [oneOfRule])).toEqual(oneOfRule);
-    expect(matchesAnyRule({ userId: 'user2' }, [oneOfRule])).toEqual(oneOfRule);
-    expect(matchesAnyRule({ userId: 'user3' }, [oneOfRule])).toEqual(null);
-    expect(matchesAnyRule({ userId: 'user14' }, [notOneOfRule])).toEqual(null);
-    expect(matchesAnyRule({ userId: 'user15' }, [notOneOfRule])).toEqual(notOneOfRule);
+    expect(findMatchingRule({ userId: 'user1' }, [oneOfRule])).toEqual(oneOfRule);
+    expect(findMatchingRule({ userId: 'user2' }, [oneOfRule])).toEqual(oneOfRule);
+    expect(findMatchingRule({ userId: 'user3' }, [oneOfRule])).toEqual(null);
+    expect(findMatchingRule({ userId: 'user14' }, [notOneOfRule])).toEqual(null);
+    expect(findMatchingRule({ userId: 'user15' }, [notOneOfRule])).toEqual(notOneOfRule);
   });
 
   it('does case insensitive matching with oneOf operator', () => {
@@ -127,8 +127,8 @@ describe('matchesAnyRule', () => {
         },
       ],
     };
-    expect(matchesAnyRule({ country: 'us' }, [oneOfRule])).toEqual(oneOfRule);
-    expect(matchesAnyRule({ country: 'cA' }, [oneOfRule])).toEqual(oneOfRule);
+    expect(findMatchingRule({ country: 'us' }, [oneOfRule])).toEqual(oneOfRule);
+    expect(findMatchingRule({ country: 'cA' }, [oneOfRule])).toEqual(oneOfRule);
   });
 
   it('does case insensitive matching with notOneOf operator', () => {
@@ -141,7 +141,7 @@ describe('matchesAnyRule', () => {
         },
       ],
     };
-    expect(matchesAnyRule({ deviceType: '1ab' }, [notOneOf])).toEqual(null);
+    expect(findMatchingRule({ deviceType: '1ab' }, [notOneOf])).toEqual(null);
   });
 
   it('handles oneOf rule with number', () => {
@@ -163,10 +163,10 @@ describe('matchesAnyRule', () => {
         },
       ],
     };
-    expect(matchesAnyRule({ userId: 1 }, [oneOfRule])).toEqual(oneOfRule);
-    expect(matchesAnyRule({ userId: '2' }, [oneOfRule])).toEqual(oneOfRule);
-    expect(matchesAnyRule({ userId: 3 }, [oneOfRule])).toEqual(null);
-    expect(matchesAnyRule({ userId: 14 }, [notOneOfRule])).toEqual(null);
-    expect(matchesAnyRule({ userId: '15' }, [notOneOfRule])).toEqual(notOneOfRule);
+    expect(findMatchingRule({ userId: 1 }, [oneOfRule])).toEqual(oneOfRule);
+    expect(findMatchingRule({ userId: '2' }, [oneOfRule])).toEqual(oneOfRule);
+    expect(findMatchingRule({ userId: 3 }, [oneOfRule])).toEqual(null);
+    expect(findMatchingRule({ userId: 14 }, [notOneOfRule])).toEqual(null);
+    expect(findMatchingRule({ userId: '15' }, [notOneOfRule])).toEqual(notOneOfRule);
   });
 });
