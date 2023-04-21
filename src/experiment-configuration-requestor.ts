@@ -2,7 +2,7 @@ import { IExperimentConfiguration } from './dto/experiment-configuration-dto';
 import HttpClient from './http-client';
 import { EppoLocalStorage } from './local-storage';
 
-const RAC_ENDPOINT = '/randomized_assignment/v2/config';
+const RAC_ENDPOINT = '/randomized_assignment/v3/config';
 
 interface IRandomizedAssignmentConfig {
   flags: Record<string, IExperimentConfiguration>;
