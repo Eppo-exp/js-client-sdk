@@ -1,14 +1,16 @@
+import {
+  IAssignmentLogger,
+  validation,
+  constants,
+  ExperimentConfigurationRequestor,
+  IEppoClient,
+  EppoClient,
+  HttpClient,
+} from '@eppo/js-client-sdk-common';
 import axios from 'axios';
 
-import { IAssignmentLogger } from './assignment-logger';
-import EppoClient, { IEppoClient } from './client/eppo-client';
-import { BASE_URL, REQUEST_TIMEOUT_MILLIS, SESSION_ASSIGNMENT_CONFIG_LOADED } from './constants';
-import ExperimentConfigurationRequestor from './experiment-configuration-requestor';
-import HttpClient from './http-client';
 import { EppoLocalStorage } from './local-storage';
 import { sdkName, sdkVersion } from './sdk-data';
-import { EppoSessionStorage } from './session-storage';
-import { validateNotBlank } from './validation';
 
 /**
  * Configuration used for initializing the Eppo client
@@ -32,11 +34,10 @@ export interface IClientConfig {
   assignmentLogger: IAssignmentLogger;
 }
 
-export { IAssignmentLogger, IAssignmentEvent } from './assignment-logger';
-export { IEppoClient } from './client/eppo-client';
-
 const localStorage = new EppoLocalStorage();
-const sessionStorage = new EppoSessionStorage();
+export class EppoJSClient extends EppoClient {
+  public static instance: EppoJSClient = new EppoJSClient(localStorage);
+}
 
 /**
  * Initializes the Eppo client with configuration parameters.
@@ -45,21 +46,20 @@ const sessionStorage = new EppoSessionStorage();
  * @public
  */
 export async function init(config: IClientConfig): Promise<IEppoClient> {
-  validateNotBlank(config.apiKey, 'API key required');
+  validation.validateNotBlank(config.apiKey, 'API key required');
   const axiosInstance = axios.create({
-    baseURL: config.baseUrl || BASE_URL,
-    timeout: REQUEST_TIMEOUT_MILLIS,
+    baseURL: config.baseUrl || constants.BASE_URL,
+    timeout: constants.REQUEST_TIMEOUT_MILLIS,
   });
   const httpClient = new HttpClient(axiosInstance, {
     apiKey: config.apiKey,
     sdkName,
     sdkVersion,
   });
-  EppoClient.instance.setLogger(config.assignmentLogger);
+  EppoJSClient.instance.setLogger(config.assignmentLogger);
   const configurationRequestor = new ExperimentConfigurationRequestor(localStorage, httpClient);
   await configurationRequestor.fetchAndStoreConfigurations();
-  sessionStorage.set(SESSION_ASSIGNMENT_CONFIG_LOADED, 'true');
-  return EppoClient.instance;
+  return EppoJSClient.instance;
 }
 
 /**
@@ -68,5 +68,5 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
  * @returns a singleton client instance
  */
 export function getInstance(): IEppoClient {
-  return EppoClient.instance;
+  return EppoJSClient.instance;
 }
