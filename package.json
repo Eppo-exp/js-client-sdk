@@ -1,6 +1,6 @@
 {
   "name": "@eppo/js-client-sdk",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Eppo SDK for client-side JavaScript applications",
   "main": "dist/index.js",
   "files": [
@@ -56,6 +56,7 @@
     "xhr-mock": "^2.5.1"
   },
   "dependencies": {
+    "@eppo/js-client-sdk-common": "1.1.0",
     "axios": "^0.27.2",
     "md5": "^2.3.0"
   }
