@@ -4,23 +4,23 @@
 
 ```ts
 
+import { EppoClient } from '@eppo/js-client-sdk-common';
+import { IAssignmentEvent } from '@eppo/js-client-sdk-common';
+import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
+import { IEppoClient } from '@eppo/js-client-sdk-common';
+
+// @public (undocumented)
+export class EppoJSClient extends EppoClient {
+    // (undocumented)
+    static instance: EppoJSClient;
+}
+
 // @public
 export function getInstance(): IEppoClient;
 
-// @public
-export interface IAssignmentEvent {
-    experiment: string;
-    subject: string;
-    // (undocumented)
-    subjectAttributes: Record<string, any>;
-    timestamp: string;
-    variation: string;
-}
+export { IAssignmentEvent }
 
-// @public
-export interface IAssignmentLogger {
-    logAssignment(assignment: IAssignmentEvent): void;
-}
+export { IAssignmentLogger }
 
 // @public
 export interface IClientConfig {
@@ -29,10 +29,7 @@ export interface IClientConfig {
     baseUrl?: string;
 }
 
-// @public
-export interface IEppoClient {
-    getAssignment(subjectKey: string, experimentKey: string, subjectAttributes?: Record<string, any>): string;
-}
+export { IEppoClient }
 
 // @public
 export function init(config: IClientConfig): Promise<IEppoClient>;
