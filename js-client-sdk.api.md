@@ -9,7 +9,7 @@ import { IAssignmentEvent } from '@eppo/js-client-sdk-common';
 import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
 import { IEppoClient } from '@eppo/js-client-sdk-common';
 
-// @public (undocumented)
+// @public
 export class EppoJSClient extends EppoClient {
     // (undocumented)
     static instance: EppoJSClient;
