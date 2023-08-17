@@ -37,6 +37,11 @@ export interface IClientConfig {
 export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-client-sdk-common';
 
 const localStorage = new EppoLocalStorage();
+
+/**
+ * Client for assigning experiment variations.
+ * @public
+ */
 export class EppoJSClient extends EppoClient {
   public static instance: EppoJSClient = new EppoJSClient(localStorage);
 }
