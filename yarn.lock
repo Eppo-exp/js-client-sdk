@@ -289,10 +289,10 @@
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz#1d572bfbbe14b7704e0ba0f39b74815b84870d70"
   integrity sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==
 
-"@eppo/js-client-sdk-common@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@eppo/js-client-sdk-common/-/js-client-sdk-common-1.2.0.tgz#b5267127f9e2b2cfde79f1e8d05058ccb358420f"
-  integrity sha512-deqSbrutzXdWyKFydXcIUViuCoyvbWIp2ZKX+4Eowbb86NDbB9VGEa55f5ET/+Z8xZ+QcCZ4kuEisIkRD6nlxA==
+"@eppo/js-client-sdk-common@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@eppo/js-client-sdk-common/-/js-client-sdk-common-1.2.1.tgz#7161e9e22233b411d70f3977effb91a3b2290b26"
+  integrity sha512-3SGtgyJRNb+RsZdZ+acaD1bNfuiXJxN31OTXbRQO57RUrR6In0nmKdp/3aOiHj/CqDu/QbmdNe2zVjgetihfqw==
   dependencies:
     axios "^0.27.2"
     md5 "^2.3.0"
