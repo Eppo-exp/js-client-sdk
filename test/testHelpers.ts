@@ -9,6 +9,7 @@ export const MOCK_RAC_RESPONSE_FILE = 'rac-experiments-v2.json';
 
 export interface IAssignmentTestCase {
   experiment: string;
+  valueType: string;
   percentExposure: number;
   variations: IVariation[];
   subjects: string[];
