@@ -10,10 +10,10 @@ import {
   readMockRacResponse,
 } from '../test/testHelpers';
 
-import { EppoJSClient, init } from './index';
+import { IEppoClient, init } from './index';
 
 describe('EppoJSClient E2E test', () => {
-  let client: EppoJSClient;
+  let client: IEppoClient;
 
   beforeAll(async () => {
     mock.setup();
@@ -69,7 +69,7 @@ describe('EppoJSClient E2E test', () => {
     });
   });
 
-  function getAssignments(subjects: string[], experiment: string): string[] {
+  function getAssignments(subjects: string[], experiment: string): (string | null)[] {
     return subjects.map((subjectKey) => {
       return client.getAssignment(subjectKey, experiment);
     });
@@ -82,7 +82,7 @@ describe('EppoJSClient E2E test', () => {
       subjectAttributes: Record<string, any>;
     }[],
     experiment: string,
-  ): string[] {
+  ): (string | null)[] {
     return subjectsWithAttributes.map((subject) => {
       return client.getAssignment(subject.subjectKey, experiment, subject.subjectAttributes);
     });
