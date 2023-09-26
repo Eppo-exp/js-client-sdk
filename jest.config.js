@@ -4,6 +4,7 @@ module.exports = {
   moduleNameMapper: {
     '^src/(.*)': ['<rootDir>/src/$1'],
     '^test/(.*)': ['<rootDir>/test/$1'],
+    '@eppo(.*)': '<rootDir>/node_modules/@eppo/$1',
   },
   testRegex: '.*\\..*spec\\.ts$',
   transform: {
