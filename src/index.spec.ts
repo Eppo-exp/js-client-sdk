@@ -215,9 +215,14 @@ describe('EppoJSClient E2E test', () => {
         expectedAssignments,
       }: IAssignmentTestCase) => {
         console.log(`---- Test Case for ${experiment} Experiment ----`);
-        const assignments = subjectsWithAttributes
-          ? getAssignmentsWithSubjectAttributes(subjectsWithAttributes, experiment, valueType)
-          : getAssignments(subjects, experiment, valueType);
+
+        const assignments = getAssignmentsWithSubjectAttributes(
+          subjectsWithAttributes
+            ? subjectsWithAttributes
+            : subjects.map((subject) => ({ subjectKey: subject })),
+          experiment,
+          valueType,
+        );
 
         switch (valueType) {
           case ValueTestType.BoolType: {
@@ -285,7 +290,7 @@ describe('EppoJSClient E2E test', () => {
     subjectsWithAttributes: {
       subjectKey: string;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      subjectAttributes: Record<string, any>;
+      subjectAttributes?: Record<string, any>;
     }[],
     experiment: string,
     valueTestType: ValueTestType = ValueTestType.StringType,
