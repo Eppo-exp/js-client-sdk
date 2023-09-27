@@ -254,38 +254,6 @@ describe('EppoJSClient E2E test', () => {
     });
   });
 
-  function getAssignments(
-    subjects: string[],
-    experiment: string,
-    valueTestType: ValueTestType = ValueTestType.StringType,
-  ): (EppoValue | null)[] {
-    return subjects.map((subjectKey) => {
-      switch (valueTestType) {
-        case ValueTestType.BoolType: {
-          const ba = globalClient.getBoolAssignment(subjectKey, experiment);
-          if (ba === null) return null;
-          return EppoValue.Bool(ba);
-        }
-        case ValueTestType.NumericType: {
-          const na = globalClient.getNumericAssignment(subjectKey, experiment);
-          if (na === null) return null;
-          return EppoValue.Numeric(na);
-        }
-        case ValueTestType.StringType: {
-          const sa = globalClient.getStringAssignment(subjectKey, experiment);
-          if (sa === null) return null;
-          return EppoValue.String(sa);
-        }
-        case ValueTestType.JSONType: {
-          const sa = globalClient.getJSONStringAssignment(subjectKey, experiment);
-          const oa = globalClient.getParsedJSONAssignment(subjectKey, experiment);
-          if (oa == null || sa === null) return null;
-          return EppoValue.JSON(sa, oa);
-        }
-      }
-    });
-  }
-
   function getAssignmentsWithSubjectAttributes(
     subjectsWithAttributes: {
       subjectKey: string;
