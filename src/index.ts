@@ -35,7 +35,12 @@ export interface IClientConfig {
   assignmentLogger: IAssignmentLogger;
 }
 
-export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-client-sdk-common';
+export {
+  IAssignmentLogger,
+  IAssignmentEvent,
+  IEppoClient,
+  IConfigurationStore,
+} from '@eppo/js-client-sdk-common';
 
 /**
  * Client for assigning experiment variations.
