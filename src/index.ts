@@ -6,6 +6,7 @@ import {
   IEppoClient,
   EppoClient,
   HttpClient,
+  IConfigurationStore,
 } from '@eppo/js-client-sdk-common';
 import axios from 'axios';
 
@@ -36,14 +37,12 @@ export interface IClientConfig {
 
 export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-client-sdk-common';
 
-const localStorage = new EppoLocalStorage();
-
 /**
  * Client for assigning experiment variations.
  * @public
  */
 export class EppoJSClient extends EppoClient {
-  public static instance: EppoJSClient = new EppoJSClient(localStorage);
+  public static instance: EppoJSClient;
 }
 
 /**
@@ -52,7 +51,10 @@ export class EppoJSClient extends EppoClient {
  * @param config client configuration
  * @public
  */
-export async function init(config: IClientConfig): Promise<IEppoClient> {
+export async function init(
+  config: IClientConfig,
+  configurationStore?: IConfigurationStore,
+): Promise<IEppoClient> {
   validation.validateNotBlank(config.apiKey, 'API key required');
   const axiosInstance = axios.create({
     baseURL: config.baseUrl || constants.BASE_URL,
@@ -63,8 +65,10 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     sdkName,
     sdkVersion,
   });
+  const storage = configurationStore ?? new EppoLocalStorage();
+  EppoJSClient.instance = new EppoJSClient(storage);
   EppoJSClient.instance.setLogger(config.assignmentLogger);
-  const configurationRequestor = new ExperimentConfigurationRequestor(localStorage, httpClient);
+  const configurationRequestor = new ExperimentConfigurationRequestor(storage, httpClient);
   await configurationRequestor.fetchAndStoreConfigurations();
   return EppoJSClient.instance;
 }
