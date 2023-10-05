@@ -6,6 +6,7 @@ import {
   IEppoClient,
   EppoClient,
   HttpClient,
+  IAssignmentHooks,
 } from '@eppo/js-client-sdk-common';
 import axios from 'axios';
 
@@ -44,6 +45,66 @@ const localStorage = new EppoLocalStorage();
  */
 export class EppoJSClient extends EppoClient {
   public static instance: EppoJSClient = new EppoJSClient(localStorage);
+
+  public getAssignment(
+    subjectKey: string,
+    flagKey: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    subjectAttributes?: Record<string, any>,
+    assignmentHooks?: IAssignmentHooks,
+  ): string | null {
+    return super.getAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks);
+  }
+
+  public getStringAssignment(
+    subjectKey: string,
+    flagKey: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    subjectAttributes?: Record<string, any>,
+    assignmentHooks?: IAssignmentHooks,
+  ): string | null {
+    return super.getStringAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks);
+  }
+
+  public getBoolAssignment(
+    subjectKey: string,
+    flagKey: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    subjectAttributes?: Record<string, any>,
+    assignmentHooks?: IAssignmentHooks,
+  ): boolean | null {
+    return super.getBoolAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks);
+  }
+
+  public getNumericAssignment(
+    subjectKey: string,
+    flagKey: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    subjectAttributes?: Record<string, any>,
+    assignmentHooks?: IAssignmentHooks,
+  ): number | null {
+    return super.getNumericAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks);
+  }
+
+  public getJSONStringAssignment(
+    subjectKey: string,
+    flagKey: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    subjectAttributes?: Record<string, any>,
+    assignmentHooks?: IAssignmentHooks,
+  ): string | null {
+    return super.getJSONStringAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks);
+  }
+
+  public getParsedJSONAssignment(
+    subjectKey: string,
+    flagKey: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    subjectAttributes?: Record<string, any>,
+    assignmentHooks?: IAssignmentHooks,
+  ): object | null {
+    return super.getParsedJSONAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks);
+  }
 }
 
 /**
