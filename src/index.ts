@@ -53,7 +53,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes?: Record<string, any>,
     assignmentHooks?: IAssignmentHooks,
   ): string | null {
-    return super.getAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks);
+    return super.getAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks, true);
   }
 
   public getStringAssignment(
@@ -63,7 +63,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes?: Record<string, any>,
     assignmentHooks?: IAssignmentHooks,
   ): string | null {
-    return super.getStringAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks);
+    return super.getStringAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks, true);
   }
 
   public getBoolAssignment(
@@ -73,7 +73,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes?: Record<string, any>,
     assignmentHooks?: IAssignmentHooks,
   ): boolean | null {
-    return super.getBoolAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks);
+    return super.getBoolAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks, true);
   }
 
   public getNumericAssignment(
@@ -83,7 +83,13 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes?: Record<string, any>,
     assignmentHooks?: IAssignmentHooks,
   ): number | null {
-    return super.getNumericAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks);
+    return super.getNumericAssignment(
+      subjectKey,
+      flagKey,
+      subjectAttributes,
+      assignmentHooks,
+      true,
+    );
   }
 
   public getJSONStringAssignment(
@@ -93,7 +99,13 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes?: Record<string, any>,
     assignmentHooks?: IAssignmentHooks,
   ): string | null {
-    return super.getJSONStringAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks);
+    return super.getJSONStringAssignment(
+      subjectKey,
+      flagKey,
+      subjectAttributes,
+      assignmentHooks,
+      true,
+    );
   }
 
   public getParsedJSONAssignment(
@@ -103,14 +115,20 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes?: Record<string, any>,
     assignmentHooks?: IAssignmentHooks,
   ): object | null {
-    return super.getParsedJSONAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks);
+    return super.getParsedJSONAssignment(
+      subjectKey,
+      flagKey,
+      subjectAttributes,
+      assignmentHooks,
+      true,
+    );
   }
 }
 
 /**
  * Initializes the Eppo client with configuration parameters.
  * This method should be called once on application startup.
- * @param config client configuration
+ * @param config - client configuration
  * @public
  */
 export async function init(config: IClientConfig): Promise<IEppoClient> {
@@ -134,6 +152,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
  * Used to access a singleton SDK client instance.
  * Use the method after calling init() to initialize the client.
  * @returns a singleton client instance
+ * @public
  */
 export function getInstance(): IEppoClient {
   return EppoJSClient.instance;
