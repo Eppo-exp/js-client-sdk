@@ -3,6 +3,7 @@
  */
 
 import { EppoValue } from '@eppo/js-client-sdk-common/dist/eppo_value';
+import * as md5 from 'md5';
 import * as td from 'testdouble';
 import mock from 'xhr-mock';
 
@@ -21,9 +22,10 @@ describe('EppoJSClient E2E test', () => {
   let globalClient: IEppoClient;
 
   const flagKey = 'mock-experiment';
+  const hashedFlagKey = md5(flagKey);
 
   const mockExperimentConfig = {
-    name: flagKey,
+    name: hashedFlagKey,
     enabled: true,
     subjectShards: 100,
     overrides: {},
@@ -95,7 +97,7 @@ describe('EppoJSClient E2E test', () => {
   it('assigns subject from overrides when experiment is enabled', () => {
     const mockConfigStore = td.object<EppoLocalStorage>();
     const mockLogger = td.object<IAssignmentLogger>();
-    td.when(mockConfigStore.get(flagKey)).thenReturn({
+    td.when(mockConfigStore.get(hashedFlagKey)).thenReturn({
       ...mockExperimentConfig,
       overrides: {
         '1b50f33aef8f681a13f623963da967ed': 'variant-2',
@@ -113,7 +115,7 @@ describe('EppoJSClient E2E test', () => {
   it('assigns subject from overrides when experiment is not enabled', () => {
     const mockConfigStore = td.object<EppoLocalStorage>();
     const mockLogger = td.object<IAssignmentLogger>();
-    td.when(mockConfigStore.get(flagKey)).thenReturn({
+    td.when(mockConfigStore.get(hashedFlagKey)).thenReturn({
       ...mockExperimentConfig,
       overrides: {
         '1b50f33aef8f681a13f623963da967ed': 'variant-2',
@@ -131,7 +133,7 @@ describe('EppoJSClient E2E test', () => {
   it('returns null when experiment config is absent', () => {
     const mockConfigStore = td.object<EppoLocalStorage>();
     const mockLogger = td.object<IAssignmentLogger>();
-    td.when(mockConfigStore.get(flagKey)).thenReturn(null);
+    td.when(mockConfigStore.get(hashedFlagKey)).thenReturn(null);
     const client = new EppoJSClient(mockConfigStore);
     client.setLogger(mockLogger);
     const assignment = client.getAssignment('subject-10', flagKey);
@@ -141,7 +143,7 @@ describe('EppoJSClient E2E test', () => {
   it('logs variation assignment and experiment key', () => {
     const mockConfigStore = td.object<EppoLocalStorage>();
     const mockLogger = td.object<IAssignmentLogger>();
-    td.when(mockConfigStore.get(flagKey)).thenReturn(mockExperimentConfig);
+    td.when(mockConfigStore.get(hashedFlagKey)).thenReturn(mockExperimentConfig);
     const subjectAttributes = { foo: 3 };
     const client = new EppoJSClient(mockConfigStore);
     client.setLogger(mockLogger);
@@ -162,7 +164,7 @@ describe('EppoJSClient E2E test', () => {
     const mockConfigStore = td.object<EppoLocalStorage>();
     const mockLogger = td.object<IAssignmentLogger>();
     td.when(mockLogger.logAssignment(td.matchers.anything())).thenThrow(new Error('logging error'));
-    td.when(mockConfigStore.get(flagKey)).thenReturn(mockExperimentConfig);
+    td.when(mockConfigStore.get(hashedFlagKey)).thenReturn(mockExperimentConfig);
     const subjectAttributes = { foo: 3 };
     const client = new EppoJSClient(mockConfigStore);
     client.setLogger(mockLogger);
@@ -173,16 +175,16 @@ describe('EppoJSClient E2E test', () => {
   it('only returns variation if subject matches rules', () => {
     const mockConfigStore = td.object<EppoLocalStorage>();
     const mockLogger = td.object<IAssignmentLogger>();
-    td.when(mockConfigStore.get(flagKey)).thenReturn({
+    td.when(mockConfigStore.get(hashedFlagKey)).thenReturn({
       ...mockExperimentConfig,
       rules: [
         {
           allocationKey: 'allocation1',
           conditions: [
             {
-              operator: 'GT',
-              attribute: 'appVersion',
-              value: 10,
+              operator: md5('GT'),
+              attribute: md5('appVersion'),
+              value: Buffer.from('10', 'utf8').toString('base64'),
             },
           ],
         },
