@@ -5,7 +5,7 @@ import { IVariation } from '@eppo/js-client-sdk-common/dist/dto/variation-dto';
 
 export const TEST_DATA_DIR = './test/data/';
 export const ASSIGNMENT_TEST_DATA_DIR = TEST_DATA_DIR + 'assignment-v2/';
-export const MOCK_RAC_RESPONSE_FILE = 'rac-experiments-v3.json';
+export const MOCK_RAC_RESPONSE_FILE = 'rac-experiments-v3-obfuscated.json';
 
 export enum ValueTestType {
   BoolType = 'boolean',

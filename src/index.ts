@@ -6,6 +6,7 @@ import {
   IEppoClient,
   EppoClient,
   HttpClient,
+  IAssignmentHooks,
 } from '@eppo/js-client-sdk-common';
 import axios from 'axios';
 
@@ -44,12 +45,90 @@ const localStorage = new EppoLocalStorage();
  */
 export class EppoJSClient extends EppoClient {
   public static instance: EppoJSClient = new EppoJSClient(localStorage);
+
+  public getAssignment(
+    subjectKey: string,
+    flagKey: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    subjectAttributes?: Record<string, any>,
+    assignmentHooks?: IAssignmentHooks,
+  ): string | null {
+    return super.getAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks, true);
+  }
+
+  public getStringAssignment(
+    subjectKey: string,
+    flagKey: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    subjectAttributes?: Record<string, any>,
+    assignmentHooks?: IAssignmentHooks,
+  ): string | null {
+    return super.getStringAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks, true);
+  }
+
+  public getBoolAssignment(
+    subjectKey: string,
+    flagKey: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    subjectAttributes?: Record<string, any>,
+    assignmentHooks?: IAssignmentHooks,
+  ): boolean | null {
+    return super.getBoolAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks, true);
+  }
+
+  public getNumericAssignment(
+    subjectKey: string,
+    flagKey: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    subjectAttributes?: Record<string, any>,
+    assignmentHooks?: IAssignmentHooks,
+  ): number | null {
+    return super.getNumericAssignment(
+      subjectKey,
+      flagKey,
+      subjectAttributes,
+      assignmentHooks,
+      true,
+    );
+  }
+
+  public getJSONStringAssignment(
+    subjectKey: string,
+    flagKey: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    subjectAttributes?: Record<string, any>,
+    assignmentHooks?: IAssignmentHooks,
+  ): string | null {
+    return super.getJSONStringAssignment(
+      subjectKey,
+      flagKey,
+      subjectAttributes,
+      assignmentHooks,
+      true,
+    );
+  }
+
+  public getParsedJSONAssignment(
+    subjectKey: string,
+    flagKey: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    subjectAttributes?: Record<string, any>,
+    assignmentHooks?: IAssignmentHooks,
+  ): object | null {
+    return super.getParsedJSONAssignment(
+      subjectKey,
+      flagKey,
+      subjectAttributes,
+      assignmentHooks,
+      true,
+    );
+  }
 }
 
 /**
  * Initializes the Eppo client with configuration parameters.
  * This method should be called once on application startup.
- * @param config client configuration
+ * @param config - client configuration
  * @public
  */
 export async function init(config: IClientConfig): Promise<IEppoClient> {
@@ -73,6 +152,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
  * Used to access a singleton SDK client instance.
  * Use the method after calling init() to initialize the client.
  * @returns a singleton client instance
+ * @public
  */
 export function getInstance(): IEppoClient {
   return EppoJSClient.instance;
