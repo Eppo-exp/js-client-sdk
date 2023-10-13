@@ -8,6 +8,7 @@ import {
   HttpClient,
   IAssignmentHooks,
 } from '@eppo/js-client-sdk-common';
+import { AssignmentCache, Cacheable } from '@eppo/js-client-sdk-common/dist/assignment-cache';
 import axios from 'axios';
 
 import { EppoLocalStorage } from './local-storage';
@@ -33,6 +34,11 @@ export interface IClientConfig {
    * Pass a logging implementation to send variation assignments to your data warehouse.
    */
   assignmentLogger: IAssignmentLogger;
+
+  /**
+   * Pass an assignment cache implementation to cache assignments.
+   */
+  assignmentCache?: AssignmentCache<Cacheable>;
 }
 
 export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-client-sdk-common';
@@ -143,6 +149,8 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     sdkVersion,
   });
   EppoJSClient.instance.setLogger(config.assignmentLogger);
+  EppoJSClient.instance.useNonExpiringAssignmentCache();
+
   const configurationRequestor = new ExperimentConfigurationRequestor(localStorage, httpClient);
   await configurationRequestor.fetchAndStoreConfigurations();
   return EppoJSClient.instance;
