@@ -29,7 +29,7 @@ export class EppoJSClient extends EppoClient {
 }
 
 // @public
-export function getInstance(): IEppoClient;
+export function getInstance(): EppoJSClient;
 
 export { IAssignmentEvent }
 
@@ -45,7 +45,7 @@ export interface IClientConfig {
 export { IEppoClient }
 
 // @public
-export function init(config: IClientConfig): Promise<IEppoClient>;
+export function init(config: IClientConfig): Promise<EppoJSClient>;
 
 // (No @packageDocumentation comment for this package)
 

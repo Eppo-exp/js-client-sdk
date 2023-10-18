@@ -3,12 +3,10 @@ import {
   validation,
   constants,
   ExperimentConfigurationRequestor,
-  IEppoClient,
   EppoClient,
   HttpClient,
   IAssignmentHooks,
 } from '@eppo/js-client-sdk-common';
-import { AssignmentCache, Cacheable } from '@eppo/js-client-sdk-common/dist/assignment-cache';
 import axios from 'axios';
 
 import { EppoLocalStorage } from './local-storage';
@@ -34,11 +32,6 @@ export interface IClientConfig {
    * Pass a logging implementation to send variation assignments to your data warehouse.
    */
   assignmentLogger: IAssignmentLogger;
-
-  /**
-   * Pass an assignment cache implementation to cache assignments.
-   */
-  assignmentCache?: AssignmentCache<Cacheable>;
 }
 
 export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-client-sdk-common';
@@ -137,7 +130,7 @@ export class EppoJSClient extends EppoClient {
  * @param config - client configuration
  * @public
  */
-export async function init(config: IClientConfig): Promise<IEppoClient> {
+export async function init(config: IClientConfig): Promise<EppoJSClient> {
   validation.validateNotBlank(config.apiKey, 'API key required');
   const axiosInstance = axios.create({
     baseURL: config.baseUrl || constants.BASE_URL,
@@ -149,6 +142,9 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     sdkVersion,
   });
   EppoJSClient.instance.setLogger(config.assignmentLogger);
+
+  // default behavior is to use a non-expiring cache.
+  // this can be overridden after initialization.
   EppoJSClient.instance.useNonExpiringAssignmentCache();
 
   const configurationRequestor = new ExperimentConfigurationRequestor(localStorage, httpClient);
@@ -162,6 +158,6 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
  * @returns a singleton client instance
  * @public
  */
-export function getInstance(): IEppoClient {
+export function getInstance(): EppoJSClient {
   return EppoJSClient.instance;
 }
