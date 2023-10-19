@@ -16,10 +16,10 @@ import {
 
 import { EppoLocalStorage } from './local-storage';
 
-import { EppoJSClient, IAssignmentLogger, init } from './index';
+import { EppoJSClient, IAssignmentLogger, IEppoClient, init } from './index';
 
 describe('EppoJSClient E2E test', () => {
-  let globalClient: EppoJSClient;
+  let globalClient: IEppoClient;
 
   const flagKey = 'mock-experiment';
   const hashedFlagKey = md5(flagKey);

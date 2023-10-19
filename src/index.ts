@@ -3,6 +3,7 @@ import {
   validation,
   constants,
   ExperimentConfigurationRequestor,
+  IEppoClient,
   EppoClient,
   HttpClient,
   IAssignmentHooks,
@@ -130,7 +131,7 @@ export class EppoJSClient extends EppoClient {
  * @param config - client configuration
  * @public
  */
-export async function init(config: IClientConfig): Promise<EppoJSClient> {
+export async function init(config: IClientConfig): Promise<IEppoClient> {
   validation.validateNotBlank(config.apiKey, 'API key required');
   const axiosInstance = axios.create({
     baseURL: config.baseUrl || constants.BASE_URL,
@@ -158,6 +159,6 @@ export async function init(config: IClientConfig): Promise<EppoJSClient> {
  * @returns a singleton client instance
  * @public
  */
-export function getInstance(): EppoJSClient {
+export function getInstance(): IEppoClient {
   return EppoJSClient.instance;
 }
