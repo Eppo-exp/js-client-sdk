@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/Eppo-exp/js-client-sdk#readme",
   "devDependencies": {
-    "@microsoft/api-documenter": "^7.17.17",
+    "@microsoft/api-documenter": "^7.23.9",
     "@microsoft/api-extractor": "^7.38.0",
     "@types/jest": "^28.1.1",
     "@types/md5": "^2.3.2",
