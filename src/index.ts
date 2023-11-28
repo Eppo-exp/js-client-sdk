@@ -157,7 +157,9 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     const configurationRequestor = new ExperimentConfigurationRequestor(localStorage, httpClient);
     await configurationRequestor.fetchAndStoreConfigurations();
   } catch (error) {
-    console.warn('Error encountered initializing Eppo SDK, assignment calls will return null and not be logged');
+    console.warn(
+      'Error encountered initializing Eppo SDK, assignment calls will return null and not be logged',
+    );
     throw error;
   }
   return EppoJSClient.instance;
