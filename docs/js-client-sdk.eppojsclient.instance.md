@@ -4,7 +4,7 @@
 
 ## EppoJSClient.instance property
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 static instance: EppoJSClient;
