@@ -33,6 +33,11 @@ export interface IClientConfig {
    * Pass a logging implementation to send variation assignments to your data warehouse.
    */
   assignmentLogger: IAssignmentLogger;
+
+  /***
+   * Timeout in milliseconds for the HTTPS request for the experiment configuration. (Default: 5000)
+   */
+  requestTimeoutMs?: number;
 }
 
 export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-client-sdk-common';
@@ -133,23 +138,28 @@ export class EppoJSClient extends EppoClient {
  */
 export async function init(config: IClientConfig): Promise<IEppoClient> {
   validation.validateNotBlank(config.apiKey, 'API key required');
-  const axiosInstance = axios.create({
-    baseURL: config.baseUrl || constants.BASE_URL,
-    timeout: constants.REQUEST_TIMEOUT_MILLIS,
-  });
-  const httpClient = new HttpClient(axiosInstance, {
-    apiKey: config.apiKey,
-    sdkName,
-    sdkVersion,
-  });
-  EppoJSClient.instance.setLogger(config.assignmentLogger);
+  try {
+    const axiosInstance = axios.create({
+      baseURL: config.baseUrl || constants.BASE_URL,
+      timeout: config.requestTimeoutMs || constants.REQUEST_TIMEOUT_MILLIS,
+    });
+    const httpClient = new HttpClient(axiosInstance, {
+      apiKey: config.apiKey,
+      sdkName,
+      sdkVersion,
+    });
+    EppoJSClient.instance.setLogger(config.assignmentLogger);
 
-  // default behavior is to use a non-expiring cache.
-  // this can be overridden after initialization.
-  EppoJSClient.instance.useNonExpiringAssignmentCache();
+    // default behavior is to use a non-expiring cache.
+    // this can be overridden after initialization.
+    EppoJSClient.instance.useNonExpiringAssignmentCache();
 
-  const configurationRequestor = new ExperimentConfigurationRequestor(localStorage, httpClient);
-  await configurationRequestor.fetchAndStoreConfigurations();
+    const configurationRequestor = new ExperimentConfigurationRequestor(localStorage, httpClient);
+    await configurationRequestor.fetchAndStoreConfigurations();
+  } catch (error) {
+    console.warn('Error encountered initializing Eppo SDK, assignment calls will return null and not be logged');
+    throw error;
+  }
   return EppoJSClient.instance;
 }
 
