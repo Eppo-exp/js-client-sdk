@@ -4,7 +4,7 @@
 
 ## EppoJSClient.getBoolAssignment() method
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 getBoolAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): boolean | null;
@@ -16,10 +16,10 @@ getBoolAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Recor
 |  --- | --- | --- |
 |  subjectKey | string |  |
 |  flagKey | string |  |
-|  subjectAttributes | Record&lt;string, any&gt; | <i>(Optional)</i> |
-|  assignmentHooks | IAssignmentHooks | <i>(Optional)</i> |
+|  subjectAttributes | Record&lt;string, any&gt; | _(Optional)_ |
+|  assignmentHooks | IAssignmentHooks | _(Optional)_ |
 
-<b>Returns:</b>
+**Returns:**
 
 boolean \| null
 

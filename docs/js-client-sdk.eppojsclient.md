@@ -6,12 +6,12 @@
 
 Client for assigning experiment variations.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 export declare class EppoJSClient extends EppoClient 
 ```
-<b>Extends:</b> EppoClient
+**Extends:** EppoClient
 
 ## Properties
 

@@ -3254,7 +3254,7 @@ jest-snapshot@^29.7.0:
     pretty-format "^29.7.0"
     semver "^7.5.3"
 
-jest-util@^28.0.0, jest-util@^28.1.1:
+jest-util@^28.1.1:
   version "28.1.1"
   resolved "https://registry.yarnpkg.com/jest-util/-/jest-util-28.1.1.tgz#ff39e436a1aca397c0ab998db5a51ae2b7080d05"
   integrity sha512-FktOu7ca1DZSyhPAxgxB6hfh2+9zMoJ7aEQA759Z6p45NuO8mWcqujH+UdHlCm/V6JTWwDztM2ITCzU1ijJAfw==
@@ -3266,7 +3266,7 @@ jest-util@^28.0.0, jest-util@^28.1.1:
     graceful-fs "^4.2.9"
     picomatch "^2.2.3"
 
-jest-util@^29.7.0:
+jest-util@^29.0.0, jest-util@^29.7.0:
   version "29.7.0"
   resolved "https://registry.yarnpkg.com/jest-util/-/jest-util-29.7.0.tgz#23c2b62bfb22be82b44de98055802ff3710fc0bc"
   integrity sha512-z6EbKajIpqGKU56y5KBUgy1dt1ihhQJgWzUlZHArA/+X2ad7Cb5iF+AK1EWVL/Bo7Rz9uurpqw6SiBCefUbCGA==
@@ -3426,7 +3426,7 @@ json5@^1.0.1:
   dependencies:
     minimist "^1.2.0"
 
-json5@^2.2.1:
+json5@^2.2.1, json5@^2.2.3:
   version "2.2.3"
   resolved "https://registry.yarnpkg.com/json5/-/json5-2.2.3.tgz#78cd6f1a19bdc12b73db5ad0c61efd66c1e29283"
   integrity sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==
@@ -4198,17 +4198,17 @@ schema-utils@^3.1.0, schema-utils@^3.1.1:
     ajv "^6.12.5"
     ajv-keywords "^3.5.2"
 
-semver@7.x, semver@^7.3.4, semver@^7.3.7, semver@^7.5.3, semver@^7.5.4, semver@~7.5.4:
+semver@^6.0.0, semver@^6.3.0:
+  version "6.3.1"
+  resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.1.tgz#556d2ef8689146e46dcea4bfdd095f3434dffcb4"
+  integrity sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==
+
+semver@^7.3.4, semver@^7.3.7, semver@^7.5.3, semver@^7.5.4, semver@~7.5.4:
   version "7.5.4"
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.5.4.tgz#483986ec4ed38e1c6c48c34894a9182dbff68a6e"
   integrity sha512-1bCSESV6Pv+i21Hvpxp3Dx+pSD8lIPt8uVjRrxAUt/nbswYc+tK6Y2btiULjd4+fnq15PX+nqQDC7Oft7WkwcA==
   dependencies:
     lru-cache "^6.0.0"
-
-semver@^6.0.0, semver@^6.3.0:
-  version "6.3.1"
-  resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.1.tgz#556d2ef8689146e46dcea4bfdd095f3434dffcb4"
-  integrity sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==
 
 serialize-javascript@^6.0.0:
   version "6.0.0"
@@ -4545,18 +4545,18 @@ tr46@^3.0.0:
   dependencies:
     punycode "^2.1.1"
 
-ts-jest@^28.0.5:
-  version "28.0.5"
-  resolved "https://registry.yarnpkg.com/ts-jest/-/ts-jest-28.0.5.tgz#31776f768fba6dfc8c061d488840ed0c8eeac8b9"
-  integrity sha512-Sx9FyP9pCY7pUzQpy4FgRZf2bhHY3za576HMKJFs+OnQ9jS96Du5vNsDKkyedQkik+sEabbKAnCliv9BEsHZgQ==
+ts-jest@^29.1.1:
+  version "29.1.1"
+  resolved "https://registry.yarnpkg.com/ts-jest/-/ts-jest-29.1.1.tgz#f58fe62c63caf7bfcc5cc6472082f79180f0815b"
+  integrity sha512-D6xjnnbP17cC85nliwGiL+tpoKN0StpgE0TeOjXQTU6MVCfsB4v7aW05CgQ/1OywGb0x/oy9hHFnN+sczTiRaA==
   dependencies:
     bs-logger "0.x"
     fast-json-stable-stringify "2.x"
-    jest-util "^28.0.0"
-    json5 "^2.2.1"
+    jest-util "^29.0.0"
+    json5 "^2.2.3"
     lodash.memoize "4.x"
     make-error "1.x"
-    semver "7.x"
+    semver "^7.5.3"
     yargs-parser "^21.0.1"
 
 ts-loader@^9.3.1:

@@ -40,6 +40,7 @@ export interface IClientConfig {
     apiKey: string;
     assignmentLogger: IAssignmentLogger;
     baseUrl?: string;
+    requestTimeoutMs?: number;
 }
 
 export { IEppoClient }

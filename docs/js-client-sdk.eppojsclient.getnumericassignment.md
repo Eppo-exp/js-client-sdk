@@ -4,7 +4,7 @@
 
 ## EppoJSClient.getNumericAssignment() method
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 getNumericAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): number | null;
@@ -16,10 +16,10 @@ getNumericAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Re
 |  --- | --- | --- |
 |  subjectKey | string |  |
 |  flagKey | string |  |
-|  subjectAttributes | Record&lt;string, any&gt; | <i>(Optional)</i> |
-|  assignmentHooks | IAssignmentHooks | <i>(Optional)</i> |
+|  subjectAttributes | Record&lt;string, any&gt; | _(Optional)_ |
+|  assignmentHooks | IAssignmentHooks | _(Optional)_ |
 
-<b>Returns:</b>
+**Returns:**
 
 number \| null
 

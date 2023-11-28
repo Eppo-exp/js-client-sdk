@@ -6,7 +6,7 @@
 
 Initializes the Eppo client with configuration parameters. This method should be called once on application startup.
 
-<b>Signature:</b>
+**Signature:**
 
 ```typescript
 export declare function init(config: IClientConfig): Promise<IEppoClient>;
@@ -18,7 +18,7 @@ export declare function init(config: IClientConfig): Promise<IEppoClient>;
 |  --- | --- | --- |
 |  config | [IClientConfig](./js-client-sdk.iclientconfig.md) | client configuration |
 
-<b>Returns:</b>
+**Returns:**
 
 Promise&lt;IEppoClient&gt;
 
