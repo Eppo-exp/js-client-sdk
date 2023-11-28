@@ -158,7 +158,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     await configurationRequestor.fetchAndStoreConfigurations();
   } catch (error) {
     console.warn(
-      'Error encountered initializing Eppo SDK, assignment calls will return null and not be logged',
+      'Error encountered initializing the Eppo SDK, assignment calls will return null and not be logged',
     );
     throw error;
   }
