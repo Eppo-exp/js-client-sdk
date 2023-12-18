@@ -11,6 +11,7 @@ import {
 import axios from 'axios';
 
 import { EppoLocalStorage } from './local-storage';
+import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 import { sdkName, sdkVersion } from './sdk-data';
 
 /**
@@ -150,9 +151,9 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     });
     EppoJSClient.instance.setLogger(config.assignmentLogger);
 
-    // default behavior is to use a non-expiring cache.
+    // default behavior is to use a LocalStorage-based assignment cache.
     // this can be overridden after initialization.
-    EppoJSClient.instance.useNonExpiringAssignmentCache();
+    EppoJSClient.instance.useCustomAssignmentCache(new LocalStorageAssignmentCache());
 
     const configurationRequestor = new ExperimentConfigurationRequestor(localStorage, httpClient);
     await configurationRequestor.fetchAndStoreConfigurations();
