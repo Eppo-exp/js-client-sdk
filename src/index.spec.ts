@@ -283,7 +283,24 @@ describe('EppoJSClient E2E test', () => {
           allocationKey: 'allocation-1',
           variationValue: EppoValue.String('control'),
         }),
-      ).toEqual(true);
+      ).toEqual(true); // this key has been logged
+
+      // change variation
+      cache.setLastLoggedAssignment({
+        subjectKey: 'subject-1',
+        flagKey: 'flag-1',
+        allocationKey: 'allocation-1',
+        variationValue: EppoValue.String('variant'),
+      });
+
+      expect(
+        cache.hasLoggedAssignment({
+          subjectKey: 'subject-1',
+          flagKey: 'flag-1',
+          allocationKey: 'allocation-1',
+          variationValue: EppoValue.String('control'),
+        }),
+      ).toEqual(false); // this key has not been logged
     });
   });
 
