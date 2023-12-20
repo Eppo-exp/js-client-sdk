@@ -152,7 +152,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
 
     // default behavior is to use a non-expiring cache.
     // this can be overridden after initialization.
-    EppoJSClient.instance.useNonExpiringAssignmentCache();
+    EppoJSClient.instance.useNonExpiringInMemoryAssignmentCache();
 
     const configurationRequestor = new ExperimentConfigurationRequestor(localStorage, httpClient);
     await configurationRequestor.fetchAndStoreConfigurations();
