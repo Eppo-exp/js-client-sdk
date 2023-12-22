@@ -15,6 +15,7 @@ import {
 } from '../test/testHelpers';
 
 import { EppoLocalStorage } from './local-storage';
+import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 
 import { EppoJSClient, IAssignmentLogger, IEppoClient, init } from './index';
 
@@ -253,6 +254,53 @@ describe('EppoJSClient E2E test', () => {
 
     it('runs expected number of test cases', () => {
       expect(testData.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('LocalStorageAssignmentCache', () => {
+    it('typical behavior', () => {
+      const cache = new LocalStorageAssignmentCache();
+      expect(
+        cache.hasLoggedAssignment({
+          subjectKey: 'subject-1',
+          flagKey: 'flag-1',
+          allocationKey: 'allocation-1',
+          variationValue: EppoValue.String('control'),
+        }),
+      ).toEqual(false);
+
+      cache.setLastLoggedAssignment({
+        subjectKey: 'subject-1',
+        flagKey: 'flag-1',
+        allocationKey: 'allocation-1',
+        variationValue: EppoValue.String('control'),
+      });
+
+      expect(
+        cache.hasLoggedAssignment({
+          subjectKey: 'subject-1',
+          flagKey: 'flag-1',
+          allocationKey: 'allocation-1',
+          variationValue: EppoValue.String('control'),
+        }),
+      ).toEqual(true); // this key has been logged
+
+      // change variation
+      cache.setLastLoggedAssignment({
+        subjectKey: 'subject-1',
+        flagKey: 'flag-1',
+        allocationKey: 'allocation-1',
+        variationValue: EppoValue.String('variant'),
+      });
+
+      expect(
+        cache.hasLoggedAssignment({
+          subjectKey: 'subject-1',
+          flagKey: 'flag-1',
+          allocationKey: 'allocation-1',
+          variationValue: EppoValue.String('control'),
+        }),
+      ).toEqual(false); // this key has not been logged
     });
   });
 
