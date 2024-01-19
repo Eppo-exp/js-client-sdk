@@ -59,7 +59,6 @@
   },
   "dependencies": {
     "@eppo/js-client-sdk-common": "file:../js-client-sdk-common",
-    "axios": "^1.6.0",
     "md5": "^2.3.0"
   }
 }
