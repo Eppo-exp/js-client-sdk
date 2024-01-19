@@ -2,6 +2,8 @@
  * @jest-environment jsdom
  */
 
+import { HttpClient } from '@eppo/js-client-sdk-common';
+import { POLL_INTERVAL_MS, POLL_JITTER_PCT } from '@eppo/js-client-sdk-common/dist/constants';
 import { EppoValue } from '@eppo/js-client-sdk-common/dist/eppo_value';
 import * as md5 from 'md5';
 import * as td from 'testdouble';
@@ -17,12 +19,14 @@ import {
 import { EppoLocalStorage } from './local-storage';
 import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 
-import { IAssignmentLogger, IEppoClient, init } from './index';
+import { IAssignmentLogger, IEppoClient, getInstance, init } from './index';
 
 describe('EppoJSClient E2E test', () => {
   let globalClient: IEppoClient;
   let mockLogger: IAssignmentLogger;
 
+  const apiKey = 'dummy';
+  const baseUrl = 'http://127.0.0.1:4000';
   const flagKey = 'mock-experiment';
   const hashedFlagKey = md5(flagKey);
 
@@ -82,8 +86,8 @@ describe('EppoJSClient E2E test', () => {
     });
     mockLogger = td.object<IAssignmentLogger>();
     globalClient = await init({
-      apiKey: 'dummy',
-      baseUrl: 'http://127.0.0.1:4000',
+      apiKey,
+      baseUrl,
       assignmentLogger: mockLogger,
     });
   });
@@ -368,4 +372,152 @@ describe('EppoJSClient E2E test', () => {
       }
     });
   }
+
+  describe('initialization options', () => {
+    const maxRetryDelay = POLL_INTERVAL_MS * POLL_JITTER_PCT;
+    const mockConfigResponse = {
+      flags: {
+        [hashedFlagKey]: mockExperimentConfig,
+      },
+    };
+
+    beforeAll(() => {
+      jest.useFakeTimers({
+        advanceTimers: true,
+        doNotFake: [
+          'Date',
+          'hrtime',
+          'nextTick',
+          'performance',
+          'queueMicrotask',
+          'requestAnimationFrame',
+          'cancelAnimationFrame',
+          'requestIdleCallback',
+          'cancelIdleCallback',
+          'setImmediate',
+          'clearImmediate',
+          'setInterval',
+          'clearInterval',
+        ],
+      });
+    });
+
+    beforeEach(() => {
+      // We're creating a new instance for each test so we need to clear the underlying storage too
+      window.localStorage.clear();
+    });
+
+    afterEach(() => {
+      jest.clearAllTimers();
+      td.reset();
+    });
+
+    afterAll(() => {
+      jest.useRealTimers();
+    });
+
+    it('default options', async () => {
+      td.replace(HttpClient.prototype, 'get');
+      let callCount = 0;
+      td.when(HttpClient.prototype.get(td.matchers.anything())).thenDo(() => {
+        if (++callCount === 1) {
+          // Throw an error for the first call
+          throw new Error('Intentional Thrown Error For Test');
+        } else {
+          // Return a mock object for subsequent calls
+          return mockConfigResponse;
+        }
+      });
+
+      // By not awaiting (yet) only the first attempt should be fired off before test execution below resumes
+      const initPromise = init({
+        apiKey,
+        baseUrl,
+        assignmentLogger: mockLogger,
+      });
+
+      // Advance timers mid-init to allow retrying
+      await jest.advanceTimersByTimeAsync(maxRetryDelay);
+
+      // Await so it can finish its initialization before this test proceeds
+      const client = await initPromise;
+      expect(callCount).toBe(2);
+      expect(client.getStringAssignment('subject', flagKey)).toBe('control');
+
+      // By default, no more calls
+      await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS * 10);
+      expect(callCount).toBe(2);
+    });
+
+    it('gives up initial request and throws error after hitting max retries', async () => {
+      td.replace(HttpClient.prototype, 'get');
+      let callCount = 0;
+      td.when(HttpClient.prototype.get(td.matchers.anything())).thenDo(async () => {
+        callCount += 1;
+        throw new Error('Intentional Thrown Error For Test');
+      });
+
+      // Note: fake time does not play well with errors bubbled up after setTimeout (event loop,
+      // timeout queue, message queue stuff) so we don't allow retries when rethrowing.
+      await expect(
+        init({
+          apiKey,
+          baseUrl,
+          assignmentLogger: mockLogger,
+          numInitialRequestRetries: 0,
+        }),
+      ).rejects.toThrow();
+
+      expect(callCount).toBe(1);
+
+      // Assignments resolve to null
+      const client = getInstance();
+      expect(client.getStringAssignment('subject', flagKey)).toBeNull();
+
+      // Expect no further configuration requests
+      await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
+      expect(callCount).toBe(1);
+    });
+
+    it('gives up initial request but still polls later if configured to do so', async () => {
+      td.replace(HttpClient.prototype, 'get');
+      let callCount = 0;
+      td.when(HttpClient.prototype.get(td.matchers.anything())).thenDo(() => {
+        if (++callCount <= 2) {
+          // Throw an error for the first call
+          throw new Error('Intentional Thrown Error For Test');
+        } else {
+          // Return a mock object for subsequent calls
+          return mockConfigResponse;
+        }
+      });
+
+      // By not awaiting (yet) only the first attempt should be fired off before test execution below resumes
+      const initPromise = init({
+        apiKey,
+        baseUrl,
+        assignmentLogger: mockLogger,
+        throwOnFailedInitialization: false,
+        pollAfterFailedInitialization: true,
+      });
+
+      // Advance timers mid-init to allow retrying
+      await jest.advanceTimersByTimeAsync(maxRetryDelay);
+
+      // Initialization configured to not throw error
+      const client = await initPromise;
+      expect(callCount).toBe(2);
+
+      // Initial assignments resolve to null
+      expect(client.getStringAssignment('subject', flagKey)).toBeNull();
+
+      await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
+
+      // Expect a new call from poller
+      expect(callCount).toBe(3);
+
+      // Assignments now working
+      expect(client.getStringAssignment('subject', flagKey)).toBe('control');
+    });
+  });
 });

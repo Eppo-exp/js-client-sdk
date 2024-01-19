@@ -195,9 +195,12 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     await EppoJSClient.instance.fetchFlagConfigurations();
   } catch (error) {
     console.warn(
-      'Error encountered initializing the Eppo SDK, assignment calls will return null and not be logged',
+      'Error encountered initializing the Eppo SDK, assignment calls will return null and not be logged' +
+        (config.pollAfterFailedInitialization
+          ? ' until an experiment configuration is successfully retrieved'
+          : ''),
     );
-    if (config.throwOnFailedInitialization) {
+    if (config.throwOnFailedInitialization ?? true) {
       throw error;
     }
   }
@@ -211,7 +214,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
  * @public
  */
 export function getInstance(): IEppoClient {
-  if (EppoJSClient.instance) {
+  if (!EppoJSClient.instance) {
     throw Error('init() must first be called to initialize a client instance');
   }
   return EppoJSClient.instance;
