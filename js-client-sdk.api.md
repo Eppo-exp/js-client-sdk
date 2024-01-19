@@ -40,7 +40,12 @@ export interface IClientConfig {
     apiKey: string;
     assignmentLogger: IAssignmentLogger;
     baseUrl?: string;
+    numInitialRequestRetries?: number;
+    numPollRequestRetries?: number;
+    pollAfterFailedInitialization?: boolean;
+    pollAfterSuccessfulInitialization?: boolean;
     requestTimeoutMs?: number;
+    throwOnFailedInitialization?: boolean;
 }
 
 export { IEppoClient }

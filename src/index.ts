@@ -1,14 +1,11 @@
 import {
   IAssignmentLogger,
   validation,
-  constants,
-  ExperimentConfigurationRequestor,
   IEppoClient,
   EppoClient,
-  HttpClient,
   IAssignmentHooks,
+  ExperimentConfigurationRequestParameters,
 } from '@eppo/js-client-sdk-common';
-import axios from 'axios';
 
 import { EppoLocalStorage } from './local-storage';
 import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
@@ -39,18 +36,45 @@ export interface IClientConfig {
    * Timeout in milliseconds for the HTTPS request for the experiment configuration. (Default: 5000)
    */
   requestTimeoutMs?: number;
+
+  /**
+   * Number of additional times the initial configuration request will be attempted if it fails.
+   * This is the request typically synchronously waited (via await) for completion. A small wait will be
+   * done between requests. (Default: 1)
+   */
+  numInitialRequestRetries?: number;
+
+  /**
+   * Throw on error if unable to fetch an initial configuration during initialization. (default: true)
+   */
+  throwOnFailedInitialization?: boolean;
+
+  /**
+   * Poll for new configurations even if the initial configuration request failed. (default: false)
+   */
+  pollAfterFailedInitialization?: boolean;
+
+  /**
+   * Poll for new configurations (every 30 seconds) after successfully requesting the initial configuration. (default: false)
+   */
+  pollAfterSuccessfulInitialization?: boolean;
+
+  /**
+   * Number of additional times polling for updated configurations will be attempted before giving up.
+   * Polling is done after a successful initial request. Subsequent attempts are done using an exponential
+   * backoff. (Default: 7)
+   */
+  numPollRequestRetries?: number;
 }
 
 export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-client-sdk-common';
-
-const localStorage = new EppoLocalStorage();
 
 /**
  * Client for assigning experiment variations.
  * @public
  */
 export class EppoJSClient extends EppoClient {
-  public static instance: EppoJSClient = new EppoJSClient(localStorage);
+  public static instance: EppoJSClient;
 
   public getAssignment(
     subjectKey: string,
@@ -140,28 +164,42 @@ export class EppoJSClient extends EppoClient {
 export async function init(config: IClientConfig): Promise<IEppoClient> {
   validation.validateNotBlank(config.apiKey, 'API key required');
   try {
-    const axiosInstance = axios.create({
-      baseURL: config.baseUrl || constants.BASE_URL,
-      timeout: config.requestTimeoutMs || constants.REQUEST_TIMEOUT_MILLIS,
-    });
-    const httpClient = new HttpClient(axiosInstance, {
+    // If any existing instances; ensure they are not polling
+    if (EppoJSClient.instance) {
+      EppoJSClient.instance.stopPolling();
+    }
+
+    const localStorage = new EppoLocalStorage();
+
+    const requestConfiguration: ExperimentConfigurationRequestParameters = {
       apiKey: config.apiKey,
       sdkName,
       sdkVersion,
-    });
+      baseUrl: config.baseUrl ?? undefined,
+      requestTimeoutMs: config.requestTimeoutMs ?? undefined,
+      numInitialRequestRetries: config.numInitialRequestRetries ?? undefined,
+      numPollRequestRetries: config.numPollRequestRetries ?? undefined,
+      pollAfterSuccessfulInitialization: config.pollAfterSuccessfulInitialization ?? false,
+      pollAfterFailedInitialization: config.pollAfterFailedInitialization ?? false,
+      throwOnFailedInitialization: true, // always use true here as underlying instance fetch is surrounded by try/catch
+    };
+
+    EppoJSClient.instance = new EppoJSClient(localStorage, requestConfiguration);
+
     EppoJSClient.instance.setLogger(config.assignmentLogger);
 
     // default behavior is to use a LocalStorage-based assignment cache.
     // this can be overridden after initialization.
     EppoJSClient.instance.useCustomAssignmentCache(new LocalStorageAssignmentCache());
 
-    const configurationRequestor = new ExperimentConfigurationRequestor(localStorage, httpClient);
-    await configurationRequestor.fetchAndStoreConfigurations();
+    await EppoJSClient.instance.fetchFlagConfigurations();
   } catch (error) {
     console.warn(
       'Error encountered initializing the Eppo SDK, assignment calls will return null and not be logged',
     );
-    throw error;
+    if (config.throwOnFailedInitialization) {
+      throw error;
+    }
   }
   return EppoJSClient.instance;
 }
@@ -173,5 +211,8 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
  * @public
  */
 export function getInstance(): IEppoClient {
+  if (EppoJSClient.instance) {
+    throw Error('init() must first be called to initialize a client instance');
+  }
   return EppoJSClient.instance;
 }

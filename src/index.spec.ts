@@ -17,10 +17,11 @@ import {
 import { EppoLocalStorage } from './local-storage';
 import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 
-import { EppoJSClient, IAssignmentLogger, IEppoClient, init } from './index';
+import { IAssignmentLogger, IEppoClient, init } from './index';
 
 describe('EppoJSClient E2E test', () => {
   let globalClient: IEppoClient;
+  let mockLogger: IAssignmentLogger;
 
   const flagKey = 'mock-experiment';
   const hashedFlagKey = md5(flagKey);
@@ -34,7 +35,7 @@ describe('EppoJSClient E2E test', () => {
     rules: [
       {
         allocationKey: 'allocation1',
-        conditions: [],
+        conditions: [] as Array<Record<string, unknown>>,
       },
     ],
     allocations: {
@@ -79,16 +80,17 @@ describe('EppoJSClient E2E test', () => {
       const rac = readMockRacResponse();
       return res.status(200).body(JSON.stringify(rac));
     });
+    mockLogger = td.object<IAssignmentLogger>();
     globalClient = await init({
       apiKey: 'dummy',
       baseUrl: 'http://127.0.0.1:4000',
-      assignmentLogger: {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        logAssignment(assignment): Promise<void> {
-          return Promise.resolve();
-        },
-      },
+      assignmentLogger: mockLogger,
     });
+  });
+
+  afterEach(() => {
+    globalClient.setLogger(mockLogger);
+    td.reset();
   });
 
   afterAll(() => {
@@ -96,59 +98,62 @@ describe('EppoJSClient E2E test', () => {
   });
 
   it('assigns subject from overrides when experiment is enabled', () => {
-    const mockConfigStore = td.object<EppoLocalStorage>();
-    const mockLogger = td.object<IAssignmentLogger>();
-    td.when(mockConfigStore.get(hashedFlagKey)).thenReturn({
-      ...mockExperimentConfig,
-      overrides: {
-        '1b50f33aef8f681a13f623963da967ed': 'variant-2',
-      },
-      typedOverrides: {
-        '1b50f33aef8f681a13f623963da967ed': 'variant-2',
-      },
+    td.replace(EppoLocalStorage.prototype, 'get', (key: string) => {
+      if (key !== hashedFlagKey) {
+        throw new Error('Unexpected key ' + key);
+      }
+      return {
+        ...mockExperimentConfig,
+        overrides: {
+          '1b50f33aef8f681a13f623963da967ed': 'variant-2',
+        },
+        typedOverrides: {
+          '1b50f33aef8f681a13f623963da967ed': 'variant-2',
+        },
+      };
     });
-    const client = new EppoJSClient(mockConfigStore);
-    client.setLogger(mockLogger);
-    const assignment = client.getAssignment('subject-10', flagKey);
+
+    const assignment = globalClient.getAssignment('subject-10', flagKey);
     expect(assignment).toEqual('variant-2');
   });
 
   it('assigns subject from overrides when experiment is not enabled', () => {
-    const mockConfigStore = td.object<EppoLocalStorage>();
-    const mockLogger = td.object<IAssignmentLogger>();
-    td.when(mockConfigStore.get(hashedFlagKey)).thenReturn({
-      ...mockExperimentConfig,
-      overrides: {
-        '1b50f33aef8f681a13f623963da967ed': 'variant-2',
-      },
-      typedOverrides: {
-        '1b50f33aef8f681a13f623963da967ed': 'variant-2',
-      },
+    td.replace(EppoLocalStorage.prototype, 'get', (key: string) => {
+      if (key !== hashedFlagKey) {
+        throw new Error('Unexpected key ' + key);
+      }
+      return {
+        ...mockExperimentConfig,
+        overrides: {
+          '1b50f33aef8f681a13f623963da967ed': 'variant-2',
+        },
+        typedOverrides: {
+          '1b50f33aef8f681a13f623963da967ed': 'variant-2',
+        },
+      };
     });
-    const client = new EppoJSClient(mockConfigStore);
-    client.setLogger(mockLogger);
-    const assignment = client.getAssignment('subject-10', flagKey);
+    const assignment = globalClient.getAssignment('subject-10', flagKey);
     expect(assignment).toEqual('variant-2');
   });
 
   it('returns null when experiment config is absent', () => {
-    const mockConfigStore = td.object<EppoLocalStorage>();
-    const mockLogger = td.object<IAssignmentLogger>();
-    td.when(mockConfigStore.get(hashedFlagKey)).thenReturn(null);
-    const client = new EppoJSClient(mockConfigStore);
-    client.setLogger(mockLogger);
-    const assignment = client.getAssignment('subject-10', flagKey);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    td.replace(EppoLocalStorage.prototype, 'get', (key: string) => null as null);
+    const assignment = globalClient.getAssignment('subject-10', flagKey);
     expect(assignment).toEqual(null);
   });
 
   it('logs variation assignment and experiment key', () => {
-    const mockConfigStore = td.object<EppoLocalStorage>();
-    const mockLogger = td.object<IAssignmentLogger>();
-    td.when(mockConfigStore.get(hashedFlagKey)).thenReturn(mockExperimentConfig);
+    td.replace(EppoLocalStorage.prototype, 'get', (key: string) => {
+      if (key !== hashedFlagKey) {
+        throw new Error('Unexpected key ' + key);
+      }
+      return mockExperimentConfig;
+    });
+
     const subjectAttributes = { foo: 3 };
-    const client = new EppoJSClient(mockConfigStore);
-    client.setLogger(mockLogger);
-    const assignment = client.getAssignment('subject-10', flagKey, subjectAttributes);
+    globalClient.setLogger(mockLogger);
+    const assignment = globalClient.getAssignment('subject-10', flagKey, subjectAttributes);
     expect(assignment).toEqual('control');
     expect(td.explain(mockLogger.logAssignment).callCount).toEqual(1);
     expect(td.explain(mockLogger?.logAssignment).calls[0]?.args[0].subject).toEqual('subject-10');
@@ -162,44 +167,48 @@ describe('EppoJSClient E2E test', () => {
   });
 
   it('handles logging exception', () => {
-    const mockConfigStore = td.object<EppoLocalStorage>();
     const mockLogger = td.object<IAssignmentLogger>();
     td.when(mockLogger.logAssignment(td.matchers.anything())).thenThrow(new Error('logging error'));
-    td.when(mockConfigStore.get(hashedFlagKey)).thenReturn(mockExperimentConfig);
+    td.replace(EppoLocalStorage.prototype, 'get', (key: string) => {
+      if (key !== hashedFlagKey) {
+        throw new Error('Unexpected key ' + key);
+      }
+      return mockExperimentConfig;
+    });
     const subjectAttributes = { foo: 3 };
-    const client = new EppoJSClient(mockConfigStore);
-    client.setLogger(mockLogger);
-    const assignment = client.getAssignment('subject-10', flagKey, subjectAttributes);
+    globalClient.setLogger(mockLogger);
+    const assignment = globalClient.getAssignment('subject-10', flagKey, subjectAttributes);
     expect(assignment).toEqual('control');
   });
 
   it('only returns variation if subject matches rules', () => {
-    const mockConfigStore = td.object<EppoLocalStorage>();
-    const mockLogger = td.object<IAssignmentLogger>();
-    td.when(mockConfigStore.get(hashedFlagKey)).thenReturn({
-      ...mockExperimentConfig,
-      rules: [
-        {
-          allocationKey: 'allocation1',
-          conditions: [
-            {
-              operator: md5('GT'),
-              attribute: md5('appVersion'),
-              value: Buffer.from('10', 'utf8').toString('base64'),
-            },
-          ],
-        },
-      ],
+    td.replace(EppoLocalStorage.prototype, 'get', (key: string) => {
+      if (key !== hashedFlagKey) {
+        throw new Error('Unexpected key ' + key);
+      }
+      return {
+        ...mockExperimentConfig,
+        rules: [
+          {
+            allocationKey: 'allocation1',
+            conditions: [
+              {
+                operator: md5('GT'),
+                attribute: md5('appVersion'),
+                value: Buffer.from('10', 'utf8').toString('base64'),
+              },
+            ],
+          },
+        ],
+      };
     });
-    const client = new EppoJSClient(mockConfigStore);
-    client.setLogger(mockLogger);
-    let assignment = client.getAssignment('subject-10', flagKey, {
+    let assignment = globalClient.getAssignment('subject-10', flagKey, {
       appVersion: 9,
     });
     expect(assignment).toEqual(null);
-    assignment = client.getAssignment('subject-10', flagKey);
+    assignment = globalClient.getAssignment('subject-10', flagKey);
     expect(assignment).toEqual(null);
-    assignment = client.getAssignment('subject-10', flagKey, {
+    assignment = globalClient.getAssignment('subject-10', flagKey, {
       appVersion: 11,
     });
     expect(assignment).toEqual('control');

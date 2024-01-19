@@ -41,8 +41,8 @@ test-data:
 ## prepare
 .PHONY: prepare
 prepare: test-data
-	 husky install
+	 yarn husky install
 	 rm -rf dist/
-	 tsc
-	 webpack
-	 api-extractor run --local
+	 yarn tsc
+	 yarn webpack
+	 yarn api-extractor run --local
