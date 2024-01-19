@@ -449,6 +449,32 @@ describe('EppoJSClient E2E test', () => {
       expect(callCount).toBe(2);
     });
 
+    it('polls after successful init if configured to do so', async () => {
+      td.replace(HttpClient.prototype, 'get');
+      let callCount = 0;
+      td.when(HttpClient.prototype.get(td.matchers.anything())).thenDo(() => {
+        callCount += 1;
+        return mockConfigResponse;
+      });
+
+      // By not awaiting (yet) only the first attempt should be fired off before test execution below resumes
+      const client = await init({
+        apiKey,
+        baseUrl,
+        assignmentLogger: mockLogger,
+        pollAfterSuccessfulInitialization: true,
+      });
+      expect(callCount).toBe(1);
+      expect(client.getStringAssignment('subject', flagKey)).toBe('control');
+
+      // Advance timers mid-init to allow retrying
+      await jest.advanceTimersByTimeAsync(maxRetryDelay);
+
+      // Should be polling
+      await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS * 10);
+      expect(callCount).toBe(11);
+    });
+
     it('gives up initial request and throws error after hitting max retries', async () => {
       td.replace(HttpClient.prototype, 'get');
       let callCount = 0;
