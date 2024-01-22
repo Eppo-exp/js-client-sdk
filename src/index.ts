@@ -45,7 +45,7 @@ export interface IClientConfig {
   numInitialRequestRetries?: number;
 
   /**
-   * Throw on error if unable to fetch an initial configuration during initialization. (default: true)
+   * Throw an error if unable to fetch an initial configuration during initialization. (default: true)
    */
   throwOnFailedInitialization?: boolean;
 
