@@ -19,5 +19,10 @@ export interface IClientConfig
 |  [apiKey](./js-client-sdk.iclientconfig.apikey.md) |  | string | Eppo API key |
 |  [assignmentLogger](./js-client-sdk.iclientconfig.assignmentlogger.md) |  | IAssignmentLogger | Pass a logging implementation to send variation assignments to your data warehouse. |
 |  [baseUrl?](./js-client-sdk.iclientconfig.baseurl.md) |  | string | _(Optional)_ Base URL of the Eppo API. Clients should use the default setting in most cases. |
+|  [numInitialRequestRetries?](./js-client-sdk.iclientconfig.numinitialrequestretries.md) |  | number | _(Optional)_ Number of additional times the initial configuration request will be attempted if it fails. This is the request typically synchronously waited (via await) for completion. A small wait will be done between requests. (Default: 1) |
+|  [numPollRequestRetries?](./js-client-sdk.iclientconfig.numpollrequestretries.md) |  | number | _(Optional)_ Number of additional times polling for updated configurations will be attempted before giving up. Polling is done after a successful initial request. Subsequent attempts are done using an exponential backoff. (Default: 7) |
+|  [pollAfterFailedInitialization?](./js-client-sdk.iclientconfig.pollafterfailedinitialization.md) |  | boolean | _(Optional)_ Poll for new configurations even if the initial configuration request failed. (default: false) |
+|  [pollAfterSuccessfulInitialization?](./js-client-sdk.iclientconfig.pollaftersuccessfulinitialization.md) |  | boolean | _(Optional)_ Poll for new configurations (every 30 seconds) after successfully requesting the initial configuration. (default: false) |
 |  [requestTimeoutMs?](./js-client-sdk.iclientconfig.requesttimeoutms.md) |  | number | _(Optional)_ \* Timeout in milliseconds for the HTTPS request for the experiment configuration. (Default: 5000) |
+|  [throwOnFailedInitialization?](./js-client-sdk.iclientconfig.throwonfailedinitialization.md) |  | boolean | _(Optional)_ Throw on error if unable to fetch an initial configuration during initialization. (default: true) |
 
