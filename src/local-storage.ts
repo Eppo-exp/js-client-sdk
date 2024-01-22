@@ -1,4 +1,12 @@
 export class EppoLocalStorage {
+  constructor() {
+    if (!hasWindowLocalStorage()) {
+      console.warn(
+        'EppoSDK cannot store experiment configurations as window.localStorage is not available',
+      );
+    }
+  }
+
   public get<T>(key: string): T {
     if (hasWindowLocalStorage()) {
       const serializedEntry = window.localStorage.getItem(key);
