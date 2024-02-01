@@ -76,8 +76,11 @@ export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-clien
 export class EppoJSClient extends EppoClient {
   public static instance: EppoJSClient;
 
+  /**
+   * @deprecated temporary method for debugging
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public dumpStats(): any {
+  public _dumpStats(): any {
     return {
       hasWindowLocalStorage: hasWindowLocalStorage(),
       pollerStats: EppoJSClient.instance?._pollerStats(),
@@ -94,6 +97,9 @@ export class EppoJSClient extends EppoClient {
     return super.getAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks, true);
   }
 
+  /**
+   * @deprecated temporary method for debugging
+   */
   public _getStringAssignmentWithReason(
     subjectKey: string,
     flagKey: string,
