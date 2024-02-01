@@ -380,13 +380,18 @@
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz#1d572bfbbe14b7704e0ba0f39b74815b84870d70"
   integrity sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==
 
-"@eppo/js-client-sdk-common@2.1.1":
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/@eppo/js-client-sdk-common/-/js-client-sdk-common-2.1.1.tgz#67e69998702d90d8e927418b31629c614483064c"
-  integrity sha512-fBFLUgTsTbzjxjxtk9Fcr3lSty02EnLFslzF39gkn5px4mgHQjLW9wwyY0i1E4LNkWsDhaBp52ni60Y7OHB2BA==
+"@eppo/js-client-sdk-common@file:../js-client-sdk-common":
+  version "2.1.1-alpha"
   dependencies:
     axios "^1.6.0"
     lru-cache "^10.0.1"
+    md5 "^2.3.0"
+
+"@eppo/js-client-sdk@file:.":
+  version "1.6.0"
+  dependencies:
+    "@eppo/js-client-sdk" "file:../../Library/Caches/Yarn/v6/npm-@eppo-js-client-sdk-1.6.0-b600ca25-0def-49d6-9218-f5b4a9210a82-1706827426878/node_modules/@eppo/js-client-sdk"
+    "@eppo/js-client-sdk-common" "file:../../Library/Caches/Yarn/v6/npm-@eppo-js-client-sdk-1.6.0-b600ca25-0def-49d6-9218-f5b4a9210a82-1706827426878/node_modules/@eppo/js-client-sdk-common"
     md5 "^2.3.0"
 
 "@eslint/eslintrc@^1.3.0":

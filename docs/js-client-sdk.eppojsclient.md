@@ -24,6 +24,8 @@ export declare class EppoJSClient extends EppoClient
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
+|  [\_getStringAssignmentWithReason(subjectKey, flagKey, subjectAttributes, assignmentHooks)](./js-client-sdk.eppojsclient._getstringassignmentwithreason.md) |  |  |
+|  [dumpStats()](./js-client-sdk.eppojsclient.dumpstats.md) |  |  |
 |  [getAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks)](./js-client-sdk.eppojsclient.getassignment.md) |  |  |
 |  [getBoolAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks)](./js-client-sdk.eppojsclient.getboolassignment.md) |  |  |
 |  [getJSONStringAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks)](./js-client-sdk.eppojsclient.getjsonstringassignment.md) |  |  |

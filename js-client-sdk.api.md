@@ -13,6 +13,8 @@ import { IEppoClient } from '@eppo/js-client-sdk-common';
 // @public
 export class EppoJSClient extends EppoClient {
     // (undocumented)
+    dumpStats(): any;
+    // (undocumented)
     getAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): string | null;
     // (undocumented)
     getBoolAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): boolean | null;
@@ -25,7 +27,14 @@ export class EppoJSClient extends EppoClient {
     // (undocumented)
     getStringAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): string | null;
     // (undocumented)
+<<<<<<< HEAD
     static initialized: boolean;
+=======
+    _getStringAssignmentWithReason(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): {
+        assignment: string | null;
+        reason: string | null;
+    };
+>>>>>>> 9064661 (use commons 2.1.1-alpha.0)
     // (undocumented)
     static instance: EppoJSClient;
 }
