@@ -58,7 +58,7 @@
     "xhr-mock": "^2.5.1"
   },
   "dependencies": {
-    "@eppo/js-client-sdk-common": "2.1.0",
+    "@eppo/js-client-sdk-common": "file:../js-client-sdk-common",
     "md5": "^2.3.0"
   }
 }

@@ -7,7 +7,7 @@ import {
   ExperimentConfigurationRequestParameters,
 } from '@eppo/js-client-sdk-common';
 
-import { EppoLocalStorage } from './local-storage';
+import { EppoLocalStorage, hasWindowLocalStorage } from './local-storage';
 import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 import { sdkName, sdkVersion } from './sdk-data';
 
@@ -76,6 +76,14 @@ export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-clien
 export class EppoJSClient extends EppoClient {
   public static instance: EppoJSClient;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public dumpStats(): any {
+    return {
+      hasWindowLocalStorage: hasWindowLocalStorage(),
+      pollerStats: EppoJSClient.instance?._pollerStats(),
+    };
+  }
+
   public getAssignment(
     subjectKey: string,
     flagKey: string,
@@ -84,6 +92,22 @@ export class EppoJSClient extends EppoClient {
     assignmentHooks?: IAssignmentHooks,
   ): string | null {
     return super.getAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks, true);
+  }
+
+  public _getStringAssignmentWithReason(
+    subjectKey: string,
+    flagKey: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    subjectAttributes?: Record<string, any>,
+    assignmentHooks?: IAssignmentHooks,
+  ): { assignment: string | null; reason: string | null } {
+    return super._getStringAssignmentWithReason(
+      subjectKey,
+      flagKey,
+      subjectAttributes,
+      assignmentHooks,
+      true,
+    );
   }
 
   public getStringAssignment(
