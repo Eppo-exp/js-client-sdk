@@ -4,6 +4,7 @@
 
 import { HttpClient } from '@eppo/js-client-sdk-common';
 import { POLL_INTERVAL_MS, POLL_JITTER_PCT } from '@eppo/js-client-sdk-common/dist/constants';
+import { IExperimentConfiguration } from '@eppo/js-client-sdk-common/dist/dto/experiment-configuration-dto';
 import { EppoValue } from '@eppo/js-client-sdk-common/dist/eppo_value';
 import * as md5 from 'md5';
 import * as td from 'testdouble';
@@ -24,6 +25,7 @@ import { IAssignmentLogger, IEppoClient, getInstance, init } from './index';
 describe('EppoJSClient E2E test', () => {
   let globalClient: IEppoClient;
   let mockLogger: IAssignmentLogger;
+  let returnRac = readMockRacResponse; // function so it can be overridden per-test
 
   const apiKey = 'dummy';
   const baseUrl = 'http://127.0.0.1:4000';
@@ -81,7 +83,7 @@ describe('EppoJSClient E2E test', () => {
   beforeAll(async () => {
     mock.setup();
     mock.get(/randomized_assignment\/v3\/config*/, (_req, res) => {
-      const rac = readMockRacResponse();
+      const rac = returnRac();
       return res.status(200).body(JSON.stringify(rac));
     });
     mockLogger = td.object<IAssignmentLogger>();
@@ -93,6 +95,7 @@ describe('EppoJSClient E2E test', () => {
   });
 
   afterEach(() => {
+    returnRac = readMockRacResponse;
     globalClient.setLogger(mockLogger);
     td.reset();
   });
@@ -379,7 +382,7 @@ describe('EppoJSClient E2E test', () => {
       flags: {
         [hashedFlagKey]: mockExperimentConfig,
       },
-    };
+    } as unknown as Record<string, IExperimentConfiguration>;
 
     beforeAll(() => {
       jest.useFakeTimers({
@@ -544,6 +547,38 @@ describe('EppoJSClient E2E test', () => {
 
       // Assignments now working
       expect(client.getStringAssignment('subject', flagKey)).toBe('control');
+    });
+
+    describe('With reloaded index module', () => {
+      // eslint-disable-next-line @typescript-eslint/ban-types
+      let init: Function;
+      // eslint-disable-next-line @typescript-eslint/ban-types
+      let getInstance: Function;
+      beforeEach(() => {
+        jest.isolateModules(() => {
+          // Isolate and re-require so that the static instance is reset to it's default state
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const reloadedModule = require('./index');
+          init = reloadedModule.init;
+          getInstance = reloadedModule.getInstance;
+        });
+      });
+
+      it('returns empty assignments pre-initialization by default', async () => {
+        returnRac = () => mockConfigResponse;
+        const client = getInstance();
+        expect(client.getStringAssignment('subject', flagKey)).toBeNull();
+        // don't await
+        init({
+          apiKey,
+          baseUrl,
+          assignmentLogger: mockLogger,
+        });
+        expect(client.getStringAssignment('subject', flagKey)).toBeNull();
+        // Advance time so a poll happened and check again
+        await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
+        expect(client.getStringAssignment('subject', flagKey)).toBe('control');
+      });
     });
   });
 });

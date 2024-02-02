@@ -4,7 +4,7 @@
 
 ## IClientConfig.throwOnFailedInitialization property
 
-Throw on error if unable to fetch an initial configuration during initialization. (default: true)
+Throw an error if unable to fetch an initial configuration during initialization. (default: true)
 
 **Signature:**
 

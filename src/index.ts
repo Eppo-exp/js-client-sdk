@@ -69,12 +69,15 @@ export interface IClientConfig {
 
 export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-client-sdk-common';
 
+const localStorage = new EppoLocalStorage();
+
 /**
  * Client for assigning experiment variations.
  * @public
  */
 export class EppoJSClient extends EppoClient {
-  public static instance: EppoJSClient;
+  public static instance: EppoJSClient = new EppoJSClient(localStorage);
+  private static initialized = false;
 
   public getAssignment(
     subjectKey: string,
@@ -83,6 +86,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes?: Record<string, any>,
     assignmentHooks?: IAssignmentHooks,
   ): string | null {
+    EppoJSClient.getAssignmentInitializationCheck();
     return super.getAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks, true);
   }
 
@@ -93,6 +97,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes?: Record<string, any>,
     assignmentHooks?: IAssignmentHooks,
   ): string | null {
+    EppoJSClient.getAssignmentInitializationCheck();
     return super.getStringAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks, true);
   }
 
@@ -103,6 +108,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes?: Record<string, any>,
     assignmentHooks?: IAssignmentHooks,
   ): boolean | null {
+    EppoJSClient.getAssignmentInitializationCheck();
     return super.getBoolAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks, true);
   }
 
@@ -113,6 +119,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes?: Record<string, any>,
     assignmentHooks?: IAssignmentHooks,
   ): number | null {
+    EppoJSClient.getAssignmentInitializationCheck();
     return super.getNumericAssignment(
       subjectKey,
       flagKey,
@@ -129,6 +136,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes?: Record<string, any>,
     assignmentHooks?: IAssignmentHooks,
   ): string | null {
+    EppoJSClient.getAssignmentInitializationCheck();
     return super.getJSONStringAssignment(
       subjectKey,
       flagKey,
@@ -145,6 +153,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes?: Record<string, any>,
     assignmentHooks?: IAssignmentHooks,
   ): object | null {
+    EppoJSClient.getAssignmentInitializationCheck();
     return super.getParsedJSONAssignment(
       subjectKey,
       flagKey,
@@ -152,6 +161,12 @@ export class EppoJSClient extends EppoClient {
       assignmentHooks,
       true,
     );
+  }
+
+  private static getAssignmentInitializationCheck() {
+    if (!EppoJSClient.initialized) {
+      console.warn('Eppo SDK assignment requested before init() completed');
+    }
   }
 }
 
@@ -169,8 +184,6 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
       EppoJSClient.instance.stopPolling();
     }
 
-    const localStorage = new EppoLocalStorage();
-
     const requestConfiguration: ExperimentConfigurationRequestParameters = {
       apiKey: config.apiKey,
       sdkName,
@@ -184,18 +197,16 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
       throwOnFailedInitialization: true, // always use true here as underlying instance fetch is surrounded by try/catch
     };
 
-    EppoJSClient.instance = new EppoJSClient(localStorage, requestConfiguration);
-
     EppoJSClient.instance.setLogger(config.assignmentLogger);
 
     // default behavior is to use a LocalStorage-based assignment cache.
     // this can be overridden after initialization.
     EppoJSClient.instance.useCustomAssignmentCache(new LocalStorageAssignmentCache());
-
+    EppoJSClient.instance.setConfigurationRequestParameters(requestConfiguration);
     await EppoJSClient.instance.fetchFlagConfigurations();
   } catch (error) {
     console.warn(
-      'Error encountered initializing the Eppo SDK, assignment calls will return null and not be logged' +
+      'Eppo SDK encountered an error initializing, assignment calls will return null and not be logged' +
         (config.pollAfterFailedInitialization
           ? ' until an experiment configuration is successfully retrieved'
           : ''),
@@ -204,6 +215,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
       throw error;
     }
   }
+  EppoJSClient.initialized = true;
   return EppoJSClient.instance;
 }
 
@@ -214,8 +226,5 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
  * @public
  */
 export function getInstance(): IEppoClient {
-  if (!EppoJSClient.instance) {
-    throw Error('init() must first be called to initialize a client instance');
-  }
   return EppoJSClient.instance;
 }
