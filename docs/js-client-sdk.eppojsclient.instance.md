@@ -7,5 +7,5 @@
 **Signature:**
 
 ```typescript
-static instance: EppoJSClient;
+static instance: EppoClient;
 ```

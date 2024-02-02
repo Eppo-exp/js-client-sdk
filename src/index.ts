@@ -77,7 +77,7 @@ const localStorage = new EppoLocalStorage();
  */
 export class EppoJSClient extends EppoClient {
   public static instance: EppoJSClient = new EppoJSClient(localStorage);
-  private static initialized = false;
+  public static initialized = false;
 
   public getAssignment(
     subjectKey: string,
