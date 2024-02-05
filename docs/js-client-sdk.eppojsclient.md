@@ -17,6 +17,7 @@ export declare class EppoJSClient extends EppoClient
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
+|  [initialized](./js-client-sdk.eppojsclient.initialized.md) | <code>static</code> | boolean |  |
 |  [instance](./js-client-sdk.eppojsclient.instance.md) | <code>static</code> | [EppoJSClient](./js-client-sdk.eppojsclient.md) |  |
 
 ## Methods

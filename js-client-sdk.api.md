@@ -25,6 +25,8 @@ export class EppoJSClient extends EppoClient {
     // (undocumented)
     getStringAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): string | null;
     // (undocumented)
+    static initialized: boolean;
+    // (undocumented)
     static instance: EppoJSClient;
 }
 

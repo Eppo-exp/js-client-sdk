@@ -24,5 +24,5 @@ export interface IClientConfig
 |  [pollAfterFailedInitialization?](./js-client-sdk.iclientconfig.pollafterfailedinitialization.md) |  | boolean | _(Optional)_ Poll for new configurations even if the initial configuration request failed. (default: false) |
 |  [pollAfterSuccessfulInitialization?](./js-client-sdk.iclientconfig.pollaftersuccessfulinitialization.md) |  | boolean | _(Optional)_ Poll for new configurations (every 30 seconds) after successfully requesting the initial configuration. (default: false) |
 |  [requestTimeoutMs?](./js-client-sdk.iclientconfig.requesttimeoutms.md) |  | number | _(Optional)_ \* Timeout in milliseconds for the HTTPS request for the experiment configuration. (Default: 5000) |
-|  [throwOnFailedInitialization?](./js-client-sdk.iclientconfig.throwonfailedinitialization.md) |  | boolean | _(Optional)_ Throw on error if unable to fetch an initial configuration during initialization. (default: true) |
+|  [throwOnFailedInitialization?](./js-client-sdk.iclientconfig.throwonfailedinitialization.md) |  | boolean | _(Optional)_ Throw an error if unable to fetch an initial configuration during initialization. (default: true) |
 
