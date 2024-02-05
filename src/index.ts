@@ -83,10 +83,10 @@ export class EppoJSClient extends EppoClient {
    * @deprecated temporary method for debugging
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public _dumpStats(): any {
+  public dumpStats(): any {
     return {
       hasWindowLocalStorage: hasWindowLocalStorage(),
-      pollerStats: EppoJSClient.instance?._pollerStats(),
+      pollerStats: EppoJSClient.instance?.pollerStats(),
     };
   }
 
@@ -104,14 +104,14 @@ export class EppoJSClient extends EppoClient {
   /**
    * @deprecated temporary method for debugging
    */
-  public _getStringAssignmentWithReason(
+  public getStringAssignmentWithReason(
     subjectKey: string,
     flagKey: string,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     subjectAttributes?: Record<string, any>,
     assignmentHooks?: IAssignmentHooks,
   ): { assignment: string | null; reason: string | null } {
-    return super._getStringAssignmentWithReason(
+    return super.getStringAssignmentWithReason(
       subjectKey,
       flagKey,
       subjectAttributes,
