@@ -24,7 +24,6 @@ export declare class EppoJSClient extends EppoClient
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [\_getStringAssignmentWithReason(subjectKey, flagKey, subjectAttributes, assignmentHooks)](./js-client-sdk.eppojsclient._getstringassignmentwithreason.md) |  |  |
 |  [dumpStats()](./js-client-sdk.eppojsclient.dumpstats.md) |  |  |
 |  [getAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks)](./js-client-sdk.eppojsclient.getassignment.md) |  |  |
 |  [getBoolAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks)](./js-client-sdk.eppojsclient.getboolassignment.md) |  |  |
@@ -32,4 +31,5 @@ export declare class EppoJSClient extends EppoClient
 |  [getNumericAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks)](./js-client-sdk.eppojsclient.getnumericassignment.md) |  |  |
 |  [getParsedJSONAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks)](./js-client-sdk.eppojsclient.getparsedjsonassignment.md) |  |  |
 |  [getStringAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks)](./js-client-sdk.eppojsclient.getstringassignment.md) |  |  |
+|  [getStringAssignmentWithReason(subjectKey, flagKey, subjectAttributes, assignmentHooks)](./js-client-sdk.eppojsclient.getstringassignmentwithreason.md) |  |  |
 

@@ -4,6 +4,11 @@
 
 ## EppoJSClient.dumpStats() method
 
+> Warning: This API is now obsolete.
+> 
+> temporary method for debugging
+> 
+
 **Signature:**
 
 ```typescript
