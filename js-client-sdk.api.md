@@ -26,14 +26,13 @@ export class EppoJSClient extends EppoClient {
     getParsedJSONAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): object | null;
     // (undocumented)
     getStringAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): string | null;
-    // (undocumented)
-    static initialized: boolean;
-
     // @deprecated (undocumented)
     getStringAssignmentWithReason(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): {
         assignment: string | null;
         reason: string | null;
     };
+    // (undocumented)
+    static initialized: boolean;
     // (undocumented)
     static instance: EppoJSClient;
 }
