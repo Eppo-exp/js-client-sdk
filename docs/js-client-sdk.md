@@ -14,6 +14,7 @@
 
 |  Function | Description |
 |  --- | --- |
+|  [getFlagConfigurations(configurationRequestParameters)](./js-client-sdk.getflagconfigurations.md) |  |
 |  [getInstance()](./js-client-sdk.getinstance.md) | Used to access a singleton SDK client instance. Use the method after calling init() to initialize the client. |
 |  [init(config)](./js-client-sdk.init.md) | Initializes the Eppo client with configuration parameters. This method should be called once on application startup. |
 
