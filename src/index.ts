@@ -5,7 +5,10 @@ import {
   EppoClient,
   IAssignmentHooks,
   ExperimentConfigurationRequestParameters,
+  ExperimentConfigurationRequestBaseParameters,
+  IRandomizedAssignmentConfig,
 } from '@eppo/js-client-sdk-common';
+import { IExperimentConfiguration } from '@eppo/js-client-sdk-common/dist/dto/experiment-configuration-dto';
 
 import { EppoLocalStorage } from './local-storage';
 import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
@@ -65,6 +68,12 @@ export interface IClientConfig {
    * backoff. (Default: 7)
    */
   numPollRequestRetries?: number;
+
+  /**
+   * Pre-populate the flag configurations.
+   * This can be used to avoid making a request to the Eppo API.
+   */
+  flagConfigurations?: IRandomizedAssignmentConfig;
 }
 
 export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-client-sdk-common';
@@ -177,33 +186,37 @@ export class EppoJSClient extends EppoClient {
  * @public
  */
 export async function init(config: IClientConfig): Promise<IEppoClient> {
-  validation.validateNotBlank(config.apiKey, 'API key required');
+  if (!config.flagConfigurations) {
+    validation.validateNotBlank(config.apiKey, 'API key required');
+  }
   try {
     // If any existing instances; ensure they are not polling
     if (EppoJSClient.instance) {
       EppoJSClient.instance.stopPolling();
     }
-
-    const requestConfiguration: ExperimentConfigurationRequestParameters = {
-      apiKey: config.apiKey,
-      sdkName,
-      sdkVersion,
-      baseUrl: config.baseUrl ?? undefined,
-      requestTimeoutMs: config.requestTimeoutMs ?? undefined,
-      numInitialRequestRetries: config.numInitialRequestRetries ?? undefined,
-      numPollRequestRetries: config.numPollRequestRetries ?? undefined,
-      pollAfterSuccessfulInitialization: config.pollAfterSuccessfulInitialization ?? false,
-      pollAfterFailedInitialization: config.pollAfterFailedInitialization ?? false,
-      throwOnFailedInitialization: true, // always use true here as underlying instance fetch is surrounded by try/catch
-    };
-
     EppoJSClient.instance.setLogger(config.assignmentLogger);
-
     // default behavior is to use a LocalStorage-based assignment cache.
     // this can be overridden after initialization.
     EppoJSClient.instance.useCustomAssignmentCache(new LocalStorageAssignmentCache());
-    EppoJSClient.instance.setConfigurationRequestParameters(requestConfiguration);
-    await EppoJSClient.instance.fetchFlagConfigurations();
+
+    if (config.flagConfigurations) {
+      EppoJSClient.instance.storeFlagConfigurations(config.flagConfigurations);
+    } else {
+      const requestConfiguration: ExperimentConfigurationRequestParameters = {
+        apiKey: config.apiKey,
+        sdkName,
+        sdkVersion,
+        baseUrl: config.baseUrl ?? undefined,
+        requestTimeoutMs: config.requestTimeoutMs ?? undefined,
+        numInitialRequestRetries: config.numInitialRequestRetries ?? undefined,
+        numPollRequestRetries: config.numPollRequestRetries ?? undefined,
+        pollAfterSuccessfulInitialization: config.pollAfterSuccessfulInitialization ?? false,
+        pollAfterFailedInitialization: config.pollAfterFailedInitialization ?? false,
+        throwOnFailedInitialization: true, // always use true here as underlying instance fetch is surrounded by try/catch
+      };
+      EppoJSClient.instance.setConfigurationRequestParameters(requestConfiguration);
+      await EppoJSClient.instance.fetchFlagConfigurations();
+    }
   } catch (error) {
     console.warn(
       'Eppo SDK encountered an error initializing, assignment calls will return null and not be logged' +
@@ -227,4 +240,10 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
  */
 export function getInstance(): IEppoClient {
   return EppoJSClient.instance;
+}
+
+export async function getFlagConfigurations(
+  configurationRequestParameters: ExperimentConfigurationRequestBaseParameters,
+): Promise<IRandomizedAssignmentConfig> {
+  return await EppoClient.getFlagConfigurations(configurationRequestParameters);
 }

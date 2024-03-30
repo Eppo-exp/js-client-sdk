@@ -380,10 +380,8 @@
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz#1d572bfbbe14b7704e0ba0f39b74815b84870d70"
   integrity sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==
 
-"@eppo/js-client-sdk-common@2.2.2":
+"@eppo/js-client-sdk-common@file:../js-client-sdk-common":
   version "2.2.2"
-  resolved "https://registry.yarnpkg.com/@eppo/js-client-sdk-common/-/js-client-sdk-common-2.2.2.tgz#3fe1f0ab2c04584b39e4b67b8c654e87319bf90f"
-  integrity sha512-l6VTWMJuVGiM3uYuYK55VzVMGQ6eXTNnmCP7dnKnTEfDF6MT6Co0mMC0lqrYYW2x/yISlEzF0NMkeK2fDkoMBw==
   dependencies:
     axios "^1.6.0"
     lru-cache "^10.0.1"

@@ -5,10 +5,12 @@
 ```ts
 
 import { EppoClient } from '@eppo/js-client-sdk-common';
+import { ExperimentConfigurationRequestBaseParameters } from '@eppo/js-client-sdk-common';
 import { IAssignmentEvent } from '@eppo/js-client-sdk-common';
 import { IAssignmentHooks } from '@eppo/js-client-sdk-common';
 import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
 import { IEppoClient } from '@eppo/js-client-sdk-common';
+import { IRandomizedAssignmentConfig } from '@eppo/js-client-sdk-common';
 
 // @public
 export class EppoJSClient extends EppoClient {
@@ -30,6 +32,9 @@ export class EppoJSClient extends EppoClient {
     static instance: EppoJSClient;
 }
 
+// @public (undocumented)
+export function getFlagConfigurations(configurationRequestParameters: ExperimentConfigurationRequestBaseParameters): Promise<IRandomizedAssignmentConfig>;
+
 // @public
 export function getInstance(): IEppoClient;
 
@@ -42,6 +47,7 @@ export interface IClientConfig {
     apiKey: string;
     assignmentLogger: IAssignmentLogger;
     baseUrl?: string;
+    flagConfigurations?: IRandomizedAssignmentConfig;
     numInitialRequestRetries?: number;
     numPollRequestRetries?: number;
     pollAfterFailedInitialization?: boolean;
