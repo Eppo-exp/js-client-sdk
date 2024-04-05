@@ -380,13 +380,12 @@
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz#1d572bfbbe14b7704e0ba0f39b74815b84870d70"
   integrity sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==
 
-"@eppo/js-client-sdk-common@2.2.2":
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/@eppo/js-client-sdk-common/-/js-client-sdk-common-2.2.2.tgz#3fe1f0ab2c04584b39e4b67b8c654e87319bf90f"
-  integrity sha512-l6VTWMJuVGiM3uYuYK55VzVMGQ6eXTNnmCP7dnKnTEfDF6MT6Co0mMC0lqrYYW2x/yISlEzF0NMkeK2fDkoMBw==
+"@eppo/js-client-sdk-common@2.2.3":
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/@eppo/js-client-sdk-common/-/js-client-sdk-common-2.2.3.tgz#004cebb02bd132d7e02591513dffc0dbb0436289"
+  integrity sha512-yrqA6F3TbSwUVaqTcAvfX+5rKs49eXSptqJf68jq6ZIoSFWo3onfLmJdOZ4cu3AEG3DrXxvzUmykpmtSimxaHQ==
   dependencies:
     axios "^1.6.0"
-    lru-cache "^10.0.1"
     md5 "^2.3.0"
     pino "^8.19.0"
     semver "^7.5.4"
@@ -3530,11 +3529,6 @@ log-update@^4.0.0:
     cli-cursor "^3.1.0"
     slice-ansi "^4.0.0"
     wrap-ansi "^6.2.0"
-
-lru-cache@^10.0.1:
-  version "10.2.0"
-  resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-10.2.0.tgz#0bd445ca57363465900f4d1f9bd8db343a4d95c3"
-  integrity sha512-2bIM8x+VAf6JT4bKAljS1qUWgMsqZRPGJS6FSahIMPVvctcNhyVp7AJu7quxOW9jwkryBReKZY5tY5JYv2n/7Q==
 
 lru-cache@^6.0.0:
   version "6.0.0"
