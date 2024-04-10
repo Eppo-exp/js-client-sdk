@@ -43,5 +43,10 @@ describe('EppoLocalStorage', () => {
       expect(storage.get<ITestEntry>('key1')).toEqual(config1);
       expect(storage.get<ITestEntry>('key2')).toEqual(config2);
     });
+
+    it('returns a list of keys', () => {
+      storage.setEntries({ key1: config1, key2: config2 });
+      expect(storage.getKeys()).toEqual(['key1', 'key2']);
+    });
   });
 });

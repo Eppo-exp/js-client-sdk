@@ -6,24 +6,21 @@
 
 import { EppoClient } from '@eppo/js-client-sdk-common';
 import { IAssignmentEvent } from '@eppo/js-client-sdk-common';
-import { IAssignmentHooks } from '@eppo/js-client-sdk-common';
 import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
 import { IEppoClient } from '@eppo/js-client-sdk-common';
 
 // @public
 export class EppoJSClient extends EppoClient {
     // (undocumented)
-    getAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): string | null;
+    getBoolAssignment(subjectKey: string, flagKey: string, defaultValue: boolean, subjectAttributes?: Record<string, any>): boolean | null;
     // (undocumented)
-    getBoolAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): boolean | null;
+    getIntegerAssignment(subjectKey: string, flagKey: string, defaultValue: number, subjectAttributes?: Record<string, any>): number | null;
     // (undocumented)
-    getJSONStringAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): string | null;
+    getJSONAssignment(subjectKey: string, flagKey: string, defaultValue: object, subjectAttributes?: Record<string, any>): object | null;
     // (undocumented)
-    getNumericAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): number | null;
+    getNumericAssignment(subjectKey: string, flagKey: string, defaultValue: number, subjectAttributes?: Record<string, any>): number | null;
     // (undocumented)
-    getParsedJSONAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): object | null;
-    // (undocumented)
-    getStringAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): string | null;
+    getStringAssignment(subjectKey: string, flagKey: string, defaultValue: string, subjectAttributes?: Record<string, any>): string | null;
     // (undocumented)
     static initialized: boolean;
     // (undocumented)

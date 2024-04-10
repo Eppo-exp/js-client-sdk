@@ -7,7 +7,7 @@
 **Signature:**
 
 ```typescript
-getStringAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): string | null;
+getStringAssignment(subjectKey: string, flagKey: string, defaultValue: string, subjectAttributes?: Record<string, any>): string | null;
 ```
 
 ## Parameters
@@ -16,8 +16,8 @@ getStringAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Rec
 |  --- | --- | --- |
 |  subjectKey | string |  |
 |  flagKey | string |  |
+|  defaultValue | string |  |
 |  subjectAttributes | Record&lt;string, any&gt; | _(Optional)_ |
-|  assignmentHooks | IAssignmentHooks | _(Optional)_ |
 
 **Returns:**
 

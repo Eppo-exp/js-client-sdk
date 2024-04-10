@@ -1,11 +1,13 @@
 import * as fs from 'fs';
 
-import { IExperimentConfiguration } from '@eppo/js-client-sdk-common/dist/dto/experiment-configuration-dto';
-import { IVariation } from '@eppo/js-client-sdk-common/dist/dto/variation-dto';
+import { Flag, VariationType } from '@eppo/js-client-sdk-common/dist/interfaces';
+import { AttributeType } from '@eppo/js-client-sdk-common/dist/types';
 
-export const TEST_DATA_DIR = './test/data/';
-export const ASSIGNMENT_TEST_DATA_DIR = TEST_DATA_DIR + 'assignment-v2/';
-export const MOCK_RAC_RESPONSE_FILE = 'rac-experiments-v3-obfuscated.json';
+export const TEST_DATA_DIR = './test/data/ufc/';
+export const ASSIGNMENT_TEST_DATA_DIR = TEST_DATA_DIR + 'tests/';
+const MOCK_UFC_FILENAME = 'flags-v1';
+export const MOCK_UFC_RESPONSE_FILE = `${MOCK_UFC_FILENAME}.json`;
+export const OBFUSCATED_MOCK_UFC_RESPONSE_FILE = `${MOCK_UFC_FILENAME}-obfuscated.json`;
 
 export enum ValueTestType {
   BoolType = 'boolean',
@@ -14,19 +16,23 @@ export enum ValueTestType {
   JSONType = 'json',
 }
 
-export interface IAssignmentTestCase {
-  experiment: string;
-  valueType: ValueTestType;
-  percentExposure: number;
-  variations: IVariation[];
-  subjects: string[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  subjectsWithAttributes: { subjectKey: string; subjectAttributes: Record<string, any> }[];
-  expectedAssignments: string[];
+export interface SubjectTestCase {
+  subjectKey: string;
+  subjectAttributes: Record<string, AttributeType>;
+  assignment: string | number | boolean | object;
 }
 
-export function readMockRacResponse(): Record<string, IExperimentConfiguration> {
-  return JSON.parse(fs.readFileSync(TEST_DATA_DIR + MOCK_RAC_RESPONSE_FILE, 'utf-8'));
+export interface IAssignmentTestCase {
+  flag: string;
+  variationType: VariationType;
+  defaultValue: string | number | boolean | object;
+  subjects: SubjectTestCase[];
+}
+
+export function readMockUFCResponse(filename: string): {
+  flags: Record<string, Flag>;
+} {
+  return JSON.parse(fs.readFileSync(TEST_DATA_DIR + filename, 'utf-8'));
 }
 
 export function readAssignmentTestData(): IAssignmentTestCase[] {
