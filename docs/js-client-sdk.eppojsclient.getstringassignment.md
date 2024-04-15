@@ -7,7 +7,7 @@
 **Signature:**
 
 ```typescript
-getStringAssignment(subjectKey: string, flagKey: string, defaultValue: string, subjectAttributes?: Record<string, any>): string | null;
+getStringAssignment(subjectKey: string, flagKey: string, defaultValue: string, subjectAttributes?: Record<string, any>): string;
 ```
 
 ## Parameters
@@ -21,5 +21,5 @@ getStringAssignment(subjectKey: string, flagKey: string, defaultValue: string, s
 
 **Returns:**
 
-string \| null
+string
 

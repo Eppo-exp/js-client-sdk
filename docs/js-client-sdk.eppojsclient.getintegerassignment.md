@@ -7,7 +7,7 @@
 **Signature:**
 
 ```typescript
-getIntegerAssignment(subjectKey: string, flagKey: string, defaultValue: number, subjectAttributes?: Record<string, any>): number | null;
+getIntegerAssignment(subjectKey: string, flagKey: string, defaultValue: number, subjectAttributes?: Record<string, any>): number;
 ```
 
 ## Parameters
@@ -21,5 +21,5 @@ getIntegerAssignment(subjectKey: string, flagKey: string, defaultValue: number, 
 
 **Returns:**
 
-number \| null
+number
 

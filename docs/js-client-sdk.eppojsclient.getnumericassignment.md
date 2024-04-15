@@ -7,7 +7,7 @@
 **Signature:**
 
 ```typescript
-getNumericAssignment(subjectKey: string, flagKey: string, defaultValue: number, subjectAttributes?: Record<string, any>): number | null;
+getNumericAssignment(subjectKey: string, flagKey: string, defaultValue: number, subjectAttributes?: Record<string, any>): number;
 ```
 
 ## Parameters
@@ -21,5 +21,5 @@ getNumericAssignment(subjectKey: string, flagKey: string, defaultValue: number, 
 
 **Returns:**
 
-number \| null
+number
 

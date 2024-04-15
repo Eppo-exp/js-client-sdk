@@ -253,16 +253,6 @@ describe('EppoJSClient E2E test', () => {
   describe('UFC Obfuscated Test Cases', () => {
     const storage = new EppoLocalStorage();
 
-    // beforeEach(async () => {
-    //   console.log('<<<<<<<<<< calling before each');
-    //   returnUfc = () => {
-    //     console.log('<<<<<<<<<< about to mock obfuscated rac');
-    //     const result = readMockUFCResponse(OBFUSCATED_MOCK_UFC_RESPONSE_FILE);
-    //     console.log('<<<<<<<<<< ', result);
-    //     return result;
-    //   };
-    // });
-
     beforeAll(async () => {
       mock.setup();
       mock.get(flagEndpoint, (_req, res) => {
@@ -535,13 +525,26 @@ describe('EppoJSClient E2E test', () => {
       let init: Function;
       // eslint-disable-next-line @typescript-eslint/ban-types
       let getInstance: Function;
-      beforeEach(() => {
+      beforeEach(async () => {
         jest.isolateModules(() => {
           // Isolate and re-require so that the static instance is reset to it's default state
           // eslint-disable-next-line @typescript-eslint/no-var-requires
           const reloadedModule = require('./index');
           init = reloadedModule.init;
           getInstance = reloadedModule.getInstance;
+        });
+
+        mock.setup();
+        mockLogger = td.object<IAssignmentLogger>();
+        mock.get(flagEndpoint, (_req, res) => {
+          const ufc = returnUfc(MOCK_UFC_RESPONSE_FILE);
+          return res.status(200).body(JSON.stringify(ufc));
+        });
+
+        globalClient = await init({
+          apiKey,
+          baseUrl,
+          assignmentLogger: mockLogger,
         });
       });
 
