@@ -15,6 +15,8 @@ import {
   readMockUFCResponse,
   MOCK_UFC_RESPONSE_FILE,
   OBFUSCATED_MOCK_UFC_RESPONSE_FILE,
+  getTestAssignments,
+  validateTestAssignments,
 } from '../test/testHelpers';
 
 import { EppoLocalStorage } from './local-storage';
@@ -22,52 +24,7 @@ import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 
 import { EppoJSClient, IAssignmentLogger, IEppoClient, getInstance, init } from './index';
 
-const flagEndpoint = /flag_config\/v1\/config*/;
-
-function getTestAssignments(
-  testCase: IAssignmentTestCase,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  assignmentFn: any,
-  obfuscated = false,
-): { subject: SubjectTestCase; assignment: string | boolean | number | null | object }[] {
-  const assignments: {
-    subject: SubjectTestCase;
-    assignment: string | boolean | number | null | object;
-  }[] = [];
-  for (const subject of testCase.subjects) {
-    const assignment = assignmentFn(
-      subject.subjectKey,
-      testCase.flag,
-      testCase.defaultValue,
-      subject.subjectAttributes,
-      obfuscated,
-    );
-    assignments.push({ subject: subject, assignment: assignment });
-  }
-  return assignments;
-}
-
-function validateTestAssignments(
-  assignments: {
-    subject: SubjectTestCase;
-    assignment: string | boolean | number | object | null;
-  }[],
-  flag: string,
-) {
-  for (const { subject, assignment } of assignments) {
-    if (typeof assignment !== 'object') {
-      // the expect works well for objects, but this comparison does not
-      if (assignment !== subject.assignment) {
-        throw new Error(
-          `subject ${
-            subject.subjectKey
-          } was assigned ${assignment?.toString()} when expected ${subject.assignment?.toString()} for flag ${flag}`,
-        );
-      }
-    }
-    expect(subject.assignment).toEqual(assignment);
-  }
-}
+const flagEndpoint = /flag-config\/v1\/config*/;
 
 describe('EppoJSClient E2E test', () => {
   let globalClient: IEppoClient;
@@ -138,11 +95,12 @@ describe('EppoJSClient E2E test', () => {
 
   beforeAll(async () => {
     mock.setup();
+    mockLogger = td.object<IAssignmentLogger>();
     mock.get(flagEndpoint, (_req, res) => {
       const ufc = returnUfc(MOCK_UFC_RESPONSE_FILE);
       return res.status(200).body(JSON.stringify(ufc));
     });
-    mockLogger = td.object<IAssignmentLogger>();
+
     globalClient = await init({
       apiKey,
       baseUrl,
@@ -163,8 +121,8 @@ describe('EppoJSClient E2E test', () => {
   it('returns default value when experiment config is absent', () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     td.replace(EppoLocalStorage.prototype, 'get', (key: string) => null as null);
-    const assignment = globalClient.getStringAssignment('subject-10', flagKey, '');
-    expect(assignment).toEqual('');
+    const assignment = globalClient.getStringAssignment('subject-10', flagKey, 'default-value');
+    expect(assignment).toEqual('default-value');
   });
 
   it('logs variation assignment and experiment key', () => {
@@ -181,7 +139,7 @@ describe('EppoJSClient E2E test', () => {
     const assignment = globalClient.getStringAssignment(
       'subject-10',
       flagKey,
-      '',
+      'default-value',
       subjectAttributes,
     );
 
@@ -223,6 +181,7 @@ describe('EppoJSClient E2E test', () => {
         throw new Error('Unexpected key ' + key);
       }
 
+      // Modified flag with a single rule.
       return {
         ...mockUfcFlagConfig,
         allocations: [
@@ -243,13 +202,14 @@ describe('EppoJSClient E2E test', () => {
         ],
       };
     });
-    let assignment = globalClient.getStringAssignment('subject-10', flagKey, '', {
+
+    let assignment = globalClient.getStringAssignment('subject-10', flagKey, 'default-value', {
       appVersion: 9,
     });
-    expect(assignment).toEqual('');
-    assignment = globalClient.getStringAssignment('subject-10', flagKey, '');
-    expect(assignment).toEqual('');
-    assignment = globalClient.getStringAssignment('subject-10', flagKey, '', {
+    expect(assignment).toEqual('default-value');
+    assignment = globalClient.getStringAssignment('subject-10', flagKey, 'default-value');
+    expect(assignment).toEqual('default-value');
+    assignment = globalClient.getStringAssignment('subject-10', flagKey, 'default-value', {
       appVersion: 11,
     });
     expect(assignment).toEqual('variant-1');
@@ -293,12 +253,23 @@ describe('EppoJSClient E2E test', () => {
   describe('UFC Obfuscated Test Cases', () => {
     const storage = new EppoLocalStorage();
 
+    // beforeEach(async () => {
+    //   console.log('<<<<<<<<<< calling before each');
+    //   returnUfc = () => {
+    //     console.log('<<<<<<<<<< about to mock obfuscated rac');
+    //     const result = readMockUFCResponse(OBFUSCATED_MOCK_UFC_RESPONSE_FILE);
+    //     console.log('<<<<<<<<<< ', result);
+    //     return result;
+    //   };
+    // });
+
     beforeAll(async () => {
       mock.setup();
       mock.get(flagEndpoint, (_req, res) => {
         const ufc = readMockUFCResponse(OBFUSCATED_MOCK_UFC_RESPONSE_FILE);
         return res.status(200).body(JSON.stringify(ufc));
       });
+
       globalClient = await init({
         apiKey,
         baseUrl,
@@ -577,17 +548,21 @@ describe('EppoJSClient E2E test', () => {
       it('returns empty assignments pre-initialization by default', async () => {
         returnUfc = () => mockConfigResponse;
         const client = getInstance();
-        expect(client.getStringAssignment('subject', flagKey, '')).toBe('');
+        expect(client.getStringAssignment('subject', flagKey, 'default-value')).toBe(
+          'default-value',
+        );
         // don't await
         init({
           apiKey,
           baseUrl,
           assignmentLogger: mockLogger,
         });
-        expect(client.getStringAssignment('subject', flagKey, '')).toBe('');
+        expect(client.getStringAssignment('subject', flagKey, 'default-value')).toBe(
+          'default-value',
+        );
         // Advance time so a poll happened and check again
         await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
-        expect(client.getStringAssignment('subject', flagKey, '')).toBe('control');
+        expect(client.getStringAssignment('subject', flagKey, 'default-value')).toBe('control');
       });
     });
   });

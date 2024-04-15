@@ -83,7 +83,7 @@ export class EppoJSClient extends EppoClient {
     flagKey: string,
     defaultValue: string,
     subjectAttributes?: Record<string, any>,
-  ): string | null {
+  ): string {
     EppoJSClient.getAssignmentInitializationCheck();
     return super.getStringAssignment(subjectKey, flagKey, defaultValue, subjectAttributes);
   }
@@ -93,7 +93,7 @@ export class EppoJSClient extends EppoClient {
     flagKey: string,
     defaultValue: boolean,
     subjectAttributes?: Record<string, any>,
-  ): boolean | null {
+  ): boolean {
     EppoJSClient.getAssignmentInitializationCheck();
     return super.getBoolAssignment(subjectKey, flagKey, defaultValue, subjectAttributes);
   }
@@ -103,7 +103,7 @@ export class EppoJSClient extends EppoClient {
     flagKey: string,
     defaultValue: number,
     subjectAttributes?: Record<string, any>,
-  ): number | null {
+  ): number {
     EppoJSClient.getAssignmentInitializationCheck();
     return super.getIntegerAssignment(subjectKey, flagKey, defaultValue, subjectAttributes);
   }
@@ -113,7 +113,7 @@ export class EppoJSClient extends EppoClient {
     flagKey: string,
     defaultValue: number,
     subjectAttributes?: Record<string, any>,
-  ): number | null {
+  ): number {
     EppoJSClient.getAssignmentInitializationCheck();
     return super.getNumericAssignment(subjectKey, flagKey, defaultValue, subjectAttributes);
   }
@@ -123,7 +123,7 @@ export class EppoJSClient extends EppoClient {
     flagKey: string,
     defaultValue: object,
     subjectAttributes?: Record<string, any>,
-  ): object | null {
+  ): object {
     EppoJSClient.getAssignmentInitializationCheck();
     return super.getJSONAssignment(subjectKey, flagKey, defaultValue, subjectAttributes);
   }
