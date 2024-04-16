@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 
-import { Flag, VariationType } from '@eppo/js-client-sdk-common/dist/interfaces';
+import { Flag, VariationType } from '@eppo/js-client-sdk-common';
 import { AttributeType } from '@eppo/js-client-sdk-common/dist/types';
 
 export const TEST_DATA_DIR = './test/data/ufc/';

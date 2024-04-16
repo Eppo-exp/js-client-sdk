@@ -2,15 +2,15 @@
  * @jest-environment jsdom
  */
 
-import { HttpClient } from '@eppo/js-client-sdk-common';
+import { HttpClient, Flag, VariationType } from '@eppo/js-client-sdk-common';
 import { POLL_INTERVAL_MS, POLL_JITTER_PCT } from '@eppo/js-client-sdk-common/dist/constants';
-import { Flag, VariationType } from '@eppo/js-client-sdk-common/dist/interfaces';
+import * as md5 from 'md5';
 import * as td from 'testdouble';
+import { encode } from 'universal-base64';
 import mock from 'xhr-mock';
 
 import {
   IAssignmentTestCase,
-  SubjectTestCase,
   readAssignmentTestData,
   readMockUFCResponse,
   MOCK_UFC_RESPONSE_FILE,
@@ -22,7 +22,7 @@ import {
 import { EppoLocalStorage } from './local-storage';
 import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 
-import { EppoJSClient, IAssignmentLogger, IEppoClient, getInstance, init } from './index';
+import { IAssignmentLogger, IEppoClient, getInstance, init } from './index';
 
 const flagEndpoint = /flag-config\/v1\/config*/;
 
@@ -34,10 +34,11 @@ describe('EppoJSClient E2E test', () => {
   const apiKey = 'dummy';
   const baseUrl = 'http://127.0.0.1:4000';
   const flagKey = 'mock-experiment';
+  const obfuscatedFlagKey = md5(flagKey);
 
   // Configuration for a single flag within the UFC.
   const mockUfcFlagConfig: Flag = {
-    key: flagKey,
+    key: obfuscatedFlagKey,
     enabled: true,
     variationType: VariationType.STRING,
     variations: {
@@ -127,7 +128,7 @@ describe('EppoJSClient E2E test', () => {
 
   it('logs variation assignment and experiment key', () => {
     td.replace(EppoLocalStorage.prototype, 'get', (key: string) => {
-      if (key !== flagKey) {
+      if (key !== obfuscatedFlagKey) {
         throw new Error('Unexpected key ' + key);
       }
 
@@ -159,7 +160,7 @@ describe('EppoJSClient E2E test', () => {
     const mockLogger = td.object<IAssignmentLogger>();
     td.when(mockLogger.logAssignment(td.matchers.anything())).thenThrow(new Error('logging error'));
     td.replace(EppoLocalStorage.prototype, 'get', (key: string) => {
-      if (key !== flagKey) {
+      if (key !== obfuscatedFlagKey) {
         throw new Error('Unexpected key ' + key);
       }
       return mockUfcFlagConfig;
@@ -169,7 +170,7 @@ describe('EppoJSClient E2E test', () => {
     const assignment = globalClient.getStringAssignment(
       'subject-10',
       flagKey,
-      '',
+      'default-value',
       subjectAttributes,
     );
     expect(assignment).toEqual('variant-1');
@@ -177,7 +178,7 @@ describe('EppoJSClient E2E test', () => {
 
   it('only returns variation if subject matches rules', () => {
     td.replace(EppoLocalStorage.prototype, 'get', (key: string) => {
-      if (key !== flagKey) {
+      if (key !== obfuscatedFlagKey) {
         throw new Error('Unexpected key ' + key);
       }
 
@@ -191,9 +192,9 @@ describe('EppoJSClient E2E test', () => {
               {
                 conditions: [
                   {
-                    attribute: 'appVersion',
-                    operator: 'GT',
-                    value: 10,
+                    attribute: md5('appVersion'),
+                    operator: md5('GT'),
+                    value: encode('10'),
                   },
                 ],
               },
@@ -215,44 +216,7 @@ describe('EppoJSClient E2E test', () => {
     expect(assignment).toEqual('variant-1');
   });
 
-  describe('UFC General Test Cases', () => {
-    it.each(readAssignmentTestData())(
-      'test variation assignment splits',
-      async ({ flag, variationType, defaultValue, subjects }: IAssignmentTestCase) => {
-        const client = new EppoJSClient(new EppoLocalStorage());
-
-        let assignments: {
-          subject: SubjectTestCase;
-          assignment: string | boolean | number | null | object;
-        }[] = [];
-
-        const typeAssignmentFunctions = {
-          [VariationType.BOOLEAN]: client.getBoolAssignment.bind(client),
-          [VariationType.NUMERIC]: client.getNumericAssignment.bind(client),
-          [VariationType.INTEGER]: client.getIntegerAssignment.bind(client),
-          [VariationType.STRING]: client.getStringAssignment.bind(client),
-          [VariationType.JSON]: client.getJSONAssignment.bind(client),
-        };
-
-        const assignmentFn = typeAssignmentFunctions[variationType];
-        if (!assignmentFn) {
-          throw new Error(`Unknown variation type: ${variationType}`);
-        }
-
-        assignments = getTestAssignments(
-          { flag, variationType, defaultValue, subjects },
-          assignmentFn,
-          false,
-        );
-
-        validateTestAssignments(assignments, flag);
-      },
-    );
-  });
-
   describe('UFC Obfuscated Test Cases', () => {
-    const storage = new EppoLocalStorage();
-
     beforeAll(async () => {
       mock.setup();
       mock.get(flagEndpoint, (_req, res) => {
@@ -274,7 +238,7 @@ describe('EppoJSClient E2E test', () => {
     it.each(readAssignmentTestData())(
       'test variation assignment splits',
       async ({ flag, variationType, defaultValue, subjects }: IAssignmentTestCase) => {
-        const client = new EppoJSClient(storage, undefined, true);
+        const client = getInstance();
 
         const typeAssignmentFunctions = {
           [VariationType.BOOLEAN]: client.getBoolAssignment.bind(client),
@@ -351,7 +315,7 @@ describe('EppoJSClient E2E test', () => {
     const maxRetryDelay = POLL_INTERVAL_MS * POLL_JITTER_PCT;
     const mockConfigResponse = {
       flags: {
-        [flagKey]: mockUfcFlagConfig,
+        [obfuscatedFlagKey]: mockUfcFlagConfig,
       },
     } as unknown as Record<'flags', Record<string, Flag>>;
 
@@ -416,7 +380,7 @@ describe('EppoJSClient E2E test', () => {
       // Await so it can finish its initialization before this test proceeds
       const client = await initPromise;
       expect(callCount).toBe(2);
-      expect(client.getStringAssignment('subject', flagKey, '')).toBe('control');
+      expect(client.getStringAssignment('subject', flagKey, 'default-value')).toBe('control');
 
       // By default, no more calls
       await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS * 10);
@@ -439,7 +403,7 @@ describe('EppoJSClient E2E test', () => {
         pollAfterSuccessfulInitialization: true,
       });
       expect(callCount).toBe(1);
-      expect(client.getStringAssignment('subject', flagKey, '')).toBe('control');
+      expect(client.getStringAssignment('subject', flagKey, 'default-value')).toBe('control');
 
       // Advance timers mid-init to allow retrying
       await jest.advanceTimersByTimeAsync(maxRetryDelay);
@@ -472,7 +436,7 @@ describe('EppoJSClient E2E test', () => {
 
       // Assignments resolve to default.
       const client = getInstance();
-      expect(client.getStringAssignment('subject', flagKey, '')).toBe('');
+      expect(client.getStringAssignment('subject', flagKey, 'default-value')).toBe('default-value');
 
       // Expect no further configuration requests
       await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
@@ -509,7 +473,7 @@ describe('EppoJSClient E2E test', () => {
       expect(callCount).toBe(2);
 
       // Initial assignments resolve to be the default
-      expect(client.getStringAssignment('subject', flagKey, '')).toBe('');
+      expect(client.getStringAssignment('subject', flagKey, 'default-value')).toBe('default-value');
 
       await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
 
@@ -517,7 +481,7 @@ describe('EppoJSClient E2E test', () => {
       expect(callCount).toBe(3);
 
       // Assignments now working
-      expect(client.getStringAssignment('subject', flagKey, '')).toBe('control');
+      expect(client.getStringAssignment('subject', flagKey, 'default-value')).toBe('control');
     });
 
     describe('With reloaded index module', () => {
