@@ -7,17 +7,17 @@
 **Signature:**
 
 ```typescript
-getBoolAssignment(subjectKey: string, flagKey: string, defaultValue: boolean, subjectAttributes?: Record<string, any>): boolean;
+getBoolAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: boolean): boolean;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  subjectKey | string |  |
 |  flagKey | string |  |
+|  subjectKey | string |  |
+|  subjectAttributes | Record&lt;string, any&gt; |  |
 |  defaultValue | boolean |  |
-|  subjectAttributes | Record&lt;string, any&gt; | _(Optional)_ |
 
 **Returns:**
 

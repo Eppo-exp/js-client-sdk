@@ -12,15 +12,15 @@ import { IEppoClient } from '@eppo/js-client-sdk-common';
 // @public
 export class EppoJSClient extends EppoClient {
     // (undocumented)
-    getBoolAssignment(subjectKey: string, flagKey: string, defaultValue: boolean, subjectAttributes?: Record<string, any>): boolean;
+    getBoolAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: boolean): boolean;
     // (undocumented)
-    getIntegerAssignment(subjectKey: string, flagKey: string, defaultValue: number, subjectAttributes?: Record<string, any>): number;
+    getIntegerAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: number): number;
     // (undocumented)
-    getJSONAssignment(subjectKey: string, flagKey: string, defaultValue: object, subjectAttributes?: Record<string, any>): object;
+    getJSONAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: object): object;
     // (undocumented)
-    getNumericAssignment(subjectKey: string, flagKey: string, defaultValue: number, subjectAttributes?: Record<string, any>): number;
+    getNumericAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: number): number;
     // (undocumented)
-    getStringAssignment(subjectKey: string, flagKey: string, defaultValue: string, subjectAttributes?: Record<string, any>): string;
+    getStringAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: string): string;
     // (undocumented)
     static initialized: boolean;
     // (undocumented)

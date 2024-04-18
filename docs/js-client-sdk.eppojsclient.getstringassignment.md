@@ -7,17 +7,17 @@
 **Signature:**
 
 ```typescript
-getStringAssignment(subjectKey: string, flagKey: string, defaultValue: string, subjectAttributes?: Record<string, any>): string;
+getStringAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: string): string;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  subjectKey | string |  |
 |  flagKey | string |  |
+|  subjectKey | string |  |
+|  subjectAttributes | Record&lt;string, any&gt; |  |
 |  defaultValue | string |  |
-|  subjectAttributes | Record&lt;string, any&gt; | _(Optional)_ |
 
 **Returns:**
 

@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 
-import { Flag, VariationType } from '@eppo/js-client-sdk-common';
-import { AttributeType } from '@eppo/js-client-sdk-common/dist/types';
+import { Flag, VariationType, AttributeType } from '@eppo/js-client-sdk-common';
 
 export const TEST_DATA_DIR = './test/data/ufc/';
 export const ASSIGNMENT_TEST_DATA_DIR = TEST_DATA_DIR + 'tests/';
@@ -57,10 +56,10 @@ export function getTestAssignments(
   }[] = [];
   for (const subject of testCase.subjects) {
     const assignment = assignmentFn(
-      subject.subjectKey,
       testCase.flag,
-      testCase.defaultValue,
+      subject.subjectKey,
       subject.subjectAttributes,
+      testCase.defaultValue,
       obfuscated,
     );
     assignments.push({ subject: subject, assignment: assignment });

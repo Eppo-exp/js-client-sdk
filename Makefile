@@ -29,7 +29,6 @@ tempDir := ${testDataDir}temp/
 gitDataDir := ${tempDir}sdk-test-data/
 branchName := main
 githubRepoLink := https://github.com/Eppo-exp/sdk-test-data.git
-repoName := sdk-test-data
 .PHONY: test-data
 test-data: 
 	rm -rf $(testDataDir)

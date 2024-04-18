@@ -79,53 +79,53 @@ export class EppoJSClient extends EppoClient {
   public static initialized = false;
 
   public getStringAssignment(
-    subjectKey: string,
     flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, any>,
     defaultValue: string,
-    subjectAttributes?: Record<string, any>,
   ): string {
     EppoJSClient.getAssignmentInitializationCheck();
-    return super.getStringAssignment(subjectKey, flagKey, defaultValue, subjectAttributes);
+    return super.getStringAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
   public getBoolAssignment(
-    subjectKey: string,
     flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, any>,
     defaultValue: boolean,
-    subjectAttributes?: Record<string, any>,
   ): boolean {
     EppoJSClient.getAssignmentInitializationCheck();
-    return super.getBoolAssignment(subjectKey, flagKey, defaultValue, subjectAttributes);
+    return super.getBoolAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
   public getIntegerAssignment(
-    subjectKey: string,
     flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, any>,
     defaultValue: number,
-    subjectAttributes?: Record<string, any>,
   ): number {
     EppoJSClient.getAssignmentInitializationCheck();
-    return super.getIntegerAssignment(subjectKey, flagKey, defaultValue, subjectAttributes);
+    return super.getIntegerAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
   public getNumericAssignment(
-    subjectKey: string,
     flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, any>,
     defaultValue: number,
-    subjectAttributes?: Record<string, any>,
   ): number {
     EppoJSClient.getAssignmentInitializationCheck();
-    return super.getNumericAssignment(subjectKey, flagKey, defaultValue, subjectAttributes);
+    return super.getNumericAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
   public getJSONAssignment(
-    subjectKey: string,
     flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, any>,
     defaultValue: object,
-    subjectAttributes?: Record<string, any>,
   ): object {
     EppoJSClient.getAssignmentInitializationCheck();
-    return super.getJSONAssignment(subjectKey, flagKey, defaultValue, subjectAttributes);
+    return super.getJSONAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
   private static getAssignmentInitializationCheck() {

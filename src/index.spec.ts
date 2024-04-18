@@ -122,7 +122,7 @@ describe('EppoJSClient E2E test', () => {
   it('returns default value when experiment config is absent', () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     td.replace(EppoLocalStorage.prototype, 'get', (key: string) => null as null);
-    const assignment = globalClient.getStringAssignment('subject-10', flagKey, 'default-value');
+    const assignment = globalClient.getStringAssignment(flagKey, 'subject-10', {}, 'default-value');
     expect(assignment).toEqual('default-value');
   });
 
@@ -138,10 +138,10 @@ describe('EppoJSClient E2E test', () => {
     const subjectAttributes = { foo: 3 };
     globalClient.setLogger(mockLogger);
     const assignment = globalClient.getStringAssignment(
-      'subject-10',
       flagKey,
-      'default-value',
+      'subject-10',
       subjectAttributes,
+      'default-value',
     );
 
     expect(assignment).toEqual('variant-1');
@@ -168,10 +168,10 @@ describe('EppoJSClient E2E test', () => {
     const subjectAttributes = { foo: 3 };
     globalClient.setLogger(mockLogger);
     const assignment = globalClient.getStringAssignment(
-      'subject-10',
       flagKey,
-      'default-value',
+      'subject-10',
       subjectAttributes,
+      'default-value',
     );
     expect(assignment).toEqual('variant-1');
   });
@@ -204,15 +204,21 @@ describe('EppoJSClient E2E test', () => {
       };
     });
 
-    let assignment = globalClient.getStringAssignment('subject-10', flagKey, 'default-value', {
-      appVersion: 9,
-    });
+    let assignment = globalClient.getStringAssignment(
+      flagKey,
+      'subject-10',
+      { appVersion: 9 },
+      'default-value',
+    );
     expect(assignment).toEqual('default-value');
-    assignment = globalClient.getStringAssignment('subject-10', flagKey, 'default-value');
+    assignment = globalClient.getStringAssignment(flagKey, 'subject-10', {}, 'default-value');
     expect(assignment).toEqual('default-value');
-    assignment = globalClient.getStringAssignment('subject-10', flagKey, 'default-value', {
-      appVersion: 11,
-    });
+    assignment = globalClient.getStringAssignment(
+      flagKey,
+      'subject-10',
+      { appVersion: 11 },
+      'default-value',
+    );
     expect(assignment).toEqual('variant-1');
   });
 
@@ -380,7 +386,7 @@ describe('EppoJSClient E2E test', () => {
       // Await so it can finish its initialization before this test proceeds
       const client = await initPromise;
       expect(callCount).toBe(2);
-      expect(client.getStringAssignment('subject', flagKey, 'default-value')).toBe('control');
+      expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
 
       // By default, no more calls
       await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS * 10);
@@ -403,7 +409,7 @@ describe('EppoJSClient E2E test', () => {
         pollAfterSuccessfulInitialization: true,
       });
       expect(callCount).toBe(1);
-      expect(client.getStringAssignment('subject', flagKey, 'default-value')).toBe('control');
+      expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
 
       // Advance timers mid-init to allow retrying
       await jest.advanceTimersByTimeAsync(maxRetryDelay);
@@ -436,7 +442,9 @@ describe('EppoJSClient E2E test', () => {
 
       // Assignments resolve to default.
       const client = getInstance();
-      expect(client.getStringAssignment('subject', flagKey, 'default-value')).toBe('default-value');
+      expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe(
+        'default-value',
+      );
 
       // Expect no further configuration requests
       await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
@@ -473,7 +481,9 @@ describe('EppoJSClient E2E test', () => {
       expect(callCount).toBe(2);
 
       // Initial assignments resolve to be the default
-      expect(client.getStringAssignment('subject', flagKey, 'default-value')).toBe('default-value');
+      expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe(
+        'default-value',
+      );
 
       await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
 
@@ -481,7 +491,7 @@ describe('EppoJSClient E2E test', () => {
       expect(callCount).toBe(3);
 
       // Assignments now working
-      expect(client.getStringAssignment('subject', flagKey, 'default-value')).toBe('control');
+      expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
     });
 
     describe('With reloaded index module', () => {
@@ -515,7 +525,7 @@ describe('EppoJSClient E2E test', () => {
       it('returns empty assignments pre-initialization by default', async () => {
         returnUfc = () => mockConfigResponse;
         const client = getInstance();
-        expect(client.getStringAssignment('subject', flagKey, 'default-value')).toBe(
+        expect(client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toBe(
           'default-value',
         );
         // don't await
@@ -524,12 +534,12 @@ describe('EppoJSClient E2E test', () => {
           baseUrl,
           assignmentLogger: mockLogger,
         });
-        expect(client.getStringAssignment('subject', flagKey, 'default-value')).toBe(
+        expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe(
           'default-value',
         );
         // Advance time so a poll happened and check again
         await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
-        expect(client.getStringAssignment('subject', flagKey, 'default-value')).toBe('control');
+        expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
       });
     });
   });
