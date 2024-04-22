@@ -28,7 +28,7 @@ export interface IAssignmentTestCase {
   subjects: SubjectTestCase[];
 }
 
-export function readMockUFCResponse(filename: string): {
+export function readMockUfcResponse(filename: string): {
   flags: Record<string, Flag>;
 } {
   return JSON.parse(fs.readFileSync(TEST_DATA_DIR + filename, 'utf-8'));
@@ -49,7 +49,7 @@ export function getTestAssignments(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   assignmentFn: any,
   obfuscated = false,
-): { subject: SubjectTestCase; assignment: string | boolean | number | null | object }[] {
+): { subject: SubjectTestCase; assignment: string | boolean | number | object }[] {
   const assignments: {
     subject: SubjectTestCase;
     assignment: string | boolean | number | null | object;
@@ -70,7 +70,7 @@ export function getTestAssignments(
 export function validateTestAssignments(
   assignments: {
     subject: SubjectTestCase;
-    assignment: string | boolean | number | object | null;
+    assignment: string | boolean | number | object;
   }[],
   flag: string,
 ) {

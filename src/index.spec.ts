@@ -12,7 +12,7 @@ import mock from 'xhr-mock';
 import {
   IAssignmentTestCase,
   readAssignmentTestData,
-  readMockUFCResponse,
+  readMockUfcResponse,
   MOCK_UFC_RESPONSE_FILE,
   OBFUSCATED_MOCK_UFC_RESPONSE_FILE,
   getTestAssignments,
@@ -29,7 +29,7 @@ const flagEndpoint = /flag-config\/v1\/config*/;
 describe('EppoJSClient E2E test', () => {
   let globalClient: IEppoClient;
   let mockLogger: IAssignmentLogger;
-  let returnUfc = readMockUFCResponse; // function so it can be overridden per-test
+  let returnUfc = readMockUfcResponse; // function so it can be overridden per-test
 
   const apiKey = 'dummy';
   const baseUrl = 'http://127.0.0.1:4000';
@@ -82,7 +82,7 @@ describe('EppoJSClient E2E test', () => {
             variationKey: 'variant-2',
             shards: [
               {
-                salt: 'some-sat',
+                salt: 'some-salt',
                 ranges: [{ start: 6700, end: 10000 }],
               },
             ],
@@ -110,7 +110,7 @@ describe('EppoJSClient E2E test', () => {
   });
 
   afterEach(() => {
-    returnUfc = readMockUFCResponse;
+    returnUfc = readMockUfcResponse;
     globalClient.setLogger(mockLogger);
     td.reset();
   });
@@ -226,7 +226,7 @@ describe('EppoJSClient E2E test', () => {
     beforeAll(async () => {
       mock.setup();
       mock.get(flagEndpoint, (_req, res) => {
-        const ufc = readMockUFCResponse(OBFUSCATED_MOCK_UFC_RESPONSE_FILE);
+        const ufc = readMockUfcResponse(OBFUSCATED_MOCK_UFC_RESPONSE_FILE);
         return res.status(200).body(JSON.stringify(ufc));
       });
 
