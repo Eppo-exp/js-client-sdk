@@ -2,6 +2,8 @@
  * @jest-environment jsdom
  */
 
+import { createHash } from 'crypto';
+
 import { HttpClient, Flag, VariationType } from '@eppo/js-client-sdk-common';
 import { POLL_INTERVAL_MS, POLL_JITTER_PCT } from '@eppo/js-client-sdk-common/dist/constants';
 import * as md5 from 'md5';
@@ -26,6 +28,14 @@ import { IAssignmentLogger, IEppoClient, getInstance, init } from './index';
 
 const flagEndpoint = /flag-config\/v1\/config*/;
 
+export function md5Hash(input: string): string {
+  return createHash('md5').update(input).digest('hex');
+}
+
+export function base64Encode(input: string): string {
+  return Buffer.from(input).toString('base64');
+}
+
 describe('EppoJSClient E2E test', () => {
   let globalClient: IEppoClient;
   let mockLogger: IAssignmentLogger;
@@ -33,8 +43,12 @@ describe('EppoJSClient E2E test', () => {
 
   const apiKey = 'dummy';
   const baseUrl = 'http://127.0.0.1:4000';
+
   const flagKey = 'mock-experiment';
   const obfuscatedFlagKey = md5(flagKey);
+
+  const allocationKey = 'traffic-split';
+  const obfuscatedAllocationKey = base64Encode(allocationKey);
 
   // Configuration for a single flag within the UFC.
   const mockUfcFlagConfig: Flag = {
@@ -42,47 +56,47 @@ describe('EppoJSClient E2E test', () => {
     enabled: true,
     variationType: VariationType.STRING,
     variations: {
-      control: {
-        key: 'control',
-        value: 'control',
+      [base64Encode('control')]: {
+        key: base64Encode('control'),
+        value: base64Encode('control'),
       },
-      'variant-1': {
-        key: 'variant-1',
-        value: 'variant-1',
+      [base64Encode('variant-1')]: {
+        key: base64Encode('variant-1'),
+        value: base64Encode('variant-1'),
       },
-      'variant-2': {
-        key: 'variant-2',
-        value: 'variant-2',
+      [base64Encode('variant-2')]: {
+        key: base64Encode('variant-2'),
+        value: base64Encode('variant-2'),
       },
     },
     allocations: [
       {
-        key: 'traffic-split',
+        key: obfuscatedAllocationKey,
         rules: [],
         splits: [
           {
-            variationKey: 'control',
+            variationKey: base64Encode('control'),
             shards: [
               {
-                salt: 'some-salt',
+                salt: base64Encode('some-salt'),
                 ranges: [{ start: 0, end: 3400 }],
               },
             ],
           },
           {
-            variationKey: 'variant-1',
+            variationKey: base64Encode('variant-1'),
             shards: [
               {
-                salt: 'some-salt',
+                salt: base64Encode('some-salt'),
                 ranges: [{ start: 3400, end: 6700 }],
               },
             ],
           },
           {
-            variationKey: 'variant-2',
+            variationKey: base64Encode('variant-2'),
             shards: [
               {
-                salt: 'some-salt',
+                salt: base64Encode('some-salt'),
                 ranges: [{ start: 6700, end: 10000 }],
               },
             ],
@@ -149,10 +163,10 @@ describe('EppoJSClient E2E test', () => {
     expect(td.explain(mockLogger?.logAssignment).calls[0]?.args[0].subject).toEqual('subject-10');
     expect(td.explain(mockLogger?.logAssignment).calls[0]?.args[0].featureFlag).toEqual(flagKey);
     expect(td.explain(mockLogger?.logAssignment).calls[0]?.args[0].experiment).toEqual(
-      `${flagKey}-${mockUfcFlagConfig?.allocations[0].key}`,
+      `${flagKey}-${allocationKey}`,
     );
     expect(td.explain(mockLogger?.logAssignment).calls[0]?.args[0].allocation).toEqual(
-      `${mockUfcFlagConfig?.allocations[0].key}`,
+      `${allocationKey}`,
     );
   });
 
