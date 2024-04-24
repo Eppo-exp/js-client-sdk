@@ -4,12 +4,13 @@
 
 import { createHash } from 'crypto';
 
-import { HttpClient, Flag, VariationType } from '@eppo/js-client-sdk-common';
-import { POLL_INTERVAL_MS, POLL_JITTER_PCT } from '@eppo/js-client-sdk-common/dist/constants';
+import { HttpClient, Flag, VariationType, constants } from '@eppo/js-client-sdk-common';
 import * as md5 from 'md5';
 import * as td from 'testdouble';
 import { encode } from 'universal-base64';
 import mock from 'xhr-mock';
+
+const { POLL_INTERVAL_MS, POLL_JITTER_PCT } = constants;
 
 import {
   IAssignmentTestCase,
