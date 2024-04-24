@@ -5,6 +5,7 @@ import {
   EppoClient,
   IAssignmentHooks,
   ExperimentConfigurationRequestParameters,
+  IConfigurationStore,
 } from '@eppo/js-client-sdk-common';
 
 import { EppoLocalStorage } from './local-storage';
@@ -31,6 +32,12 @@ export interface IClientConfig {
    * Pass a logging implementation to send variation assignments to your data warehouse.
    */
   assignmentLogger: IAssignmentLogger;
+
+  /**
+   * Custom storage for configuration entries.
+   * If not provided, the default storage will be used.
+   */
+  configurationStorage?: IConfigurationStore;
 
   /***
    * Timeout in milliseconds for the HTTPS request for the experiment configuration. (Default: 5000)
@@ -198,6 +205,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     };
 
     EppoJSClient.instance.setLogger(config.assignmentLogger);
+    EppoJSClient.instance.setConfigurationStore(config.configurationStorage ?? localStorage);
 
     // default behavior is to use a LocalStorage-based assignment cache.
     // this can be overridden after initialization.

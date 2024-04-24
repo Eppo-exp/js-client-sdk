@@ -8,6 +8,7 @@ import { EppoClient } from '@eppo/js-client-sdk-common';
 import { IAssignmentEvent } from '@eppo/js-client-sdk-common';
 import { IAssignmentHooks } from '@eppo/js-client-sdk-common';
 import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
+import { IConfigurationStore } from '@eppo/js-client-sdk-common';
 import { IEppoClient } from '@eppo/js-client-sdk-common';
 
 // @public
@@ -42,6 +43,7 @@ export interface IClientConfig {
     apiKey: string;
     assignmentLogger: IAssignmentLogger;
     baseUrl?: string;
+    configurationStorage?: IConfigurationStore;
     numInitialRequestRetries?: number;
     numPollRequestRetries?: number;
     pollAfterFailedInitialization?: boolean;
