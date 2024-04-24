@@ -3,8 +3,7 @@ import {
   validation,
   IEppoClient,
   EppoClient,
-  IAssignmentHooks,
-  ExperimentConfigurationRequestParameters,
+  FlagConfigurationRequestParameters,
 } from '@eppo/js-client-sdk-common';
 
 import { EppoLocalStorage } from './local-storage';
@@ -76,91 +75,57 @@ const localStorage = new EppoLocalStorage();
  * @public
  */
 export class EppoJSClient extends EppoClient {
-  public static instance: EppoJSClient = new EppoJSClient(localStorage);
+  public static instance: EppoJSClient = new EppoJSClient(localStorage, undefined, true);
   public static initialized = false;
 
-  public getAssignment(
-    subjectKey: string,
-    flagKey: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    subjectAttributes?: Record<string, any>,
-    assignmentHooks?: IAssignmentHooks,
-  ): string | null {
-    EppoJSClient.getAssignmentInitializationCheck();
-    return super.getAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks, true);
-  }
-
   public getStringAssignment(
-    subjectKey: string,
     flagKey: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    subjectAttributes?: Record<string, any>,
-    assignmentHooks?: IAssignmentHooks,
-  ): string | null {
+    subjectKey: string,
+    subjectAttributes: Record<string, any>,
+    defaultValue: string,
+  ): string {
     EppoJSClient.getAssignmentInitializationCheck();
-    return super.getStringAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks, true);
+    return super.getStringAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
   public getBoolAssignment(
-    subjectKey: string,
     flagKey: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    subjectAttributes?: Record<string, any>,
-    assignmentHooks?: IAssignmentHooks,
-  ): boolean | null {
+    subjectKey: string,
+    subjectAttributes: Record<string, any>,
+    defaultValue: boolean,
+  ): boolean {
     EppoJSClient.getAssignmentInitializationCheck();
-    return super.getBoolAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks, true);
+    return super.getBoolAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
+
+  public getIntegerAssignment(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, any>,
+    defaultValue: number,
+  ): number {
+    EppoJSClient.getAssignmentInitializationCheck();
+    return super.getIntegerAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
   public getNumericAssignment(
-    subjectKey: string,
     flagKey: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    subjectAttributes?: Record<string, any>,
-    assignmentHooks?: IAssignmentHooks,
-  ): number | null {
+    subjectKey: string,
+    subjectAttributes: Record<string, any>,
+    defaultValue: number,
+  ): number {
     EppoJSClient.getAssignmentInitializationCheck();
-    return super.getNumericAssignment(
-      subjectKey,
-      flagKey,
-      subjectAttributes,
-      assignmentHooks,
-      true,
-    );
+    return super.getNumericAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
-  public getJSONStringAssignment(
-    subjectKey: string,
+  public getJSONAssignment(
     flagKey: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    subjectAttributes?: Record<string, any>,
-    assignmentHooks?: IAssignmentHooks,
-  ): string | null {
-    EppoJSClient.getAssignmentInitializationCheck();
-    return super.getJSONStringAssignment(
-      subjectKey,
-      flagKey,
-      subjectAttributes,
-      assignmentHooks,
-      true,
-    );
-  }
-
-  public getParsedJSONAssignment(
     subjectKey: string,
-    flagKey: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    subjectAttributes?: Record<string, any>,
-    assignmentHooks?: IAssignmentHooks,
-  ): object | null {
+    subjectAttributes: Record<string, any>,
+    defaultValue: object,
+  ): object {
     EppoJSClient.getAssignmentInitializationCheck();
-    return super.getParsedJSONAssignment(
-      subjectKey,
-      flagKey,
-      subjectAttributes,
-      assignmentHooks,
-      true,
-    );
+    return super.getJSONAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
   private static getAssignmentInitializationCheck() {
@@ -184,7 +149,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
       EppoJSClient.instance.stopPolling();
     }
 
-    const requestConfiguration: ExperimentConfigurationRequestParameters = {
+    const requestConfiguration: FlagConfigurationRequestParameters = {
       apiKey: config.apiKey,
       sdkName,
       sdkVersion,
@@ -206,7 +171,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     await EppoJSClient.instance.fetchFlagConfigurations();
   } catch (error) {
     console.warn(
-      'Eppo SDK encountered an error initializing, assignment calls will return null and not be logged' +
+      'Eppo SDK encountered an error initializing, assignment calls will return the default value and not be logged' +
         (config.pollAfterFailedInitialization
           ? ' until an experiment configuration is successfully retrieved'
           : ''),

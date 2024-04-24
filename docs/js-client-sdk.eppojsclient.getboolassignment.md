@@ -7,19 +7,19 @@
 **Signature:**
 
 ```typescript
-getBoolAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): boolean | null;
+getBoolAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: boolean): boolean;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  subjectKey | string |  |
 |  flagKey | string |  |
-|  subjectAttributes | Record&lt;string, any&gt; | _(Optional)_ |
-|  assignmentHooks | IAssignmentHooks | _(Optional)_ |
+|  subjectKey | string |  |
+|  subjectAttributes | Record&lt;string, any&gt; |  |
+|  defaultValue | boolean |  |
 
 **Returns:**
 
-boolean \| null
+boolean
 

@@ -7,12 +7,23 @@ export class EppoLocalStorage {
     }
   }
 
+  public isInitialized(): boolean {
+    return hasWindowLocalStorage();
+  }
+
   public get<T>(key: string): T {
     if (hasWindowLocalStorage()) {
       const serializedEntry = window.localStorage.getItem(key);
       if (serializedEntry) {
         return JSON.parse(serializedEntry);
       }
+    }
+    return null;
+  }
+
+  public getKeys(): string[] {
+    if (hasWindowLocalStorage()) {
+      return Object.keys(window.localStorage);
     }
     return null;
   }

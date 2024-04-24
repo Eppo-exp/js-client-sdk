@@ -6,24 +6,21 @@
 
 import { EppoClient } from '@eppo/js-client-sdk-common';
 import { IAssignmentEvent } from '@eppo/js-client-sdk-common';
-import { IAssignmentHooks } from '@eppo/js-client-sdk-common';
 import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
 import { IEppoClient } from '@eppo/js-client-sdk-common';
 
 // @public
 export class EppoJSClient extends EppoClient {
     // (undocumented)
-    getAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): string | null;
+    getBoolAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: boolean): boolean;
     // (undocumented)
-    getBoolAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): boolean | null;
+    getIntegerAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: number): number;
     // (undocumented)
-    getJSONStringAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): string | null;
+    getJSONAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: object): object;
     // (undocumented)
-    getNumericAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): number | null;
+    getNumericAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: number): number;
     // (undocumented)
-    getParsedJSONAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): object | null;
-    // (undocumented)
-    getStringAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): string | null;
+    getStringAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: string): string;
     // (undocumented)
     static initialized: boolean;
     // (undocumented)

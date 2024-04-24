@@ -7,19 +7,19 @@
 **Signature:**
 
 ```typescript
-getStringAssignment(subjectKey: string, flagKey: string, subjectAttributes?: Record<string, any>, assignmentHooks?: IAssignmentHooks): string | null;
+getStringAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: string): string;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  subjectKey | string |  |
 |  flagKey | string |  |
-|  subjectAttributes | Record&lt;string, any&gt; | _(Optional)_ |
-|  assignmentHooks | IAssignmentHooks | _(Optional)_ |
+|  subjectKey | string |  |
+|  subjectAttributes | Record&lt;string, any&gt; |  |
+|  defaultValue | string |  |
 
 **Returns:**
 
-string \| null
+string
 

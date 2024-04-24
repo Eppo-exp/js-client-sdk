@@ -24,10 +24,9 @@ export declare class EppoJSClient extends EppoClient
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [getAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks)](./js-client-sdk.eppojsclient.getassignment.md) |  |  |
-|  [getBoolAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks)](./js-client-sdk.eppojsclient.getboolassignment.md) |  |  |
-|  [getJSONStringAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks)](./js-client-sdk.eppojsclient.getjsonstringassignment.md) |  |  |
-|  [getNumericAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks)](./js-client-sdk.eppojsclient.getnumericassignment.md) |  |  |
-|  [getParsedJSONAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks)](./js-client-sdk.eppojsclient.getparsedjsonassignment.md) |  |  |
-|  [getStringAssignment(subjectKey, flagKey, subjectAttributes, assignmentHooks)](./js-client-sdk.eppojsclient.getstringassignment.md) |  |  |
+|  [getBoolAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getboolassignment.md) |  |  |
+|  [getIntegerAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getintegerassignment.md) |  |  |
+|  [getJSONAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getjsonassignment.md) |  |  |
+|  [getNumericAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getnumericassignment.md) |  |  |
+|  [getStringAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getstringassignment.md) |  |  |
 
