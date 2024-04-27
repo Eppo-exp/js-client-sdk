@@ -1,6 +1,6 @@
 {
   "name": "@eppo/js-client-sdk",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "description": "Eppo SDK for client-side JavaScript applications",
   "main": "dist/index.js",
   "files": [
@@ -32,6 +32,7 @@
   "devDependencies": {
     "@microsoft/api-documenter": "^7.23.9",
     "@microsoft/api-extractor": "^7.38.0",
+    "@types/chrome": "^0.0.266",
     "@types/jest": "^29.5.11",
     "@types/md5": "^2.3.2",
     "@typescript-eslint/eslint-plugin": "^5.13.0",
@@ -44,6 +45,7 @@
     "eslint-plugin-promise": "^6.0.0",
     "husky": "^8.0.1",
     "jest": "^29.7.0",
+    "jest-chrome": "^0.8.0",
     "jest-environment-jsdom": "^29.7.0",
     "lint-staged": "^12.3.5",
     "prettier": "^2.7.1",
@@ -57,7 +59,7 @@
     "webpack-cli": "^4.10.0"
   },
   "dependencies": {
-    "@eppo/js-client-sdk-common": "3.0.2",
+    "@eppo/js-client-sdk-common": "3.0.6",
     "md5": "^2.3.0"
   }
 }
