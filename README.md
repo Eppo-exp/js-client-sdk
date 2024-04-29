@@ -1,11 +1,9 @@
 # Eppo Javascript SDK
 
-[![](https://img.shields.io/npm/v/@eppo/js-client-sdk)](https://www.npmjs.com/package/@eppo/js-client-sdk)
 [![Test and lint SDK](https://github.com/Eppo-exp/js-client-sdk/actions/workflows/lint-test-sdk.yml/badge.svg)](https://github.com/Eppo-exp/js-client-sdk/actions/workflows/lint-test-sdk.yml)
-[![](https://img.shields.io/static/v1?label=GitHub+Pages&message=API+reference&color=00add8)](https://eppo-exp.github.io/js-client-sdk/js-client-sdk.html)
 [![](https://data.jsdelivr.com/v1/package/npm/@eppo/js-client-sdk/badge)](https://www.jsdelivr.com/package/npm/@eppo/js-client-sdk)
 
-[Eppo](https://www.geteppo.com/) is a modular flagging and experimentation analysis tool that supports a wide range of flagging use cases, from simple on/off toggles to A/B/n experiments to highly personalized contextual bandits. 
+[Eppo](https://www.geteppo.com/) is a modular flagging and experimentation analysis tool that supports a wide range of flagging use cases, from simple features toggles to A/B/n experiments to highly personalized contextual bandits. 
 
 Eppo's Javascript SDK is built to make assignments for single user client applications that run in a web browser. For the server side equivalent, use Eppo's [Node SDK](https://github.com/Eppo-exp/node-server-sdk). Before proceeding you'll need an Eppo account.
 
@@ -19,7 +17,7 @@ npm install @eppo/js-client-sdk
 
 Initialization creates a singleton instance of Eppo's client and fetches the account's flag configuration, which is cached using local storage. Once initialized, assignments can be made anywhere in your app.
 
-### Initialize once
+#### Initialize once
 
 ```javascript
 import { init } from "@eppo/js-client-sdk";
@@ -28,7 +26,7 @@ await init({ apiKey: "<SDK-KEY-FROM-UI>" });
 ```
 
 
-### Assign anywhere
+#### Assign anywhere
 
 ```javascript
 import * as EppoSdk from "@eppo/js-client-sdk";
@@ -58,7 +56,7 @@ The `init` function accepts the following configuration options.
 | **`throwOnFailedInitialization`** (boolean) | Throw an error (reject the promise) if unable to fetch initial configurations during initialization. | `true` |
 | **`numPollRequestRetries`** (number) | If polling for updated configurations after initialization, the number of additional times a request will be attempted before giving up. Subsequent attempts are done using an exponential backoff. | `7` |
 
-### Typed assignment functions
+#### Typed assignment functions
 
 Every Eppo flag has a return type that is set once on creation in the dashboard. Once a flag is created, assignments in code should be made using the corresponding typed function: 
 
@@ -105,5 +103,10 @@ const assignmentLogger: IAssignmentLogger = {
   },
 };
 ```
+
+## React
+
+Visit the [Eppo docs](https://docs.geteppo.com/sdks/client-sdks/javascript#usage-in-react) for best practices when using this SDK within a React context.
+
 
 
