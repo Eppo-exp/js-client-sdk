@@ -8,7 +8,6 @@ import { HttpClient, Flag, VariationType, constants } from '@eppo/js-client-sdk-
 import * as md5 from 'md5';
 import * as td from 'testdouble';
 import { encode } from 'universal-base64';
-import mock from 'xhr-mock';
 
 const { POLL_INTERVAL_MS, POLL_JITTER_PCT } = constants;
 
@@ -26,8 +25,6 @@ import { EppoLocalStorage } from './local-storage';
 import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 
 import { IAssignmentLogger, IEppoClient, getInstance, init } from './index';
-
-const flagEndpoint = /flag-config\/v1\/config*/;
 
 export function md5Hash(input: string): string {
   return createHash('md5').update(input).digest('hex');
@@ -110,12 +107,17 @@ describe('EppoJSClient E2E test', () => {
   };
 
   beforeAll(async () => {
-    mock.setup();
+    global.fetch = jest.fn(() => {
+      const ufc = readMockUfcResponse(MOCK_UFC_RESPONSE_FILE);
+
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(ufc),
+      });
+    }) as jest.Mock;
+
     mockLogger = td.object<IAssignmentLogger>();
-    mock.get(flagEndpoint, (_req, res) => {
-      const ufc = returnUfc(MOCK_UFC_RESPONSE_FILE);
-      return res.status(200).body(JSON.stringify(ufc));
-    });
 
     globalClient = await init({
       apiKey,
@@ -131,7 +133,7 @@ describe('EppoJSClient E2E test', () => {
   });
 
   afterAll(() => {
-    mock.teardown();
+    jest.restoreAllMocks();
   });
 
   it('returns default value when experiment config is absent', () => {
@@ -239,11 +241,15 @@ describe('EppoJSClient E2E test', () => {
 
   describe('UFC Obfuscated Test Cases', () => {
     beforeAll(async () => {
-      mock.setup();
-      mock.get(flagEndpoint, (_req, res) => {
+      global.fetch = jest.fn(() => {
         const ufc = readMockUfcResponse(OBFUSCATED_MOCK_UFC_RESPONSE_FILE);
-        return res.status(200).body(JSON.stringify(ufc));
-      });
+
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(ufc),
+        });
+      }) as jest.Mock;
 
       globalClient = await init({
         apiKey,
@@ -253,7 +259,7 @@ describe('EppoJSClient E2E test', () => {
     });
 
     afterAll(() => {
-      mock.teardown();
+      jest.restoreAllMocks();
     });
 
     it.each(readAssignmentTestData())(
@@ -523,12 +529,17 @@ describe('EppoJSClient E2E test', () => {
           getInstance = reloadedModule.getInstance;
         });
 
-        mock.setup();
-        mockLogger = td.object<IAssignmentLogger>();
-        mock.get(flagEndpoint, (_req, res) => {
+        global.fetch = jest.fn(() => {
           const ufc = returnUfc(MOCK_UFC_RESPONSE_FILE);
-          return res.status(200).body(JSON.stringify(ufc));
-        });
+
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            json: () => Promise.resolve(ufc),
+          });
+        }) as jest.Mock;
+
+        mockLogger = td.object<IAssignmentLogger>();
 
         globalClient = await init({
           apiKey,
