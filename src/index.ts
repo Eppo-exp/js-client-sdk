@@ -4,6 +4,8 @@ import {
   IEppoClient,
   EppoClient,
   FlagConfigurationRequestParameters,
+  IAsyncStore,
+  Flag,
 } from '@eppo/js-client-sdk-common';
 
 import { LocalStorageAssignmentCache } from './assignment-cache/local-storage-assignment-cache';
@@ -64,18 +66,30 @@ export interface IClientConfig {
    * backoff. (Default: 7)
    */
   numPollRequestRetries?: number;
+
+  /**
+   * Skip the initial poll for new configurations. (default: false)
+   */
+  skipInitialPoll?: boolean;
+
+  /**
+   * Pass a persistence store to the SDK to store flag configurations in.
+   *
+   * Providing a store will enable users to customize the SDK to their preferred persistence layer,
+   * including tailoring the `isExpired` implementation to enable an off-line mode
+   * and loading from pre-existing data.
+   */
+  persistenceStore?: IAsyncStore<Flag>;
 }
 
 export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-client-sdk-common';
-
-const configurationStore = configurationStorageFactory();
 
 /**
  * Client for assigning experiment variations.
  * @public
  */
 export class EppoJSClient extends EppoClient {
-  public static instance: EppoJSClient = new EppoJSClient(configurationStore, undefined, true);
+  public static instance: EppoJSClient;
   public static initialized = false;
 
   public getStringAssignment(
@@ -144,6 +158,9 @@ export class EppoJSClient extends EppoClient {
 export async function init(config: IClientConfig): Promise<IEppoClient> {
   validation.validateNotBlank(config.apiKey, 'API key required');
   try {
+    const configurationStore = configurationStorageFactory(config.persistenceStore);
+    EppoJSClient.instance = new EppoJSClient(configurationStore, undefined, true);
+
     // If any existing instances; ensure they are not polling
     if (EppoJSClient.instance) {
       EppoJSClient.instance.stopPolling();
@@ -159,6 +176,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
       numPollRequestRetries: config.numPollRequestRetries ?? undefined,
       pollAfterSuccessfulInitialization: config.pollAfterSuccessfulInitialization ?? false,
       pollAfterFailedInitialization: config.pollAfterFailedInitialization ?? false,
+      skipInitialPoll: config.skipInitialPoll ?? false,
       throwOnFailedInitialization: true, // always use true here as underlying instance fetch is surrounded by try/catch
     };
 

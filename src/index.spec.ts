@@ -4,7 +4,13 @@
 
 import { createHash } from 'crypto';
 
-import { HttpClient, Flag, VariationType, constants } from '@eppo/js-client-sdk-common';
+import {
+  HttpClient,
+  Flag,
+  VariationType,
+  constants,
+  IAsyncStore,
+} from '@eppo/js-client-sdk-common';
 import * as md5 from 'md5';
 import * as td from 'testdouble';
 import { encode } from 'universal-base64';
@@ -21,8 +27,7 @@ import {
   validateTestAssignments,
 } from '../test/testHelpers';
 
-import { EppoLocalStorage } from './local-storage';
-import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
+import { LocalStorageAssignmentCache } from './assignment-cache/local-storage-assignment-cache';
 
 import { IAssignmentLogger, IEppoClient, getInstance, init } from './index';
 
@@ -37,6 +42,7 @@ export function base64Encode(input: string): string {
 describe('EppoJSClient E2E test', () => {
   let globalClient: IEppoClient;
   let mockLogger: IAssignmentLogger;
+  let mockPersistenceStore: IAsyncStore<Flag>;
   let returnUfc = readMockUfcResponse; // function so it can be overridden per-test
 
   const apiKey = 'dummy';
@@ -113,16 +119,26 @@ describe('EppoJSClient E2E test', () => {
       return Promise.resolve({
         ok: true,
         status: 200,
-        json: () => Promise.resolve(ufc),
+        json: () =>
+          Promise.resolve({
+            flags: {
+              [obfuscatedFlagKey]: mockUfcFlagConfig,
+              [obfuscatedAllocationKey]: mockUfcFlagConfig,
+              ...ufc,
+            },
+          }),
       });
     }) as jest.Mock;
 
     mockLogger = td.object<IAssignmentLogger>();
 
+    mockPersistenceStore = td.object<IAsyncStore<Flag>>();
     globalClient = await init({
       apiKey,
       baseUrl,
       assignmentLogger: mockLogger,
+      persistenceStore: mockPersistenceStore,
+      skipInitialPoll: true,
     });
   });
 
@@ -137,23 +153,16 @@ describe('EppoJSClient E2E test', () => {
   });
 
   it('returns default value when experiment config is absent', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    td.replace(EppoLocalStorage.prototype, 'get', (key: string) => null as null);
     const assignment = globalClient.getStringAssignment(flagKey, 'subject-10', {}, 'default-value');
     expect(assignment).toEqual('default-value');
   });
 
   it('logs variation assignment and experiment key', () => {
-    td.replace(EppoLocalStorage.prototype, 'get', (key: string) => {
-      if (key !== obfuscatedFlagKey) {
-        throw new Error('Unexpected key ' + key);
-      }
-
-      return mockUfcFlagConfig;
-    });
-
     const subjectAttributes = { foo: 3 };
     globalClient.setLogger(mockLogger);
+
+    console.log({ keys: globalClient.getFlagKeys() });
+
     const assignment = globalClient.getStringAssignment(
       flagKey,
       'subject-10',
@@ -176,7 +185,7 @@ describe('EppoJSClient E2E test', () => {
   it('handles logging exception', () => {
     const mockLogger = td.object<IAssignmentLogger>();
     td.when(mockLogger.logAssignment(td.matchers.anything())).thenThrow(new Error('logging error'));
-    td.replace(EppoLocalStorage.prototype, 'get', (key: string) => {
+    td.replace(mockPersistenceStore, 'get', (key: string) => {
       if (key !== obfuscatedFlagKey) {
         throw new Error('Unexpected key ' + key);
       }
@@ -194,11 +203,7 @@ describe('EppoJSClient E2E test', () => {
   });
 
   it('only returns variation if subject matches rules', () => {
-    td.replace(EppoLocalStorage.prototype, 'get', (key: string) => {
-      if (key !== obfuscatedFlagKey) {
-        throw new Error('Unexpected key ' + key);
-      }
-
+    td.replace(mockPersistenceStore, 'getEntries', () => {
       // Modified flag with a single rule.
       return {
         ...mockUfcFlagConfig,
@@ -220,6 +225,8 @@ describe('EppoJSClient E2E test', () => {
         ],
       };
     });
+
+    console.log({ keys: globalClient.getFlagKeys() });
 
     let assignment = globalClient.getStringAssignment(
       flagKey,
@@ -470,6 +477,24 @@ describe('EppoJSClient E2E test', () => {
       // Expect no further configuration requests
       await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
       expect(callCount).toBe(1);
+    });
+
+    it('does not perform initial poll if skipInitialPoll is true', async () => {
+      await init({
+        apiKey,
+        baseUrl,
+        assignmentLogger: mockLogger,
+        skipInitialPoll: true,
+      });
+
+      td.replace(HttpClient.prototype, 'get');
+      let callCount = 0;
+      td.when(HttpClient.prototype.get(td.matchers.anything())).thenDo(() => {
+        callCount += 1;
+        return mockConfigResponse;
+      });
+
+      expect(callCount).toBe(0);
     });
 
     it('gives up initial request but still polls later if configured to do so', async () => {
