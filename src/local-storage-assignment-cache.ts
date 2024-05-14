@@ -1,6 +1,6 @@
 import { AssignmentCache } from '@eppo/js-client-sdk-common';
 
-import { hasWindowLocalStorage } from './local-storage';
+import { hasWindowLocalStorage } from './configuration/configuration-store.factory';
 
 class LocalStorageAssignmentShim {
   LOCAL_STORAGE_KEY = 'EPPO_LOCAL_STORAGE_ASSIGNMENT_CACHE';
