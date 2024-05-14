@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { EppoLocalStorage } from './local-storage';
+import { LocalStorageBackedAsyncStore } from './local-storage';
 
 describe('EppoLocalStorage', () => {
   interface ITestEntry {
@@ -15,38 +15,20 @@ describe('EppoLocalStorage', () => {
     items: ['red'],
   };
 
-  const storage = new EppoLocalStorage();
+  const storage = new LocalStorageBackedAsyncStore<ITestEntry>(window.localStorage);
 
   beforeEach(() => {
     window.localStorage.clear();
   });
 
   describe('get and set', () => {
-    it('returns null if entry is not present', () => {
-      expect(storage.get('does not exist')).toEqual(null);
+    it('returns null if entry is not present', async () => {
+      expect(await storage.getEntries()).toEqual(null);
     });
 
-    it('returns null if local storage is not enabled', () => {
-      const {
-        window: { localStorage },
-      } = global;
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      delete global.window.localStorage;
-      storage.setEntries({ key1: config1 });
-      expect(storage.get<ITestEntry>('key1')).toEqual(null);
-      global.window.localStorage = localStorage;
-    });
-
-    it('returns stored entries', () => {
-      storage.setEntries({ key1: config1, key2: config2 });
-      expect(storage.get<ITestEntry>('key1')).toEqual(config1);
-      expect(storage.get<ITestEntry>('key2')).toEqual(config2);
-    });
-
-    it('returns a list of keys', () => {
-      storage.setEntries({ key1: config1, key2: config2 });
-      expect(storage.getKeys()).toEqual(['key1', 'key2']);
+    it('returns stored entries', async () => {
+      await storage.setEntries({ key1: config1, key2: config2 });
+      expect(await storage.getEntries()).toEqual({ key1: config1, key2: config2 });
     });
   });
 });

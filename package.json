@@ -57,7 +57,7 @@
     "webpack-cli": "^4.10.0"
   },
   "dependencies": {
-    "@eppo/js-client-sdk-common": "3.0.2",
+    "@eppo/js-client-sdk-common": "3.0.6",
     "md5": "^2.3.0"
   }
 }
