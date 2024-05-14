@@ -28,6 +28,7 @@ import {
 } from '../test/testHelpers';
 
 import { LocalStorageAssignmentCache } from './assignment-cache/local-storage-assignment-cache';
+import { LocalStorageBackedAsyncStore } from './configuration-storage/local-storage';
 
 import { IAssignmentLogger, IEppoClient, getInstance, init } from './index';
 
@@ -119,26 +120,19 @@ describe('EppoJSClient E2E test', () => {
       return Promise.resolve({
         ok: true,
         status: 200,
-        json: () =>
-          Promise.resolve({
-            flags: {
-              [obfuscatedFlagKey]: mockUfcFlagConfig,
-              [obfuscatedAllocationKey]: mockUfcFlagConfig,
-              ...ufc,
-            },
-          }),
+        json: () => Promise.resolve(ufc),
       });
     }) as jest.Mock;
 
     mockLogger = td.object<IAssignmentLogger>();
-
     mockPersistenceStore = td.object<IAsyncStore<Flag>>();
+    td.replace(mockPersistenceStore, 'isExpired', () => Promise.resolve(true));
+
     globalClient = await init({
       apiKey,
       baseUrl,
       assignmentLogger: mockLogger,
       persistenceStore: mockPersistenceStore,
-      skipInitialPoll: true,
     });
   });
 
@@ -153,16 +147,22 @@ describe('EppoJSClient E2E test', () => {
   });
 
   it('returns default value when experiment config is absent', () => {
+    td.replace(mockPersistenceStore, 'getEntries', () => null as null);
     const assignment = globalClient.getStringAssignment(flagKey, 'subject-10', {}, 'default-value');
     expect(assignment).toEqual('default-value');
   });
 
   it('logs variation assignment and experiment key', () => {
+    td.replace(mockPersistenceStore, 'getEntries', (key: string) => {
+      if (key !== obfuscatedFlagKey) {
+        throw new Error('Unexpected key ' + key);
+      }
+
+      return mockUfcFlagConfig;
+    });
+
     const subjectAttributes = { foo: 3 };
     globalClient.setLogger(mockLogger);
-
-    console.log({ keys: globalClient.getFlagKeys() });
-
     const assignment = globalClient.getStringAssignment(
       flagKey,
       'subject-10',
@@ -185,7 +185,7 @@ describe('EppoJSClient E2E test', () => {
   it('handles logging exception', () => {
     const mockLogger = td.object<IAssignmentLogger>();
     td.when(mockLogger.logAssignment(td.matchers.anything())).thenThrow(new Error('logging error'));
-    td.replace(mockPersistenceStore, 'get', (key: string) => {
+    td.replace(LocalStorageBackedAsyncStore.prototype, 'getEntries', (key: string) => {
       if (key !== obfuscatedFlagKey) {
         throw new Error('Unexpected key ' + key);
       }
@@ -203,7 +203,11 @@ describe('EppoJSClient E2E test', () => {
   });
 
   it('only returns variation if subject matches rules', () => {
-    td.replace(mockPersistenceStore, 'getEntries', () => {
+    td.replace(LocalStorageBackedAsyncStore.prototype, 'getEntries', (key: string) => {
+      if (key !== obfuscatedFlagKey) {
+        throw new Error('Unexpected key ' + key);
+      }
+
       // Modified flag with a single rule.
       return {
         ...mockUfcFlagConfig,
@@ -225,8 +229,6 @@ describe('EppoJSClient E2E test', () => {
         ],
       };
     });
-
-    console.log({ keys: globalClient.getFlagKeys() });
 
     let assignment = globalClient.getStringAssignment(
       flagKey,
@@ -479,24 +481,6 @@ describe('EppoJSClient E2E test', () => {
       expect(callCount).toBe(1);
     });
 
-    it('does not perform initial poll if skipInitialPoll is true', async () => {
-      await init({
-        apiKey,
-        baseUrl,
-        assignmentLogger: mockLogger,
-        skipInitialPoll: true,
-      });
-
-      td.replace(HttpClient.prototype, 'get');
-      let callCount = 0;
-      td.when(HttpClient.prototype.get(td.matchers.anything())).thenDo(() => {
-        callCount += 1;
-        return mockConfigResponse;
-      });
-
-      expect(callCount).toBe(0);
-    });
-
     it('gives up initial request but still polls later if configured to do so', async () => {
       td.replace(HttpClient.prototype, 'get');
       let callCount = 0;
@@ -570,6 +554,7 @@ describe('EppoJSClient E2E test', () => {
           apiKey,
           baseUrl,
           assignmentLogger: mockLogger,
+          persistenceStore: mockPersistenceStore,
         });
       });
 
@@ -584,6 +569,7 @@ describe('EppoJSClient E2E test', () => {
           apiKey,
           baseUrl,
           assignmentLogger: mockLogger,
+          persistenceStore: mockPersistenceStore,
         });
         expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe(
           'default-value',
