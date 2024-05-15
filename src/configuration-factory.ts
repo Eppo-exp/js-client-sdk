@@ -6,10 +6,16 @@ import {
   MemoryStore,
 } from '@eppo/js-client-sdk-common';
 
+import { ChromeStorageAsyncStore } from './chrome.configuration-store';
 import { LocalStorageBackedAsyncStore } from './local-storage';
 
 export function configurationStorageFactory(): IConfigurationStore<Flag> {
-  if (hasWindowLocalStorage()) {
+  if (hasChromeStorage()) {
+    return new HybridConfigurationStore(
+      new MemoryStore<Flag>(),
+      new ChromeStorageAsyncStore<Flag>(chrome.storage.local),
+    );
+  } else if (hasWindowLocalStorage()) {
     // fallback to window.localStorage if available
     return new HybridConfigurationStore(
       new MemoryStore<Flag>(),
@@ -18,6 +24,10 @@ export function configurationStorageFactory(): IConfigurationStore<Flag> {
   }
 
   return new MemoryOnlyConfigurationStore();
+}
+
+export function hasChromeStorage(): boolean {
+  return typeof chrome !== 'undefined' && !!chrome.storage && !!chrome.storage.local;
 }
 
 export function hasWindowLocalStorage(): boolean {
