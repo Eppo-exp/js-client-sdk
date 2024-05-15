@@ -67,6 +67,7 @@ export interface IClientConfig {
 }
 
 export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-client-sdk-common';
+export { ChromeStorageAsyncStore } from './chrome.configuration-store';
 
 const localStorage = configurationStorageFactory();
 
