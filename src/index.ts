@@ -6,7 +6,7 @@ import {
   FlagConfigurationRequestParameters,
 } from '@eppo/js-client-sdk-common';
 
-import { EppoLocalStorage } from './local-storage';
+import { configurationStorageFactory } from './configuration-factory';
 import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 import { sdkName, sdkVersion } from './sdk-data';
 
@@ -68,7 +68,7 @@ export interface IClientConfig {
 
 export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-client-sdk-common';
 
-const localStorage = new EppoLocalStorage();
+const localStorage = configurationStorageFactory();
 
 /**
  * Client for assigning experiment variations.

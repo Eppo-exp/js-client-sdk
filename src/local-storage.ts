@@ -1,48 +1,38 @@
-export class EppoLocalStorage {
-  constructor() {
-    if (!hasWindowLocalStorage()) {
-      console.warn(
-        'EppoSDK cannot store experiment configurations as window.localStorage is not available',
-      );
+import { IAsyncStore } from '@eppo/js-client-sdk-common';
+
+/*
+ * Removing stale keys is faciliating by storing the entire configuration into a single
+ * key in local storage. This is done by serializing the entire configuration object
+ * into a string and then storing it to a single key. When retrieving the configuration,
+ * we first check if the configuration exists in local storage. If it does, we deserialize
+ * the configuration from the string and return it. If the configuration does not exist,
+ * we return null.
+ */
+export class LocalStorageBackedAsyncStore<T> implements IAsyncStore<T> {
+  private localStorageKey = 'eppo-configuration';
+  private _isInitialized = false;
+
+  constructor(private localStorage: Storage) {}
+
+  isInitialized(): boolean {
+    return this._isInitialized;
+  }
+
+  isExpired(): Promise<boolean> {
+    return Promise.resolve(true);
+  }
+
+  getEntries(): Promise<Record<string, T> | null> {
+    const configuration = this.localStorage.getItem(this.localStorageKey);
+    if (!configuration) {
+      return Promise.resolve(null);
     }
+    return Promise.resolve(JSON.parse(configuration));
   }
 
-  public isInitialized(): boolean {
-    return hasWindowLocalStorage();
-  }
-
-  public get<T>(key: string): T {
-    if (hasWindowLocalStorage()) {
-      const serializedEntry = window.localStorage.getItem(key);
-      if (serializedEntry) {
-        return JSON.parse(serializedEntry);
-      }
-    }
-    return null;
-  }
-
-  public getKeys(): string[] {
-    if (hasWindowLocalStorage()) {
-      return Object.keys(window.localStorage);
-    }
-    return null;
-  }
-
-  public setEntries<T>(entries: Record<string, T>) {
-    if (hasWindowLocalStorage()) {
-      Object.entries(entries).forEach(([key, val]) => {
-        window.localStorage.setItem(key, JSON.stringify(val));
-      });
-    }
-  }
-}
-
-// Checks whether local storage is enabled in the browser (the user might have disabled it).
-export function hasWindowLocalStorage(): boolean {
-  try {
-    return typeof window !== 'undefined' && !!window.localStorage;
-  } catch {
-    // Chrome throws an error if local storage is disabled and you try to access it
-    return false;
+  setEntries(entries: Record<string, T>): Promise<void> {
+    this.localStorage.setItem(this.localStorageKey, JSON.stringify(entries));
+    this._isInitialized = true;
+    return Promise.resolve();
   }
 }
