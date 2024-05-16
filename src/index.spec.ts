@@ -506,6 +506,28 @@ describe('initialization options', () => {
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
   });
 
+  it('skips initial request', async () => {
+    let callCount = 0;
+
+    global.fetch = jest.fn(() => {
+      callCount += 1;
+
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(mockConfigResponse),
+      });
+    }) as jest.Mock;
+
+    await init({
+      apiKey,
+      baseUrl,
+      assignmentLogger: mockLogger,
+      skipInitialRequest: true,
+    });
+    expect(callCount).toBe(0);
+  });
+
   describe('With reloaded index module', () => {
     // eslint-disable-next-line @typescript-eslint/ban-types
     let init: Function;

@@ -64,6 +64,11 @@ export interface IClientConfig {
    * backoff. (Default: 7)
    */
   numPollRequestRetries?: number;
+
+  /**
+   * Skip the request for new configurations during initialization. (default: false)
+   */
+  skipInitialRequest?: boolean;
 }
 
 export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-client-sdk-common';
@@ -160,6 +165,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
       pollAfterSuccessfulInitialization: config.pollAfterSuccessfulInitialization ?? false,
       pollAfterFailedInitialization: config.pollAfterFailedInitialization ?? false,
       throwOnFailedInitialization: true, // always use true here as underlying instance fetch is surrounded by try/catch
+      skipInitialPoll: config.skipInitialRequest ?? false,
     };
 
     EppoJSClient.instance.setLogger(config.assignmentLogger);
