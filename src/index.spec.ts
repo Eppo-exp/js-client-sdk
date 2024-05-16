@@ -563,8 +563,7 @@ describe('initialization options', () => {
 
     it('returns empty assignments pre-initialization by default', async () => {
       returnUfc = () => mockConfigResponse;
-      const client = getInstance();
-      expect(client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toBe(
+      expect(getInstance().getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toBe(
         'default-value',
       );
       // don't await
@@ -573,12 +572,14 @@ describe('initialization options', () => {
         baseUrl,
         assignmentLogger: mockLogger,
       });
-      expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe(
+      expect(getInstance().getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe(
         'default-value',
       );
       // Advance time so a poll happened and check again
       await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
-      expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
+      expect(getInstance().getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe(
+        'control',
+      );
     });
   });
 });

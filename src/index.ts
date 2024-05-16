@@ -4,6 +4,8 @@ import {
   IEppoClient,
   EppoClient,
   FlagConfigurationRequestParameters,
+  Flag,
+  IAsyncStore,
 } from '@eppo/js-client-sdk-common';
 
 import { configurationStorageFactory } from './configuration-factory';
@@ -66,6 +68,13 @@ export interface IClientConfig {
   numPollRequestRetries?: number;
 
   /**
+   * A custom class to use for storing flag configurations.
+   * This is useful for cases where you want to use a different storage mechanism
+   * than the default storage provided by the SDK.
+   */
+  persistentStore?: IAsyncStore<Flag>;
+
+  /**
    * Skip the request for new configurations during initialization. (default: false)
    */
   skipInitialRequest?: boolean;
@@ -73,14 +82,12 @@ export interface IClientConfig {
 
 export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-client-sdk-common';
 
-const localStorage = configurationStorageFactory();
-
 /**
  * Client for assigning experiment variations.
  * @public
  */
 export class EppoJSClient extends EppoClient {
-  public static instance: EppoJSClient = new EppoJSClient(localStorage, undefined, true);
+  public static instance: EppoJSClient;
   public static initialized = false;
 
   public getStringAssignment(
@@ -153,6 +160,9 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     if (EppoJSClient.instance) {
       EppoJSClient.instance.stopPolling();
     }
+
+    const configurationStore = configurationStorageFactory(config.persistentStore);
+    EppoJSClient.instance = new EppoJSClient(configurationStore, undefined, true);
 
     const requestConfiguration: FlagConfigurationRequestParameters = {
       apiKey: config.apiKey,
