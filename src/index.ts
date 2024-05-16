@@ -4,6 +4,8 @@ import {
   IEppoClient,
   EppoClient,
   FlagConfigurationRequestParameters,
+  Flag,
+  IAsyncStore,
 } from '@eppo/js-client-sdk-common';
 
 import { configurationStorageFactory } from './configuration-factory';
@@ -64,18 +66,28 @@ export interface IClientConfig {
    * backoff. (Default: 7)
    */
   numPollRequestRetries?: number;
+
+  /**
+   * A custom class to use for storing flag configurations.
+   * This is useful for cases where you want to use a different storage mechanism
+   * than the default storage provided by the SDK.
+   */
+  persistentStore?: IAsyncStore<Flag>;
+
+  /**
+   * Skip the request for new configurations during initialization. (default: false)
+   */
+  skipInitialRequest?: boolean;
 }
 
 export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-client-sdk-common';
-
-const localStorage = configurationStorageFactory();
 
 /**
  * Client for assigning experiment variations.
  * @public
  */
 export class EppoJSClient extends EppoClient {
-  public static instance: EppoJSClient = new EppoJSClient(localStorage, undefined, true);
+  public static instance: EppoJSClient;
   public static initialized = false;
 
   public getStringAssignment(
@@ -149,6 +161,9 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
       EppoJSClient.instance.stopPolling();
     }
 
+    const configurationStore = configurationStorageFactory(config.persistentStore);
+    EppoJSClient.instance = new EppoJSClient(configurationStore, undefined, true);
+
     const requestConfiguration: FlagConfigurationRequestParameters = {
       apiKey: config.apiKey,
       sdkName,
@@ -160,6 +175,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
       pollAfterSuccessfulInitialization: config.pollAfterSuccessfulInitialization ?? false,
       pollAfterFailedInitialization: config.pollAfterFailedInitialization ?? false,
       throwOnFailedInitialization: true, // always use true here as underlying instance fetch is surrounded by try/catch
+      skipInitialPoll: config.skipInitialRequest ?? false,
     };
 
     EppoJSClient.instance.setLogger(config.assignmentLogger);

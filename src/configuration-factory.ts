@@ -1,6 +1,7 @@
 import {
   Flag,
   HybridConfigurationStore,
+  IAsyncStore,
   IConfigurationStore,
   MemoryOnlyConfigurationStore,
   MemoryStore,
@@ -9,8 +10,12 @@ import {
 import { ChromeStorageAsyncStore } from './chrome.configuration-store';
 import { LocalStorageBackedAsyncStore } from './local-storage';
 
-export function configurationStorageFactory(): IConfigurationStore<Flag> {
-  if (hasChromeStorage()) {
+export function configurationStorageFactory(
+  persistenceStore?: IAsyncStore<Flag>,
+): IConfigurationStore<Flag> {
+  if (persistenceStore) {
+    return new HybridConfigurationStore(new MemoryStore<Flag>(), persistenceStore);
+  } else if (hasChromeStorage()) {
     return new HybridConfigurationStore(
       new MemoryStore<Flag>(),
       new ChromeStorageAsyncStore<Flag>(chrome.storage.local),

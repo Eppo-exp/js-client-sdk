@@ -5,8 +5,10 @@
 ```ts
 
 import { EppoClient } from '@eppo/js-client-sdk-common';
+import { Flag } from '@eppo/js-client-sdk-common';
 import { IAssignmentEvent } from '@eppo/js-client-sdk-common';
 import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
+import { IAsyncStore } from '@eppo/js-client-sdk-common';
 import { IEppoClient } from '@eppo/js-client-sdk-common';
 
 // @public
@@ -41,9 +43,11 @@ export interface IClientConfig {
     baseUrl?: string;
     numInitialRequestRetries?: number;
     numPollRequestRetries?: number;
+    persistentStore?: IAsyncStore<Flag>;
     pollAfterFailedInitialization?: boolean;
     pollAfterSuccessfulInitialization?: boolean;
     requestTimeoutMs?: number;
+    skipInitialRequest?: boolean;
     throwOnFailedInitialization?: boolean;
 }
 

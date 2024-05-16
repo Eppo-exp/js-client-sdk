@@ -128,7 +128,6 @@ describe('EppoJSClient E2E test', () => {
   });
 
   afterEach(() => {
-    //returnUfc = readMockUfcResponse;
     globalClient.setLogger(mockLogger);
     td.reset();
   });
@@ -507,6 +506,28 @@ describe('initialization options', () => {
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
   });
 
+  it('skips initial request', async () => {
+    let callCount = 0;
+
+    global.fetch = jest.fn(() => {
+      callCount += 1;
+
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(mockConfigResponse),
+      });
+    }) as jest.Mock;
+
+    await init({
+      apiKey,
+      baseUrl,
+      assignmentLogger: mockLogger,
+      skipInitialRequest: true,
+    });
+    expect(callCount).toBe(0);
+  });
+
   describe('With reloaded index module', () => {
     // eslint-disable-next-line @typescript-eslint/ban-types
     let init: Function;
@@ -542,8 +563,7 @@ describe('initialization options', () => {
 
     it('returns empty assignments pre-initialization by default', async () => {
       returnUfc = () => mockConfigResponse;
-      const client = getInstance();
-      expect(client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toBe(
+      expect(getInstance().getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toBe(
         'default-value',
       );
       // don't await
@@ -552,12 +572,14 @@ describe('initialization options', () => {
         baseUrl,
         assignmentLogger: mockLogger,
       });
-      expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe(
+      expect(getInstance().getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe(
         'default-value',
       );
       // Advance time so a poll happened and check again
       await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
-      expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
+      expect(getInstance().getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe(
+        'control',
+      );
     });
   });
 });
