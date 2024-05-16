@@ -128,7 +128,6 @@ describe('EppoJSClient E2E test', () => {
   });
 
   afterEach(() => {
-    //returnUfc = readMockUfcResponse;
     globalClient.setLogger(mockLogger);
     td.reset();
   });
