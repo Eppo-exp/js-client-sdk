@@ -11,23 +11,25 @@ import { ChromeStorageAsyncStore } from './chrome.configuration-store';
 import { LocalStorageBackedAsyncStore } from './local-storage';
 
 export function configurationStorageFactory(
-  persistenceStore?: IAsyncStore<Flag>,
+  persistentStore?: IAsyncStore<Flag>,
 ): IConfigurationStore<Flag> {
-  if (persistenceStore) {
-    return new HybridConfigurationStore(new MemoryStore<Flag>(), persistenceStore);
+  if (persistentStore) {
+    return new HybridConfigurationStore(new MemoryStore<Flag>(), persistentStore);
   } else if (hasChromeStorage()) {
+    // Chrome storage is available, use it as a fallback
     return new HybridConfigurationStore(
       new MemoryStore<Flag>(),
       new ChromeStorageAsyncStore<Flag>(chrome.storage.local),
     );
   } else if (hasWindowLocalStorage()) {
-    // fallback to window.localStorage if available
+    // window.localStorage is available, use it as a fallback
     return new HybridConfigurationStore(
       new MemoryStore<Flag>(),
       new LocalStorageBackedAsyncStore<Flag>(window.localStorage),
     );
   }
 
+  // No persistence store available, use memory only
   return new MemoryOnlyConfigurationStore();
 }
 
