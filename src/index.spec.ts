@@ -506,7 +506,7 @@ describe('initialization options', () => {
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
   });
 
-  it('skips initial poll', async () => {
+  it('skips initial request', async () => {
     let callCount = 0;
 
     global.fetch = jest.fn(() => {
@@ -523,7 +523,7 @@ describe('initialization options', () => {
       apiKey,
       baseUrl,
       assignmentLogger: mockLogger,
-      skipInitialPoll: true,
+      skipInitialRequest: true,
     });
     expect(callCount).toBe(0);
   });
