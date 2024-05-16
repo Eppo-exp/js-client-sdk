@@ -68,13 +68,13 @@ export interface IClientConfig {
   numPollRequestRetries?: number;
 
   /**
-   * A custom persistence store to use for storing flag configurations.
-   * This is useful for cases where you want to use a different storage mechanism than the default
-   * local storage provided by the SDK.
+   * A custom class to use for storing flag configurations.
+   * This is useful for cases where you want to use a different storage mechanism
+   * than the default storage provided by the SDK.
    */
-  persistenceStore?: IAsyncStore<Flag>;
+  persistentStore?: IAsyncStore<Flag>;
 
-  /*
+  /**
    * Skip the request for new configurations during initialization. (default: false)
    */
   skipInitialRequest?: boolean;
@@ -161,7 +161,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
       EppoJSClient.instance.stopPolling();
     }
 
-    const configurationStore = configurationStorageFactory(config.persistenceStore);
+    const configurationStore = configurationStorageFactory(config.persistentStore);
     EppoJSClient.instance = new EppoJSClient(configurationStore, undefined, true);
 
     const requestConfiguration: FlagConfigurationRequestParameters = {
