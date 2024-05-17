@@ -7,7 +7,7 @@ describe('ChromeStore', () => {
   let now: number;
 
   beforeEach(() => {
-    now = new Date().getTime();
+    now = Date.now();
 
     jest.useFakeTimers();
 

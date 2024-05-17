@@ -23,7 +23,7 @@ export class ChromeStorageAsyncStore<T> implements IAsyncStore<T> {
         return Promise.resolve(true);
       }
 
-      const now = new Date().getTime();
+      const now = Date.now();
 
       return Promise.resolve(now - lastUpdatedAt > this.cooldownSeconds * 1000);
     }
