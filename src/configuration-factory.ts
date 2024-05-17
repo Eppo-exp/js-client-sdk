@@ -12,8 +12,11 @@ import { LocalStorageBackedAsyncStore } from './local-storage';
 
 export function configurationStorageFactory(
   persistentStore?: IAsyncStore<Flag>,
+  forceMemoryOnly = false,
 ): IConfigurationStore<Flag> {
-  if (persistentStore) {
+  if (forceMemoryOnly) {
+    return new MemoryOnlyConfigurationStore();
+  } else if (persistentStore) {
     return new HybridConfigurationStore(new MemoryStore<Flag>(), persistentStore);
   } else if (hasChromeStorage()) {
     // Chrome storage is available, use it as a fallback

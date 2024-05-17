@@ -82,12 +82,18 @@ export interface IClientConfig {
 
 export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-client-sdk-common';
 
+// Instantiate the configuration store with memory-only implementation.
+const configurationStore = configurationStorageFactory(undefined, true);
+
 /**
  * Client for assigning experiment variations.
  * @public
  */
 export class EppoJSClient extends EppoClient {
-  public static instance: EppoJSClient;
+  // Ensure that the client is instantiated during class loading.
+  // Use an empty memory-only configuration store until the `init` method is called,
+  // to avoid serving stale data to the user.
+  public static instance: EppoJSClient = new EppoJSClient(configurationStore, undefined, true);
   public static initialized = false;
 
   public getStringAssignment(
@@ -161,8 +167,10 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
       EppoJSClient.instance.stopPolling();
     }
 
-    const configurationStore = configurationStorageFactory(config.persistentStore);
-    EppoJSClient.instance = new EppoJSClient(configurationStore, undefined, true);
+    // Set the configuration store to the desired persistent store, if provided.
+    // Otherwise the factory method will detect the current environment and instantiate the correct store.
+    const configurationStore = configurationStorageFactory(config.persistentStore, false);
+    EppoJSClient.instance.setConfigurationStore(configurationStore);
 
     const requestConfiguration: FlagConfigurationRequestParameters = {
       apiKey: config.apiKey,
