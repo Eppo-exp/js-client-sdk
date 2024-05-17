@@ -530,47 +530,56 @@ describe('initialization options', () => {
 
   describe('With reloaded index module', () => {
     // eslint-disable-next-line @typescript-eslint/ban-types
-    // let init: Function;
-    // // eslint-disable-next-line @typescript-eslint/ban-types
-    // //let getInstance: Function;
-    // beforeEach(async () => {
-    //   jest.isolateModules(() => {
-    //     // Isolate and re-require so that the static instance is reset to it's default state
-    //     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    //     const reloadedModule = require('./index');
-    //     //init = reloadedModule.init;
-    //     //getInstance = reloadedModule.getInstance;
-    //   });
-    // }) as jest.Mock;
-
-    global.fetch = jest.fn(() => {
-      const ufc = returnUfc(MOCK_UFC_RESPONSE_FILE);
-
-      return Promise.resolve({
-        ok: true,
-        status: 200,
-        json: () => Promise.resolve(ufc),
+    let init: Function;
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    let getInstance: Function;
+    beforeEach(async () => {
+      jest.isolateModules(() => {
+        // Isolate and re-require so that the static instance is reset to it's default state
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const reloadedModule = require('./index');
+        init = reloadedModule.init;
+        getInstance = reloadedModule.getInstance;
       });
-    }) as jest.Mock;
-  });
 
-  it('returns empty assignments pre-initialization by default', async () => {
-    returnUfc = () => mockConfigResponse;
-    const client = getInstance();
-    expect(client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toBe(
-      'default-value',
-    );
-    // don't await
-    init({
-      apiKey,
-      baseUrl,
-      assignmentLogger: mockLogger,
+      global.fetch = jest.fn(() => {
+        const ufc = returnUfc(MOCK_UFC_RESPONSE_FILE);
+
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(ufc),
+        });
+      }) as jest.Mock;
+
+      mockLogger = td.object<IAssignmentLogger>();
+
+      await init({
+        apiKey,
+        baseUrl,
+        assignmentLogger: mockLogger,
+      });
     });
-    expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe(
-      'default-value',
-    );
-    // Advance time so a poll happened and check again
-    await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
-    expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
+
+    it('returns empty assignments pre-initialization by default', async () => {
+      returnUfc = () => mockConfigResponse;
+      expect(getInstance().getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toBe(
+        'default-value',
+      );
+      // don't await
+      init({
+        apiKey,
+        baseUrl,
+        assignmentLogger: mockLogger,
+      });
+      expect(getInstance().getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe(
+        'default-value',
+      );
+      // Advance time so a poll happened and check again
+      await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
+      expect(getInstance().getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe(
+        'control',
+      );
+    });
   });
 });
