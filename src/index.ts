@@ -180,10 +180,11 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
         hasWindowLocalStorage: hasWindowLocalStorage(),
       },
       {
-        chromeStorage: hasChromeStorage() && chrome.storage.local,
-        windowLocalStorage: hasWindowLocalStorage() && window.localStorage,
+        chromeStorage: hasChromeStorage() ? chrome.storage.local : undefined,
+        windowLocalStorage: hasWindowLocalStorage() ? window.localStorage : undefined,
       },
     );
+    await configurationStore.init();
     EppoJSClient.instance.setConfigurationStore(configurationStore);
 
     const requestConfiguration: FlagConfigurationRequestParameters = {

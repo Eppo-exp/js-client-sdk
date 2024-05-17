@@ -22,10 +22,10 @@ export class LocalStorageBackedAsyncStore<T> implements IAsyncStore<T> {
     return Promise.resolve(true);
   }
 
-  getEntries(): Promise<Record<string, T> | null> {
+  getEntries(): Promise<Record<string, T>> {
     const configuration = this.localStorage.getItem(this.localStorageKey);
     if (!configuration) {
-      return Promise.resolve(null);
+      return Promise.resolve({});
     }
     return Promise.resolve(JSON.parse(configuration));
   }

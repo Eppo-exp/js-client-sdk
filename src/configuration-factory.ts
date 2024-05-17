@@ -31,13 +31,13 @@ export function configurationStorageFactory(
     return new MemoryOnlyConfigurationStore();
   } else if (persistentStore) {
     return new HybridConfigurationStore(new MemoryStore<Flag>(), persistentStore);
-  } else if (hasChromeStorage) {
+  } else if (hasChromeStorage && chromeStorage) {
     // Chrome storage is available, use it as a fallback
     return new HybridConfigurationStore(
       new MemoryStore<Flag>(),
       new ChromeStorageAsyncStore<Flag>(chromeStorage),
     );
-  } else if (hasWindowLocalStorage) {
+  } else if (hasWindowLocalStorage && windowLocalStorage) {
     // window.localStorage is available, use it as a fallback
     return new HybridConfigurationStore(
       new MemoryStore<Flag>(),

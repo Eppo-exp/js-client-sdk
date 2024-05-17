@@ -14,12 +14,12 @@ export class ChromeStorageAsyncStore<T> implements IAsyncStore<T> {
     return Promise.resolve(true);
   }
 
-  public async getEntries(): Promise<Record<string, T> | null> {
+  public async getEntries(): Promise<Record<string, T>> {
     const configuration = await this.storageArea.get(this.chromeStorageKey);
     if (configuration?.[this.chromeStorageKey]) {
       return Promise.resolve(JSON.parse(configuration[this.chromeStorageKey]));
     }
-    return Promise.resolve(null);
+    return Promise.resolve({});
   }
 
   public async setEntries(entries: Record<string, T>): Promise<void> {

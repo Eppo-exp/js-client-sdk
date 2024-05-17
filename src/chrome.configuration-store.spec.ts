@@ -37,13 +37,13 @@ describe('ChromeStore', () => {
     expect(await chromeStore.isExpired()).toBe(true);
   });
 
-  it('should return null when no entries are found', async () => {
+  it('should return empty object when no entries are found', async () => {
     (extendedStorageLocal.get as jest.Mock).mockImplementation(() => {
       return Promise.resolve({});
     });
 
     const entries = await chromeStore.getEntries();
-    expect(entries).toBeNull();
+    expect(entries).toEqual({});
   });
 
   it('should be initialized after setting entries', async () => {
