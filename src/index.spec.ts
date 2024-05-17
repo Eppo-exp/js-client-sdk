@@ -506,7 +506,7 @@ describe('initialization options', () => {
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
   });
 
-  describe('With reloaded index module', async () => {
+  describe('With reloaded index module', () => {
     // eslint-disable-next-line @typescript-eslint/ban-types
     // let init: Function;
     // // eslint-disable-next-line @typescript-eslint/ban-types
