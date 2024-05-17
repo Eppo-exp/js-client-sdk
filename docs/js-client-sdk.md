@@ -8,6 +8,7 @@
 
 |  Class | Description |
 |  --- | --- |
+|  [ChromeStorageAsyncStore](./js-client-sdk.chromestorageasyncstore.md) |  |
 |  [EppoJSClient](./js-client-sdk.eppojsclient.md) | Client for assigning experiment variations. |
 
 ## Functions
