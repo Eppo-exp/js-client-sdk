@@ -4,8 +4,13 @@ describe('ChromeStore', () => {
   const mockEntries: Record<string, string> = { key1: 'value1', key2: 'value2' };
   let chromeStore: ChromeStorageAsyncStore<string>;
   let extendedStorageLocal: chrome.storage.StorageArea;
+  let now: number;
 
   beforeEach(() => {
+    now = Date.now();
+
+    jest.useFakeTimers();
+
     const get = jest.fn();
     const set = jest.fn();
     extendedStorageLocal = {
@@ -30,20 +35,49 @@ describe('ChromeStore', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.clearAllMocks();
   });
 
-  it('is always expired', async () => {
+  it('is always expired without cooldown', async () => {
+    chromeStore = new ChromeStorageAsyncStore(extendedStorageLocal, undefined);
     expect(await chromeStore.isExpired()).toBe(true);
   });
 
-  it('should return empty object when no entries are found', async () => {
+  it('is not expired with cooldown', async () => {
+    chromeStore = new ChromeStorageAsyncStore(extendedStorageLocal, 10);
+
     (extendedStorageLocal.get as jest.Mock).mockImplementation(() => {
-      return Promise.resolve({});
+      return Promise.resolve({
+        ['eppo-configuration']: JSON.stringify(mockEntries),
+        ['eppo-configuration-meta']: JSON.stringify({
+          lastUpdatedAtMs: new Date().getTime(),
+        }),
+      });
     });
 
-    const entries = await chromeStore.getEntries();
-    expect(entries).toEqual({});
+    expect(await chromeStore.isExpired()).toBe(false);
+  });
+
+  it('is expired after cooldown', async () => {
+    chromeStore = new ChromeStorageAsyncStore(extendedStorageLocal, 10);
+
+    (extendedStorageLocal.get as jest.Mock).mockImplementation(() => {
+      return Promise.resolve({
+        ['eppo-configuration']: JSON.stringify(mockEntries),
+        ['eppo-configuration-meta']: JSON.stringify({
+          lastUpdatedAtMs: now,
+        }),
+      });
+    });
+
+    // advance time by 5 seconds
+    await jest.advanceTimersByTimeAsync(5 * 1000);
+    expect(await chromeStore.isExpired()).toBe(false);
+
+    // advance time by 6 seconds
+    await jest.advanceTimersByTimeAsync(6 * 1000);
+    expect(await chromeStore.isExpired()).toBe(true);
   });
 
   it('should be initialized after setting entries', async () => {
