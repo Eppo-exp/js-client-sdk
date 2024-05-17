@@ -52,16 +52,17 @@ export function getTestAssignments(
 ): { subject: SubjectTestCase; assignment: string | boolean | number | object }[] {
   const assignments: {
     subject: SubjectTestCase;
-    assignment: string | boolean | number | null | object;
+    assignment: string | boolean | number | object;
   }[] = [];
   for (const subject of testCase.subjects) {
-    const assignment = assignmentFn(
-      testCase.flag,
-      subject.subjectKey,
-      subject.subjectAttributes,
-      testCase.defaultValue,
-      obfuscated,
-    );
+    const assignment =
+      assignmentFn(
+        testCase.flag,
+        subject.subjectKey,
+        subject.subjectAttributes,
+        testCase.defaultValue,
+        obfuscated,
+      ) || testCase.defaultValue; // Fallback to defaultValue if null
     assignments.push({ subject: subject, assignment: assignment });
   }
   return assignments;
