@@ -14,15 +14,18 @@ export class ChromeStorageAsyncStore<T> implements IAsyncStore<T> {
     return Promise.resolve(true);
   }
 
-  public async getEntries(): Promise<Record<string, T>> {
+  public async getEntries(): Promise<Record<string, T> | null> {
     const configuration = await this.storageArea.get(this.chromeStorageKey);
-    if (configuration && configuration[this.chromeStorageKey]) {
+    if (configuration?.[this.chromeStorageKey]) {
       return Promise.resolve(JSON.parse(configuration[this.chromeStorageKey]));
     }
-    return Promise.resolve({});
+    return Promise.resolve(null);
   }
 
   public async setEntries(entries: Record<string, T>): Promise<void> {
+    // chrome.storage.set takes a dictionary of key-value pairs,
+    // so we need to pass it an object with a single property.
+    // writes the entire configuration to a single location.
     await this.storageArea.set({ [this.chromeStorageKey]: JSON.stringify(entries) });
     this._isInitialized = true;
     return Promise.resolve();
