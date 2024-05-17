@@ -9,6 +9,7 @@ import {
   VariationType,
   constants,
   HybridConfigurationStore,
+  MemoryStore,
 } from '@eppo/js-client-sdk-common';
 import * as md5 from 'md5';
 import * as td from 'testdouble';
@@ -25,6 +26,8 @@ import {
   getTestAssignments,
   validateTestAssignments,
 } from '../test/testHelpers';
+
+import { LocalStorageBackedAsyncStore } from './local-storage';
 
 import { IAssignmentLogger, IEppoClient, getInstance, init } from './index';
 
@@ -581,5 +584,69 @@ describe('initialization options', () => {
         'control',
       );
     });
+  });
+});
+
+describe('persistent store', () => {
+  let mockLogger: IAssignmentLogger;
+
+  const flagKey = 'mock-experiment';
+  const obfuscatedFlagKey = md5(flagKey);
+
+  it('is an empty persistent store', async () => {
+    // configuration store is empty
+    const configurationStore = new HybridConfigurationStore(
+      new MemoryStore<Flag>(),
+      new LocalStorageBackedAsyncStore<Flag>(window.localStorage),
+    );
+
+    // mock the failed initial request
+    global.fetch = jest.fn(() => {
+      throw new Error('Intentional Thrown Error For Test');
+    }) as jest.Mock;
+
+    const initPromise = init({
+      apiKey,
+      baseUrl,
+      assignmentLogger: mockLogger,
+      throwOnFailedInitialization: false,
+      pollAfterFailedInitialization: false,
+      persistentStore: configurationStore.persistentStore ?? undefined,
+    });
+
+    const client: IEppoClient = await initPromise;
+
+    expect(client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toBe(
+      'default-value',
+    );
+  });
+
+  it('serves cached configuration after initial request fails', async () => {
+    // configuration store from a previous successful initialization
+    const configurationStore = new HybridConfigurationStore(
+      new MemoryStore<Flag>(),
+      new LocalStorageBackedAsyncStore<Flag>(window.localStorage),
+    );
+    configurationStore.setEntries({ [obfuscatedFlagKey]: mockUfcFlagConfig });
+
+    // mock the failed initial request
+    global.fetch = jest.fn(() => {
+      throw new Error('Intentional Thrown Error For Test');
+    }) as jest.Mock;
+
+    const initPromise = init({
+      apiKey,
+      baseUrl,
+      assignmentLogger: mockLogger,
+      throwOnFailedInitialization: false,
+      pollAfterFailedInitialization: false,
+      persistentStore: configurationStore.persistentStore ?? undefined,
+    });
+
+    const client: IEppoClient = await initPromise;
+
+    expect(client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toBe(
+      'variant-1',
+    );
   });
 });
