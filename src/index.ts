@@ -8,7 +8,11 @@ import {
   IAsyncStore,
 } from '@eppo/js-client-sdk-common';
 
-import { configurationStorageFactory } from './configuration-factory';
+import {
+  configurationStorageFactory,
+  hasChromeStorage,
+  hasWindowLocalStorage,
+} from './configuration-factory';
 import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 import { sdkName, sdkVersion } from './sdk-data';
 
@@ -83,7 +87,7 @@ export interface IClientConfig {
 export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-client-sdk-common';
 
 // Instantiate the configuration store with memory-only implementation.
-const configurationStore = configurationStorageFactory(undefined, true);
+const configurationStore = configurationStorageFactory({ forceMemoryOnly: true });
 
 /**
  * Client for assigning experiment variations.
@@ -169,7 +173,17 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
 
     // Set the configuration store to the desired persistent store, if provided.
     // Otherwise the factory method will detect the current environment and instantiate the correct store.
-    const configurationStore = configurationStorageFactory(config.persistentStore, false);
+    const configurationStore = configurationStorageFactory(
+      {
+        persistentStore: config.persistentStore,
+        hasChromeStorage: hasChromeStorage(),
+        hasWindowLocalStorage: hasWindowLocalStorage(),
+      },
+      {
+        chromeStorage: hasChromeStorage() ? chrome.storage.local : undefined,
+        windowLocalStorage: hasWindowLocalStorage() ? window.localStorage : undefined,
+      },
+    );
     await configurationStore.init();
     EppoJSClient.instance.setConfigurationStore(configurationStore);
 
