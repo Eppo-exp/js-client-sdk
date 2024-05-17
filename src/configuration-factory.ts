@@ -11,8 +11,11 @@ import { LocalStorageBackedAsyncStore } from './local-storage';
 
 export function configurationStorageFactory(
   persistenceStore?: IAsyncStore<Flag>,
+  forceMemoryOnly = false,
 ): IConfigurationStore<Flag> {
-  if (persistenceStore) {
+  if (forceMemoryOnly) {
+    return new MemoryOnlyConfigurationStore();
+  } else if (persistenceStore) {
     return new HybridConfigurationStore(new MemoryStore<Flag>(), persistenceStore);
   } else if (hasWindowLocalStorage()) {
     // fallback to window.localStorage if available
