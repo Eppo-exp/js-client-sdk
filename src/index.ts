@@ -84,7 +84,13 @@ export interface IClientConfig {
   skipInitialRequest?: boolean;
 }
 
-export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-client-sdk-common';
+// Export the common types and classes from the SDK.
+export {
+  IAssignmentLogger,
+  IAssignmentEvent,
+  IEppoClient,
+  IAsyncStore,
+} from '@eppo/js-client-sdk-common';
 export { ChromeStorageAsyncStore } from './chrome.configuration-store';
 
 // Instantiate the configuration store with memory-only implementation.
