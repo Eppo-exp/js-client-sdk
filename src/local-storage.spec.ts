@@ -22,8 +22,8 @@ describe('EppoLocalStorage', () => {
   });
 
   describe('get and set', () => {
-    it('returns null if entry is not present', async () => {
-      expect(await storage.getEntries()).toEqual(null);
+    it('returns empty object if entry is not present', async () => {
+      expect(await storage.getEntries()).toEqual({});
     });
 
     it('returns stored entries', async () => {

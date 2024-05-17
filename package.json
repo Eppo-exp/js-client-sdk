@@ -1,6 +1,6 @@
 {
   "name": "@eppo/js-client-sdk",
-  "version": "3.0.1",
+  "version": "3.0.2-rc.5",
   "description": "Eppo SDK for client-side JavaScript applications",
   "main": "dist/index.js",
   "files": [
@@ -58,7 +58,7 @@
     "webpack-cli": "^4.10.0"
   },
   "dependencies": {
-    "@eppo/js-client-sdk-common": "3.0.6",
+    "@eppo/js-client-sdk-common": "3.0.8",
     "md5": "^2.3.0"
   }
 }

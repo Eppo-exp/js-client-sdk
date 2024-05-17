@@ -128,7 +128,6 @@ describe('EppoJSClient E2E test', () => {
   });
 
   afterEach(() => {
-    //returnUfc = readMockUfcResponse;
     globalClient.setLogger(mockLogger);
     td.reset();
   });
@@ -507,57 +506,49 @@ describe('initialization options', () => {
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
   });
 
-  describe('With reloaded index module', () => {
+  describe('With reloaded index module', async () => {
     // eslint-disable-next-line @typescript-eslint/ban-types
-    let init: Function;
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    let getInstance: Function;
-    beforeEach(async () => {
-      jest.isolateModules(() => {
-        // Isolate and re-require so that the static instance is reset to it's default state
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const reloadedModule = require('./index');
-        init = reloadedModule.init;
-        getInstance = reloadedModule.getInstance;
+    // let init: Function;
+    // // eslint-disable-next-line @typescript-eslint/ban-types
+    // //let getInstance: Function;
+    // beforeEach(async () => {
+    //   jest.isolateModules(() => {
+    //     // Isolate and re-require so that the static instance is reset to it's default state
+    //     // eslint-disable-next-line @typescript-eslint/no-var-requires
+    //     const reloadedModule = require('./index');
+    //     //init = reloadedModule.init;
+    //     //getInstance = reloadedModule.getInstance;
+    //   });
+    // }) as jest.Mock;
+
+    global.fetch = jest.fn(() => {
+      const ufc = returnUfc(MOCK_UFC_RESPONSE_FILE);
+
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(ufc),
       });
+    }) as jest.Mock;
+  });
 
-      global.fetch = jest.fn(() => {
-        const ufc = returnUfc(MOCK_UFC_RESPONSE_FILE);
-
-        return Promise.resolve({
-          ok: true,
-          status: 200,
-          json: () => Promise.resolve(ufc),
-        });
-      }) as jest.Mock;
-
-      mockLogger = td.object<IAssignmentLogger>();
-
-      await init({
-        apiKey,
-        baseUrl,
-        assignmentLogger: mockLogger,
-      });
+  it('returns empty assignments pre-initialization by default', async () => {
+    returnUfc = () => mockConfigResponse;
+    const client = getInstance();
+    expect(client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toBe(
+      'default-value',
+    );
+    // don't await
+    init({
+      apiKey,
+      baseUrl,
+      assignmentLogger: mockLogger,
     });
-
-    it('returns empty assignments pre-initialization by default', async () => {
-      returnUfc = () => mockConfigResponse;
-      const client = getInstance();
-      expect(client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toBe(
-        'default-value',
-      );
-      // don't await
-      init({
-        apiKey,
-        baseUrl,
-        assignmentLogger: mockLogger,
-      });
-      expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe(
-        'default-value',
-      );
-      // Advance time so a poll happened and check again
-      await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
-      expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
-    });
+    expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe(
+      'default-value',
+    );
+    // Advance time so a poll happened and check again
+    await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
+    expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
   });
 });

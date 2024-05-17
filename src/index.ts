@@ -4,9 +4,15 @@ import {
   IEppoClient,
   EppoClient,
   FlagConfigurationRequestParameters,
+  Flag,
+  IAsyncStore,
 } from '@eppo/js-client-sdk-common';
 
-import { configurationStorageFactory } from './configuration-factory';
+import {
+  configurationStorageFactory,
+  hasChromeStorage,
+  hasWindowLocalStorage,
+} from './configuration-factory';
 import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 import { sdkName, sdkVersion } from './sdk-data';
 
@@ -64,19 +70,35 @@ export interface IClientConfig {
    * backoff. (Default: 7)
    */
   numPollRequestRetries?: number;
+
+  /**
+   * A custom class to use for storing flag configurations.
+   * This is useful for cases where you want to use a different storage mechanism
+   * than the default storage provided by the SDK.
+   */
+  persistentStore?: IAsyncStore<Flag>;
+
+  /**
+   * Skip the request for new configurations during initialization. (default: false)
+   */
+  skipInitialRequest?: boolean;
 }
 
 export { IAssignmentLogger, IAssignmentEvent, IEppoClient } from '@eppo/js-client-sdk-common';
 export { ChromeStorageAsyncStore } from './chrome.configuration-store';
 
-const localStorage = configurationStorageFactory();
+// Instantiate the configuration store with memory-only implementation.
+const configurationStore = configurationStorageFactory({ forceMemoryOnly: true });
 
 /**
  * Client for assigning experiment variations.
  * @public
  */
 export class EppoJSClient extends EppoClient {
-  public static instance: EppoJSClient = new EppoJSClient(localStorage, undefined, true);
+  // Ensure that the client is instantiated during class loading.
+  // Use an empty memory-only configuration store until the `init` method is called,
+  // to avoid serving stale data to the user.
+  public static instance: EppoJSClient = new EppoJSClient(configurationStore, undefined, true);
   public static initialized = false;
 
   public getStringAssignment(
@@ -150,6 +172,22 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
       EppoJSClient.instance.stopPolling();
     }
 
+    // Set the configuration store to the desired persistent store, if provided.
+    // Otherwise the factory method will detect the current environment and instantiate the correct store.
+    const configurationStore = configurationStorageFactory(
+      {
+        persistentStore: config.persistentStore,
+        hasChromeStorage: hasChromeStorage(),
+        hasWindowLocalStorage: hasWindowLocalStorage(),
+      },
+      {
+        chromeStorage: hasChromeStorage() ? chrome.storage.local : undefined,
+        windowLocalStorage: hasWindowLocalStorage() ? window.localStorage : undefined,
+      },
+    );
+    await configurationStore.init();
+    EppoJSClient.instance.setConfigurationStore(configurationStore);
+
     const requestConfiguration: FlagConfigurationRequestParameters = {
       apiKey: config.apiKey,
       sdkName,
@@ -161,6 +199,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
       pollAfterSuccessfulInitialization: config.pollAfterSuccessfulInitialization ?? false,
       pollAfterFailedInitialization: config.pollAfterFailedInitialization ?? false,
       throwOnFailedInitialization: true, // always use true here as underlying instance fetch is surrounded by try/catch
+      skipInitialPoll: config.skipInitialRequest ?? false,
     };
 
     EppoJSClient.instance.setLogger(config.assignmentLogger);

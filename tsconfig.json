@@ -8,8 +8,11 @@
     "target": "es2017",
     "outDir": "dist",
     "noImplicitAny": true,
+    "strictNullChecks": true
   },
-  "include": ["src/**/*.ts"],
+  "include": [
+    "src/**/*.ts"
+  ],
   "exclude": [
     "node_modules",
     "dist",

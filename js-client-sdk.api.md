@@ -4,10 +4,27 @@
 
 ```ts
 
+/// <reference types="chrome" />
+
 import { EppoClient } from '@eppo/js-client-sdk-common';
+import { Flag } from '@eppo/js-client-sdk-common';
 import { IAssignmentEvent } from '@eppo/js-client-sdk-common';
 import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
+import { IAsyncStore } from '@eppo/js-client-sdk-common';
 import { IEppoClient } from '@eppo/js-client-sdk-common';
+
+// @public (undocumented)
+export class ChromeStorageAsyncStore<T> implements IAsyncStore<T> {
+    constructor(storageArea: chrome.storage.StorageArea, cooldownSeconds?: number | undefined);
+    // (undocumented)
+    getEntries(): Promise<Record<string, T>>;
+    // (undocumented)
+    isExpired(): Promise<boolean>;
+    // (undocumented)
+    isInitialized(): boolean;
+    // (undocumented)
+    setEntries(entries: Record<string, T>): Promise<void>;
+}
 
 // @public
 export class EppoJSClient extends EppoClient {
@@ -41,9 +58,11 @@ export interface IClientConfig {
     baseUrl?: string;
     numInitialRequestRetries?: number;
     numPollRequestRetries?: number;
+    persistentStore?: IAsyncStore<Flag>;
     pollAfterFailedInitialization?: boolean;
     pollAfterSuccessfulInitialization?: boolean;
     requestTimeoutMs?: number;
+    skipInitialRequest?: boolean;
     throwOnFailedInitialization?: boolean;
 }
 

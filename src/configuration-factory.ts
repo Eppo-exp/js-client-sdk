@@ -1,6 +1,7 @@
 import {
   Flag,
   HybridConfigurationStore,
+  IAsyncStore,
   IConfigurationStore,
   MemoryOnlyConfigurationStore,
   MemoryStore,
@@ -9,25 +10,47 @@ import {
 import { ChromeStorageAsyncStore } from './chrome.configuration-store';
 import { LocalStorageBackedAsyncStore } from './local-storage';
 
-export function configurationStorageFactory(): IConfigurationStore<Flag> {
-  if (hasChromeStorage()) {
+export function configurationStorageFactory(
+  {
+    hasChromeStorage = false,
+    hasWindowLocalStorage = false,
+    persistentStore = undefined,
+    forceMemoryOnly = false,
+  }: {
+    hasChromeStorage?: boolean;
+    hasWindowLocalStorage?: boolean;
+    persistentStore?: IAsyncStore<Flag>;
+    forceMemoryOnly?: boolean;
+  },
+  {
+    chromeStorage,
+    windowLocalStorage,
+  }: { chromeStorage?: chrome.storage.StorageArea; windowLocalStorage?: Storage } = {},
+): IConfigurationStore<Flag> {
+  if (forceMemoryOnly) {
+    return new MemoryOnlyConfigurationStore();
+  } else if (persistentStore) {
+    return new HybridConfigurationStore(new MemoryStore<Flag>(), persistentStore);
+  } else if (hasChromeStorage && chromeStorage) {
+    // Chrome storage is available, use it as a fallback
     return new HybridConfigurationStore(
       new MemoryStore<Flag>(),
-      new ChromeStorageAsyncStore<Flag>(chrome.storage.local),
+      new ChromeStorageAsyncStore<Flag>(chromeStorage),
     );
-  } else if (hasWindowLocalStorage()) {
-    // fallback to window.localStorage if available
+  } else if (hasWindowLocalStorage && windowLocalStorage) {
+    // window.localStorage is available, use it as a fallback
     return new HybridConfigurationStore(
       new MemoryStore<Flag>(),
-      new LocalStorageBackedAsyncStore<Flag>(window.localStorage),
+      new LocalStorageBackedAsyncStore<Flag>(windowLocalStorage),
     );
   }
 
+  // No persistence store available, use memory only
   return new MemoryOnlyConfigurationStore();
 }
 
 export function hasChromeStorage(): boolean {
-  return typeof chrome !== 'undefined' && !!chrome.storage && !!chrome.storage.local;
+  return typeof chrome !== 'undefined' && !!chrome.storage;
 }
 
 export function hasWindowLocalStorage(): boolean {
