@@ -13,12 +13,12 @@ class LocalStorageAssignmentShim {
     return this.getCache().has(key);
   }
 
-  public get(key: string): string {
+  public get(key: string): string | undefined {
     if (!hasWindowLocalStorage()) {
-      return null;
+      return undefined;
     }
 
-    return this.getCache().get(key);
+    return this.getCache().get(key) || undefined;
   }
 
   public set(key: string, value: string) {
