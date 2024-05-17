@@ -18,7 +18,7 @@ class LocalStorageAssignmentShim {
       return undefined;
     }
 
-    return this.getCache().get(key) || undefined;
+    return this.getCache().get(key) ?? undefined;
   }
 
   public set(key: string, value: string) {
