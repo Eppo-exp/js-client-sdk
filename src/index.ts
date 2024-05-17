@@ -167,10 +167,16 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
       EppoJSClient.instance.stopPolling();
     }
 
+    console.log('Initializing Eppo SDK');
+
     // Set the configuration store to the desired persistent store, if provided.
     // Otherwise the factory method will detect the current environment and instantiate the correct store.
     const configurationStore = configurationStorageFactory(config.persistentStore, false);
+    console.log('Using configuration store:', configurationStore);
+
+    console.log('(start) Initializing configuration store');
     await configurationStore.init();
+    console.log('(done) Initialized configuration store');
     EppoJSClient.instance.setConfigurationStore(configurationStore);
 
     const requestConfiguration: FlagConfigurationRequestParameters = {
@@ -193,7 +199,10 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     // this can be overridden after initialization.
     EppoJSClient.instance.useCustomAssignmentCache(new LocalStorageAssignmentCache());
     EppoJSClient.instance.setConfigurationRequestParameters(requestConfiguration);
+
+    console.log('(start) Fetching flag configurations');
     await EppoJSClient.instance.fetchFlagConfigurations();
+    console.log('(done) Fetched flag configurations');
   } catch (error) {
     console.warn(
       'Eppo SDK encountered an error initializing, assignment calls will return the default value and not be logged' +
