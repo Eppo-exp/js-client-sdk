@@ -17,7 +17,7 @@ export class ChromeStorageAsyncStore<T> implements IAsyncStore<T> {
     }
 
     const meta = await this.storageArea.get(this.metaKey);
-    if (meta && meta[this.metaKey]) {
+    if (meta?.[this.metaKey]) {
       const lastUpdatedAt = JSON.parse(meta[this.metaKey]).lastUpdatedAtMs;
       if (!lastUpdatedAt) {
         return Promise.resolve(true);
