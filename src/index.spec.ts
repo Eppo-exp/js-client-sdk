@@ -593,6 +593,14 @@ describe('persistent store', () => {
   const flagKey = 'mock-experiment';
   const obfuscatedFlagKey = md5(flagKey);
 
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
   it('is an empty persistent store', async () => {
     // configuration store is empty
     const configurationStore = new HybridConfigurationStore(
