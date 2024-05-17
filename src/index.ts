@@ -170,6 +170,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     // Set the configuration store to the desired persistent store, if provided.
     // Otherwise the factory method will detect the current environment and instantiate the correct store.
     const configurationStore = configurationStorageFactory(config.persistentStore, false);
+    await configurationStore.init();
     EppoJSClient.instance.setConfigurationStore(configurationStore);
 
     const requestConfiguration: FlagConfigurationRequestParameters = {

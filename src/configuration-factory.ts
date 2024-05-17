@@ -14,10 +14,13 @@ export function configurationStorageFactory(
   forceMemoryOnly = false,
 ): IConfigurationStore<Flag> {
   if (forceMemoryOnly) {
+    console.log('(forced): Using memory-only configuration store.');
     return new MemoryOnlyConfigurationStore();
   } else if (persistenceStore) {
+    console.log('(persistenceStore): Using user-provided configuration store.');
     return new HybridConfigurationStore(new MemoryStore<Flag>(), persistenceStore);
   } else if (hasWindowLocalStorage()) {
+    console.log('(localStorage): Using window.localStorage configuration store.');
     // fallback to window.localStorage if available
     return new HybridConfigurationStore(
       new MemoryStore<Flag>(),
@@ -25,6 +28,7 @@ export function configurationStorageFactory(
     );
   }
 
+  console.log('(fallback): Using memory-only configuration store.');
   return new MemoryOnlyConfigurationStore();
 }
 
