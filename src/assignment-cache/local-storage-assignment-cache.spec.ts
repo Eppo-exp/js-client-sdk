@@ -4,7 +4,7 @@
 
 import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 
-describe('LocalStorageAssignmentCache', () => {
+describe('AssignmentCache', () => {
   it('typical behavior', () => {
     const cache = new LocalStorageAssignmentCache();
     expect(

@@ -1,31 +1,17 @@
 import { AssignmentCache } from '@eppo/js-client-sdk-common';
 
-import { hasWindowLocalStorage } from './configuration-factory';
-
 class LocalStorageAssignmentShim {
   LOCAL_STORAGE_KEY = 'EPPO_LOCAL_STORAGE_ASSIGNMENT_CACHE';
 
   public has(key: string): boolean {
-    if (!hasWindowLocalStorage()) {
-      return false;
-    }
-
     return this.getCache().has(key);
   }
 
   public get(key: string): string | undefined {
-    if (!hasWindowLocalStorage()) {
-      return undefined;
-    }
-
     return this.getCache().get(key) ?? undefined;
   }
 
   public set(key: string, value: string) {
-    if (!hasWindowLocalStorage()) {
-      return;
-    }
-
     const cache = this.getCache();
     cache.set(key, value);
     this.setCache(cache);

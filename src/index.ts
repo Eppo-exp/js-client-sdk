@@ -8,12 +8,9 @@ import {
   IAsyncStore,
 } from '@eppo/js-client-sdk-common';
 
-import {
-  configurationStorageFactory,
-  hasChromeStorage,
-  hasWindowLocalStorage,
-} from './configuration-factory';
-import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
+import { assignmentCacheFactory } from './assignment-cache/assignment-cache.factory';
+import { configurationStorageFactory } from './configuration-factory';
+import { hasChromeStorage, hasWindowLocalStorage } from './environment';
 import { sdkName, sdkVersion } from './sdk-data';
 
 /**
@@ -209,10 +206,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     };
 
     EppoJSClient.instance.setLogger(config.assignmentLogger);
-
-    // default behavior is to use a LocalStorage-based assignment cache.
-    // this can be overridden after initialization.
-    EppoJSClient.instance.useCustomAssignmentCache(new LocalStorageAssignmentCache());
+    EppoJSClient.instance.useCustomAssignmentCache(assignmentCacheFactory());
     EppoJSClient.instance.setConfigurationRequestParameters(requestConfiguration);
     await EppoJSClient.instance.fetchFlagConfigurations();
   } catch (error) {
