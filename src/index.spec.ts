@@ -16,6 +16,7 @@ import { encode } from 'universal-base64';
 
 const { POLL_INTERVAL_MS, POLL_JITTER_PCT } = constants;
 
+import { MockLocalStorage } from '../test/MockLocalStorage';
 import {
   IAssignmentTestCase,
   readAssignmentTestData,
@@ -120,6 +121,7 @@ describe('EppoJSClient E2E test', () => {
 
     mockLogger = td.object<IAssignmentLogger>();
 
+    console.log('>>>> global init');
     globalClient = await init({
       apiKey,
       baseUrl,
@@ -251,6 +253,7 @@ describe('EppoJSClient E2E test', () => {
         });
       }) as jest.Mock;
 
+      console.log('UFC Obfuscated global init');
       globalClient = await init({
         apiKey,
         baseUrl,
@@ -317,23 +320,9 @@ describe('initialization options', () => {
       getInstance = reloadedModule.getInstance;
     });
 
-    global.fetch = jest.fn(() => {
-      const ufc = returnUfc(MOCK_UFC_RESPONSE_FILE);
-
-      return Promise.resolve({
-        ok: true,
-        status: 200,
-        json: () => Promise.resolve(ufc),
-      });
-    }) as jest.Mock;
+    global.fetch = jest.fn(() => Promise.reject('Each test case should mock fetch'));
 
     mockLogger = td.object<IAssignmentLogger>();
-
-    await init({
-      apiKey,
-      baseUrl,
-      assignmentLogger: mockLogger,
-    });
 
     jest.useFakeTimers({
       advanceTimers: true,
@@ -354,7 +343,8 @@ describe('initialization options', () => {
       ],
     });
 
-    // We're creating a new instance for each test so we need to clear the underlying storage too
+    // We want each test to have an empty local storage
+    Object.defineProperty(window, 'localStorage', { value: new MockLocalStorage() }); // TODO: do we need this?
     window.localStorage.clear();
   });
 
@@ -526,6 +516,59 @@ describe('initialization options', () => {
       skipInitialRequest: true,
     });
     expect(callCount).toBe(0);
+  });
+
+  it('Uses its cache', async () => {
+    // Mock fetch so first call works, second fails
+    let fetchCallCount = 0;
+    let fetchResolveCount = 0;
+    const fetchResolveDelayMs = 500;
+    global.fetch = jest.fn(() => {
+      if (++fetchCallCount === 1) {
+        fetchResolveCount += 1;
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(mockConfigResponse),
+        });
+      } else {
+        // WAIT 200 ms and then reject
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            console.log('>>> rejecting fetch');
+            fetchResolveCount += 1;
+            reject('Intentional failed fetch error for test');
+          }, fetchResolveDelayMs);
+        });
+      }
+    }) as jest.Mock;
+
+    // Initialize once so we know the cache is populated ok
+    let client = await init({
+      apiKey,
+      baseUrl,
+      assignmentLogger: mockLogger,
+    });
+    expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
+
+    // Init again where we know fetch will fail
+    client = await init({
+      apiKey,
+      baseUrl: 'https://thisisabaddomainforthistest.com',
+      assignmentLogger: mockLogger,
+    });
+
+    expect(fetchCallCount).toBe(2);
+    expect(fetchResolveCount).toBe(1);
+
+    // Should serve assignment from cache
+    expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
+
+    await jest.advanceTimersByTimeAsync(fetchResolveDelayMs);
+    expect(fetchResolveCount).toBe(2);
+
+    // Should not be tripped up by failed fetch
+    expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
   });
 
   describe('With reloaded index module', () => {

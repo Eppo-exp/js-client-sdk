@@ -1,7 +1,7 @@
 import { IAsyncStore } from '@eppo/js-client-sdk-common';
 
 /*
- * Removing stale keys is faciliating by storing the entire configuration into a single
+ * Removing stale keys is facilitating by storing the entire configuration into a single
  * key in local storage. This is done by serializing the entire configuration object
  * into a string and then storing it to a single key. When retrieving the configuration,
  * we first check if the configuration exists in local storage. If it does, we deserialize
@@ -31,6 +31,7 @@ export class LocalStorageBackedAsyncStore<T> implements IAsyncStore<T> {
   }
 
   setEntries(entries: Record<string, T>): Promise<void> {
+    console.log('>>>> SETTING LOCAL STORAGE ENTRIES');
     this.localStorage.setItem(this.localStorageKey, JSON.stringify(entries));
     this._isInitialized = true;
     return Promise.resolve();
