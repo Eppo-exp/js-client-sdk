@@ -122,7 +122,6 @@ describe('EppoJSClient E2E test', () => {
 
     mockLogger = td.object<IAssignmentLogger>();
 
-    console.log('>>>> global init');
     globalClient = await init({
       apiKey,
       baseUrl,

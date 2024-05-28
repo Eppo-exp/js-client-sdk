@@ -6,12 +6,10 @@ export class MockLocalStorage {
   }
 
   getItem(key: string) {
-    console.log('>>>> GET ITEM', key);
     return this.store[key] || null;
   }
 
   setItem(key: string, value: string) {
-    console.log('>>>> SET ITEM', key, value);
     this.store[key] = value;
   }
 

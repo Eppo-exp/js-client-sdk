@@ -31,7 +31,6 @@ export class LocalStorageBackedAsyncStore<T> implements IAsyncStore<T> {
   }
 
   setEntries(entries: Record<string, T>): Promise<void> {
-    console.log('>>>> SETTING LOCAL STORAGE ENTRIES');
     this.localStorage.setItem(this.localStorageKey, JSON.stringify(entries));
     this._isInitialized = true;
     return Promise.resolve();

@@ -227,7 +227,6 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
           initFromConfigStoreError = new Error('Configuration store was empty');
           return '';
         }
-        console.log('>>>> store success', configurationStore.getKeys());
         return 'config store';
       })
       .catch((e) => {
@@ -237,7 +236,6 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     const attemptInitFromFetch = EppoJSClient.instance
       .fetchFlagConfigurations()
       .then(() => {
-        console.log('>>>> fetch success', configurationStore.getKeys());
         return 'fetch';
       })
       .catch((e) => {
@@ -279,9 +277,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
           ? ' until an experiment configuration is successfully retrieved'
           : ''),
     );
-    console.log('>>>>> throwOnFailedInitialization', config.throwOnFailedInitialization);
     if (config.throwOnFailedInitialization ?? true) {
-      console.log('>>>>> THROWING');
       throw initializationError;
     }
   }

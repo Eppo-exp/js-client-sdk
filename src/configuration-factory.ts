@@ -39,7 +39,6 @@ export function configurationStorageFactory(
     );
   } else if (hasWindowLocalStorage && windowLocalStorage) {
     // window.localStorage is available, use it as a fallback
-    console.log('>>>Building with localstorage', windowLocalStorage);
     return new HybridConfigurationStore(
       new MemoryStore<Flag>(),
       new LocalStorageBackedAsyncStore<Flag>(windowLocalStorage),
