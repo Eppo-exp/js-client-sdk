@@ -9,6 +9,7 @@ import {
   VariationType,
   constants,
   HybridConfigurationStore,
+  IAsyncStore,
 } from '@eppo/js-client-sdk-common';
 import * as md5 from 'md5';
 import * as td from 'testdouble';
@@ -543,32 +544,91 @@ describe('initialization options', () => {
       }
     }) as jest.Mock;
 
-    // Initialize once so we know the cache is populated ok
+    // First initialization will have nothing cached, will need fetch to resolve
     let client = await init({
       apiKey,
       baseUrl,
       assignmentLogger: mockLogger,
     });
+
+    expect(fetchCallCount).toBe(1);
+    expect(fetchResolveCount).toBe(1);
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
 
-    // Init again where we know fetch will fail
+    // Init again where we know cache will succeed and fetch will fail
     client = await init({
       apiKey,
       baseUrl: 'https://thisisabaddomainforthistest.com',
       assignmentLogger: mockLogger,
     });
 
+    // Should serve assignment from cache before fetch even fails
     expect(fetchCallCount).toBe(2);
     expect(fetchResolveCount).toBe(1);
-
-    // Should serve assignment from cache
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
-
-    await jest.advanceTimersByTimeAsync(fetchResolveDelayMs);
-    expect(fetchResolveCount).toBe(2);
 
     // Should not be tripped up by failed fetch
+    await jest.advanceTimersByTimeAsync(fetchResolveDelayMs);
+    expect(fetchResolveCount).toBe(2);
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
+  });
+
+  it('Ignores cache if fetch finishes first', async () => {
+    // Mock fetch so first call works, second fails
+    let fetchCallCount = 0;
+    global.fetch = jest.fn(() => {
+      fetchCallCount += 1;
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(mockConfigResponse),
+      });
+    }) as jest.Mock;
+
+    let storeLoaded = false;
+    const mockStoreDelayMs = 500;
+    let mockStoreEntries = { 'bad-flags': {} } as unknown as Record<string, Flag>;
+
+    const mockStore: IAsyncStore<Flag> = {
+      isInitialized() {
+        return true;
+      },
+      async isExpired() {
+        return true; // triggers a fetch
+      },
+      async getEntries() {
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            storeLoaded = true;
+            resolve(mockStoreEntries);
+          }, mockStoreDelayMs);
+        });
+      },
+      async setEntries(entries) {
+        mockStoreEntries = entries;
+      },
+    };
+
+    // Init with our mock store
+    const client = await init({
+      apiKey,
+      baseUrl,
+      assignmentLogger: mockLogger,
+      persistentStore: mockStore,
+    });
+
+    // init should complete with fetch
+    expect(fetchCallCount).toBe(1);
+    expect(storeLoaded).toBe(false);
+    expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
+
+    // Store loading should not overwrite fetch result
+    await jest.advanceTimersByTimeAsync(mockStoreDelayMs);
+    expect(fetchCallCount).toBe(1);
+    expect(storeLoaded).toBe(true);
+    expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
+    // store entries should reflect latest fetch
+    expect(mockStoreEntries).toEqual(mockConfigResponse.flags);
   });
 
   describe('With reloaded index module', () => {
