@@ -6,6 +6,7 @@ import {
   FlagConfigurationRequestParameters,
   Flag,
   IAsyncStore,
+  AttributeType,
 } from '@eppo/js-client-sdk-common';
 
 import {
@@ -110,7 +111,7 @@ export class EppoJSClient extends EppoClient {
   public getStringAssignment(
     flagKey: string,
     subjectKey: string,
-    subjectAttributes: Record<string, any>,
+    subjectAttributes: Record<string, AttributeType>,
     defaultValue: string,
   ): string {
     EppoJSClient.getAssignmentInitializationCheck();
@@ -120,7 +121,7 @@ export class EppoJSClient extends EppoClient {
   public getBoolAssignment(
     flagKey: string,
     subjectKey: string,
-    subjectAttributes: Record<string, any>,
+    subjectAttributes: Record<string, AttributeType>,
     defaultValue: boolean,
   ): boolean {
     EppoJSClient.getAssignmentInitializationCheck();
@@ -130,7 +131,7 @@ export class EppoJSClient extends EppoClient {
   public getIntegerAssignment(
     flagKey: string,
     subjectKey: string,
-    subjectAttributes: Record<string, any>,
+    subjectAttributes: Record<string, AttributeType>,
     defaultValue: number,
   ): number {
     EppoJSClient.getAssignmentInitializationCheck();
@@ -140,7 +141,7 @@ export class EppoJSClient extends EppoClient {
   public getNumericAssignment(
     flagKey: string,
     subjectKey: string,
-    subjectAttributes: Record<string, any>,
+    subjectAttributes: Record<string, AttributeType>,
     defaultValue: number,
   ): number {
     EppoJSClient.getAssignmentInitializationCheck();
@@ -150,7 +151,7 @@ export class EppoJSClient extends EppoClient {
   public getJSONAssignment(
     flagKey: string,
     subjectKey: string,
-    subjectAttributes: Record<string, any>,
+    subjectAttributes: Record<string, AttributeType>,
     defaultValue: object,
   ): object {
     EppoJSClient.getAssignmentInitializationCheck();

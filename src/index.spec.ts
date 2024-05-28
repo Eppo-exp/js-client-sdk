@@ -11,7 +11,6 @@ import {
   HybridConfigurationStore,
   IAsyncStore,
 } from '@eppo/js-client-sdk-common';
-import * as md5 from 'md5';
 import * as td from 'testdouble';
 import { encode } from 'universal-base64';
 
@@ -29,11 +28,11 @@ import {
 
 import { IAssignmentLogger, IEppoClient, getInstance, init } from './index';
 
-export function md5Hash(input: string): string {
+function md5Hash(input: string): string {
   return createHash('md5').update(input).digest('hex');
 }
 
-export function base64Encode(input: string): string {
+function base64Encode(input: string): string {
   return Buffer.from(input).toString('base64');
 }
 
@@ -42,7 +41,7 @@ const apiKey = 'dummy';
 const baseUrl = 'http://127.0.0.1:4000';
 
 const flagKey = 'mock-experiment';
-const obfuscatedFlagKey = md5(flagKey);
+const obfuscatedFlagKey = md5Hash(flagKey);
 
 const allocationKey = 'traffic-split';
 const obfuscatedAllocationKey = base64Encode(allocationKey);
@@ -145,7 +144,7 @@ describe('EppoJSClient E2E test', () => {
 
   it('returns default value when experiment config is absent', () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    td.replace(HybridConfigurationStore.prototype, 'get', (key: string) => null as null);
+    td.replace(HybridConfigurationStore.prototype, 'get', () => null as null);
     const assignment = globalClient.getStringAssignment(flagKey, 'subject-10', {}, 'default-value');
     expect(assignment).toEqual('default-value');
   });
@@ -216,8 +215,8 @@ describe('EppoJSClient E2E test', () => {
               {
                 conditions: [
                   {
-                    attribute: md5('appVersion'),
-                    operator: md5('GT'),
+                    attribute: md5Hash('appVersion'),
+                    operator: md5Hash('GT'),
                     value: encode('10'),
                   },
                 ],
@@ -540,7 +539,6 @@ describe('initialization options', () => {
         // WAIT 200 ms and then reject
         return new Promise((resolve, reject) => {
           setTimeout(() => {
-            console.log('>>> rejecting fetch');
             fetchResolveCount += 1;
             reject('Intentional failed fetch error for test');
           }, fetchResolveDelayMs);
@@ -601,7 +599,7 @@ describe('initialization options', () => {
         return true; // triggers a fetch
       },
       async getEntries() {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
           setTimeout(() => {
             storeLoaded = true;
             resolve(mockStoreEntries);
