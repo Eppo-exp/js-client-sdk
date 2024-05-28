@@ -17,7 +17,6 @@ import { encode } from 'universal-base64';
 
 const { POLL_INTERVAL_MS, POLL_JITTER_PCT } = constants;
 
-import { MockLocalStorage } from '../test/MockLocalStorage';
 import {
   IAssignmentTestCase,
   readAssignmentTestData,
@@ -127,6 +126,12 @@ describe('EppoJSClient E2E test', () => {
       baseUrl,
       assignmentLogger: mockLogger,
     });
+  });
+
+  beforeEach(() => {
+    // We want each test to start with an empty local storage
+    // Note: mock localStorage is provided by jest
+    window.localStorage.clear();
   });
 
   afterEach(() => {
@@ -344,7 +349,7 @@ describe('initialization options', () => {
     });
 
     // We want each test to have an empty local storage
-    Object.defineProperty(window, 'localStorage', { value: new MockLocalStorage() }); // TODO: do we need this?
+    // Note: mock localStorage is provided by jest
     window.localStorage.clear();
   });
 

@@ -244,14 +244,10 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
         initFromFetchError = e;
       });
 
-    console.log('>>>>> ABOUT TO RACE!');
-
     let initializationSource = await Promise.race([
       attemptInitFromConfigStore,
       attemptInitFromFetch,
     ]);
-
-    console.log('>>>> loaded', configurationStore.getKeys().length, 'flags from', initializationSource, configurationStore.getKeys());
 
     if (!initializationSource) {
       // First attempt failed, but we have a second at bat that will be executed in the scope of the top-level try-catch
@@ -272,7 +268,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
 
   if (initializationError) {
     console.warn(
-      'Eppo SDK wait unable to initialize with a configuration, assignment calls will return the default value and not be logged' +
+      'Eppo SDK was unable to initialize with a configuration, assignment calls will return the default value and not be logged' +
         (config.pollAfterFailedInitialization
           ? ' until an experiment configuration is successfully retrieved'
           : ''),
@@ -281,8 +277,6 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
       throw initializationError;
     }
   }
-
-  console.log('Initialization success', {initializationError});
 
   EppoJSClient.initialized = true;
   return EppoJSClient.instance;
