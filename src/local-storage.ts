@@ -12,7 +12,7 @@ export class LocalStorageBackedAsyncStore<T> implements IAsyncStore<T> {
   private readonly localStorageKey: string;
   private _isInitialized = false;
 
-  constructor(private localStorage: Storage, storageKeySuffix?: string) {
+  constructor(private localStorage: Storage, storageKeySuffix: string) {
     const keySuffix = storageKeySuffix ? '-' + storageKeySuffix : '';
     this.localStorageKey = 'eppo-configuration' + keySuffix;
   }

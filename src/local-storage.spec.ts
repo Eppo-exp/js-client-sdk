@@ -20,12 +20,12 @@ describe('EppoLocalStorage', () => {
   });
 
   it('returns empty object if entry is not present', async () => {
-    const storage = new LocalStorageBackedAsyncStore<ITestEntry>(window.localStorage);
+    const storage = new LocalStorageBackedAsyncStore<ITestEntry>(window.localStorage, '');
     expect(await storage.getEntries()).toEqual({});
   });
 
   it('returns stored entries', async () => {
-    const storage = new LocalStorageBackedAsyncStore<ITestEntry>(window.localStorage);
+    const storage = new LocalStorageBackedAsyncStore<ITestEntry>(window.localStorage, '');
     await storage.setEntries({ key1: config1, key2: config2 });
     expect(await storage.getEntries()).toEqual({ key1: config1, key2: config2 });
   });

@@ -40,13 +40,13 @@ export function configurationStorageFactory(
     // Chrome storage is available, use it as a fallback
     return new HybridConfigurationStore(
       new MemoryStore<Flag>(),
-      new ChromeStorageAsyncStore<Flag>(chromeStorage, 0, storageKeySuffix),
+      new ChromeStorageAsyncStore<Flag>(chromeStorage, storageKeySuffix ?? ''),
     );
   } else if (hasWindowLocalStorage && windowLocalStorage) {
     // window.localStorage is available, use it as a fallback
     return new HybridConfigurationStore(
       new MemoryStore<Flag>(),
-      new LocalStorageBackedAsyncStore<Flag>(windowLocalStorage, storageKeySuffix),
+      new LocalStorageBackedAsyncStore<Flag>(windowLocalStorage, storageKeySuffix ?? ''),
     );
   }
 

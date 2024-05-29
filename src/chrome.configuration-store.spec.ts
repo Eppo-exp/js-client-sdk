@@ -45,7 +45,7 @@ describe('ChromeStore', () => {
       },
     };
 
-    chromeStore = new ChromeStorageAsyncStore(extendedStorageLocal);
+    chromeStore = new ChromeStorageAsyncStore(extendedStorageLocal, '');
   });
 
   afterEach(() => {
@@ -54,12 +54,12 @@ describe('ChromeStore', () => {
   });
 
   it('is always expired without cooldown', async () => {
-    chromeStore = new ChromeStorageAsyncStore(extendedStorageLocal, undefined);
+    chromeStore = new ChromeStorageAsyncStore(extendedStorageLocal, '');
     expect(await chromeStore.isExpired()).toBe(true);
   });
 
   it('is not expired with cooldown', async () => {
-    chromeStore = new ChromeStorageAsyncStore(extendedStorageLocal, 10);
+    chromeStore = new ChromeStorageAsyncStore(extendedStorageLocal, '', 10);
 
     (extendedStorageLocal.get as jest.Mock).mockImplementation(() => {
       return Promise.resolve({
@@ -74,7 +74,7 @@ describe('ChromeStore', () => {
   });
 
   it('is expired after cooldown', async () => {
-    chromeStore = new ChromeStorageAsyncStore(extendedStorageLocal, 10);
+    chromeStore = new ChromeStorageAsyncStore(extendedStorageLocal, '', 10);
 
     (extendedStorageLocal.get as jest.Mock).mockImplementation(() => {
       return Promise.resolve({
@@ -109,8 +109,8 @@ describe('ChromeStore', () => {
   });
 
   it('stores independently based on key suffix', async () => {
-    const chromeStoreA = new ChromeStorageAsyncStore(extendedStorageLocal, 1, 'A');
-    const chromeStoreB = new ChromeStorageAsyncStore(extendedStorageLocal, 1, 'B');
+    const chromeStoreA = new ChromeStorageAsyncStore(extendedStorageLocal, 'A', 1);
+    const chromeStoreB = new ChromeStorageAsyncStore(extendedStorageLocal, 'B', 1);
 
     await chromeStoreA.setEntries({ theKey: 'A' });
     expect(await chromeStoreA.getEntries()).toEqual({ theKey: 'A' });

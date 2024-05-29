@@ -7,8 +7,8 @@ export class ChromeStorageAsyncStore<T> implements IAsyncStore<T> {
 
   constructor(
     private storageArea: chrome.storage.StorageArea,
-    private cooldownSeconds?: number,
-    storageKeySuffix?: string,
+    storageKeySuffix: string,
+    private cooldownSeconds: number = 0,
   ) {
     const keySuffix = storageKeySuffix ? '-' + storageKeySuffix : '';
     this.chromeStorageKey = 'eppo-configuration' + keySuffix;
