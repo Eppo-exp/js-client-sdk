@@ -598,7 +598,7 @@ describe('initialization options', () => {
       }
     }) as jest.Mock;
 
-    // First initialization will fetch and cache flag configuration A
+    // First initialization uses first API key and will fetch and cache flag configuration A
     let client = await init({
       apiKey: apiKeyA,
     });
@@ -608,7 +608,7 @@ describe('initialization options', () => {
       'default-value',
     );
 
-    // Second initialization will fetch and cache flag configuration B
+    // Second initialization uses second API key and will fetch and cache flag configuration B
     client = await init({
       apiKey: apiKeyB,
     });
@@ -652,6 +652,7 @@ describe('initialization options', () => {
         json: () => Promise.resolve(mockConfigResponse),
       });
     }) as jest.Mock;
+
     let storeLoaded = false;
     const mockStoreDelayMs = 500;
     let mockStoreEntries = { 'bad-flags': {} } as unknown as Record<string, Flag>;
