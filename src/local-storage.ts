@@ -9,10 +9,13 @@ import { IAsyncStore } from '@eppo/js-client-sdk-common';
  * we return null.
  */
 export class LocalStorageBackedAsyncStore<T> implements IAsyncStore<T> {
-  private localStorageKey = 'eppo-configuration';
+  private readonly localStorageKey: string;
   private _isInitialized = false;
 
-  constructor(private localStorage: Storage) {}
+  constructor(private localStorage: Storage, storageKeySuffix?: string) {
+    const keySuffix = storageKeySuffix ? '-' + storageKeySuffix : '';
+    this.localStorageKey = 'eppo-configuration' + keySuffix;
+  }
 
   isInitialized(): boolean {
     return this._isInitialized;

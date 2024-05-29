@@ -1,11 +1,19 @@
 import { IAsyncStore } from '@eppo/js-client-sdk-common';
 
 export class ChromeStorageAsyncStore<T> implements IAsyncStore<T> {
-  private chromeStorageKey = 'eppo-configuration';
-  private metaKey = 'eppo-configuration-meta';
+  private readonly chromeStorageKey: string;
+  private readonly metaKey: string;
   private _isInitialized = false;
 
-  constructor(private storageArea: chrome.storage.StorageArea, private cooldownSeconds?: number) {}
+  constructor(
+    private storageArea: chrome.storage.StorageArea,
+    private cooldownSeconds?: number,
+    storageKeySuffix?: string,
+  ) {
+    const keySuffix = storageKeySuffix ? '-' + storageKeySuffix : '';
+    this.chromeStorageKey = 'eppo-configuration' + keySuffix;
+    this.metaKey = 'eppo-configuration-meta' + keySuffix;
+  }
 
   public isInitialized(): boolean {
     return this._isInitialized;

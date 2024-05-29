@@ -11,8 +11,22 @@ describe('ChromeStore', () => {
 
     jest.useFakeTimers();
 
-    const get = jest.fn();
-    const set = jest.fn();
+    // Have getters and setters manipulate an in-memory store, so we can test things regarding keys
+    const fakeStore: Record<string, string> = {};
+
+    const get = jest.fn((key: string) => {
+      return new Promise((resolve) => {
+        resolve({ [key]: fakeStore[key] });
+      });
+    }) as jest.Mock;
+
+    const set = jest.fn((items: { [key: string]: string }) => {
+      return new Promise((resolve) => {
+        Object.assign(fakeStore, items);
+        resolve(undefined);
+      });
+    }) as jest.Mock;
+
     extendedStorageLocal = {
       set,
       get,
@@ -92,5 +106,24 @@ describe('ChromeStore', () => {
 
     const entries = await chromeStore.getEntries();
     expect(entries).toEqual(mockEntries);
+  });
+
+  it('stores independently based on key suffix', async () => {
+    const chromeStoreA = new ChromeStorageAsyncStore(extendedStorageLocal, 1, 'A');
+    const chromeStoreB = new ChromeStorageAsyncStore(extendedStorageLocal, 1, 'B');
+
+    await chromeStoreA.setEntries({ theKey: 'A' });
+    expect(await chromeStoreA.getEntries()).toEqual({ theKey: 'A' });
+    expect(await chromeStoreA.isExpired()).toBe(false);
+    expect(await chromeStoreB.getEntries()).toEqual({});
+    expect(await chromeStoreB.isExpired()).toBe(true);
+
+    await jest.advanceTimersByTimeAsync(2000);
+
+    await chromeStoreB.setEntries({ theKey: 'B' });
+    expect(await chromeStoreA.getEntries()).toEqual({ theKey: 'A' });
+    expect(await chromeStoreA.isExpired()).toBe(true);
+    expect(await chromeStoreB.getEntries()).toEqual({ theKey: 'B' });
+    expect(await chromeStoreB.isExpired()).toBe(false);
   });
 });

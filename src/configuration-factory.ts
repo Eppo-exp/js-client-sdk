@@ -25,10 +25,11 @@ export function configurationStorageFactory(
   {
     chromeStorage,
     windowLocalStorage,
+    storageKeySuffix,
   }: {
     chromeStorage?: chrome.storage.StorageArea;
     windowLocalStorage?: Storage;
-    storageKey?: string;
+    storageKeySuffix?: string;
   } = {},
 ): IConfigurationStore<Flag> {
   if (forceMemoryOnly) {
@@ -39,13 +40,13 @@ export function configurationStorageFactory(
     // Chrome storage is available, use it as a fallback
     return new HybridConfigurationStore(
       new MemoryStore<Flag>(),
-      new ChromeStorageAsyncStore<Flag>(chromeStorage),
+      new ChromeStorageAsyncStore<Flag>(chromeStorage, 0, storageKeySuffix),
     );
   } else if (hasWindowLocalStorage && windowLocalStorage) {
     // window.localStorage is available, use it as a fallback
     return new HybridConfigurationStore(
       new MemoryStore<Flag>(),
-      new LocalStorageBackedAsyncStore<Flag>(windowLocalStorage),
+      new LocalStorageBackedAsyncStore<Flag>(windowLocalStorage, storageKeySuffix),
     );
   }
 
@@ -61,7 +62,7 @@ export function hasWindowLocalStorage(): boolean {
   try {
     return typeof window !== 'undefined' && !!window.localStorage;
   } catch {
-    // Chrome throws an error if local storage is disabled and you try to access it
+    // Chrome throws an error if local storage is disabled, and you try to access it
     return false;
   }
 }
