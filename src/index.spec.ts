@@ -550,7 +550,6 @@ describe('initialization options', () => {
     let client = await init({
       apiKey,
       baseUrl,
-      assignmentLogger: mockLogger,
     });
 
     expect(fetchCallCount).toBe(1);
@@ -561,7 +560,6 @@ describe('initialization options', () => {
     client = await init({
       apiKey,
       baseUrl: 'https://thisisabaddomainforthistest.com',
-      assignmentLogger: mockLogger,
     });
 
     // Should serve assignment from cache before fetch even fails
@@ -575,6 +573,74 @@ describe('initialization options', () => {
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
   });
 
+  it('Cache is per API key', async () => {
+    const apiKeyA = 'apiKeyA';
+    const apiKeyB = 'apiKeyB';
+    const flagKey1 = 'flagA';
+    const flagKey2 = 'flagB';
+
+    // Mock fetch so that the first call returns one config, second returns another, and all others fail
+    let fetchCallCount = 0;
+    global.fetch = jest.fn(() => {
+      if (++fetchCallCount <= 2) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () =>
+            Promise.resolve({
+              flags: {
+                [md5Hash(fetchCallCount === 1 ? flagKey1 : flagKey2)]: mockUfcFlagConfig,
+              },
+            }),
+        });
+      } else {
+        return Promise.reject('Intentional failed fetch error for test');
+      }
+    }) as jest.Mock;
+
+    // First initialization will fetch and cache flag configuration A
+    let client = await init({
+      apiKey: apiKeyA,
+    });
+
+    expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe('control');
+    expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe(
+      'default-value',
+    );
+
+    // Second initialization will fetch and cache flag configuration B
+    client = await init({
+      apiKey: apiKeyB,
+    });
+
+    expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe(
+      'default-value',
+    );
+    expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe('control');
+
+    // Third initialization uses first API key which should load cached configuration A
+    client = await init({
+      apiKey: apiKeyA,
+      baseUrl: 'https://thisisabaddomainforthistest.com',
+    });
+
+    expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe('control');
+    expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe(
+      'default-value',
+    );
+
+    // Fourth initialization uses second API key which should load cached configuration B
+    client = await init({
+      apiKey: apiKeyB,
+      baseUrl: 'https://thisisabaddomainforthistest.com',
+    });
+
+    expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe(
+      'default-value',
+    );
+    expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe('control');
+  });
+
   it('Ignores cache if fetch finishes first', async () => {
     // Mock fetch so first call works, second fails
     let fetchCallCount = 0;
@@ -586,7 +652,6 @@ describe('initialization options', () => {
         json: () => Promise.resolve(mockConfigResponse),
       });
     }) as jest.Mock;
-
     let storeLoaded = false;
     const mockStoreDelayMs = 500;
     let mockStoreEntries = { 'bad-flags': {} } as unknown as Record<string, Flag>;

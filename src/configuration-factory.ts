@@ -25,7 +25,11 @@ export function configurationStorageFactory(
   {
     chromeStorage,
     windowLocalStorage,
-  }: { chromeStorage?: chrome.storage.StorageArea; windowLocalStorage?: Storage } = {},
+  }: {
+    chromeStorage?: chrome.storage.StorageArea;
+    windowLocalStorage?: Storage;
+    storageKey?: string;
+  } = {},
 ): IConfigurationStore<Flag> {
   if (forceMemoryOnly) {
     return new MemoryOnlyConfigurationStore();
