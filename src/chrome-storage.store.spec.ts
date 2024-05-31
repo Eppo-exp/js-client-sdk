@@ -1,4 +1,4 @@
-import { ChromeStorageAsyncStore } from './chrome-configuration-store';
+import { ChromeStorageAsyncStore } from './chrome-storage.store';
 
 describe('ChromeConfigurationStore', () => {
   const mockEntries: Record<string, string> = { key1: 'value1', key2: 'value2' };

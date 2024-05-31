@@ -1,4 +1,4 @@
-import { AbstractStringValuedConfigurationStore } from './abstract-string-valued-configuration.store';
+import { AbstractStringValuedAsyncStore } from './abstract-string-valued.store';
 
 /*
  * Removing stale keys is facilitating by storing the entire configuration into a single
@@ -8,7 +8,7 @@ import { AbstractStringValuedConfigurationStore } from './abstract-string-valued
  * the configuration from the string and return it. If the configuration does not exist,
  * we return null.
  */
-export class LocalStorageBackedAsyncStore<T> extends AbstractStringValuedConfigurationStore<T> {
+export class LocalStorageBackedAsyncStore<T> extends AbstractStringValuedAsyncStore<T> {
   constructor(private localStorage: Storage, cooldownSeconds?: number) {
     super(cooldownSeconds);
   }

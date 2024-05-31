@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { LocalStorageBackedAsyncStore } from './local-storage-configuration-store';
+import { LocalStorageBackedAsyncStore } from './local-storage.store';
 
 describe('LocalStorageBackedAsyncStore', () => {
   interface ITestEntry {

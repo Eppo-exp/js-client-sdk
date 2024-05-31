@@ -73,16 +73,37 @@ export interface IClientConfig {
   numPollRequestRetries?: number;
 
   /**
+   * Skip the request for new configurations during initialization. (default: false)
+   */
+  skipInitialRequest?: boolean;
+
+  /**
+   * Maximum age, in seconds, previously cached values are considered valid until new values will be
+   * fetched (default: 0)
+   */
+  maxCacheAgeSeconds?: number;
+
+  /**
+   * Whether initialization will considered successfully complete if expired cache values are
+   * loaded. If false, initialization will always wait for a fetch if cached values are expired.
+   * (default: false)
+   */
+  useExpiredCache?: boolean;
+
+  /**
+   * Sets how the configuration is updated after a successful fetch
+   * - always: immediately start using the new configuration
+   * - expired: immediately start using the new configuration only if the current one has expired
+   * - never: keep using the current configuration, update the persistent store only
+   */
+  updateOnFetch?: 'always' | 'expired' | 'never';
+
+  /**
    * A custom class to use for storing flag configurations.
    * This is useful for cases where you want to use a different storage mechanism
    * than the default storage provided by the SDK.
    */
   persistentStore?: IAsyncStore<Flag>;
-
-  /**
-   * Skip the request for new configurations during initialization. (default: false)
-   */
-  skipInitialRequest?: boolean;
 }
 
 // Export the common types and classes from the SDK.
@@ -92,7 +113,7 @@ export {
   IEppoClient,
   IAsyncStore,
 } from '@eppo/js-client-sdk-common';
-export { ChromeStorageAsyncStore } from './chrome-configuration-store';
+export { ChromeStorageAsyncStore } from './chrome-storage.store';
 
 // Instantiate the configuration store with memory-only implementation.
 const configurationStore = configurationStorageFactory({ forceMemoryOnly: true });
@@ -187,6 +208,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     // Otherwise, the factory method will detect the current environment and instantiate the correct store.
     const configurationStore = configurationStorageFactory(
       {
+        maxAgeSeconds: config.maxCacheAgeSeconds,
         persistentStore: config.persistentStore,
         hasChromeStorage: hasChromeStorage(),
         hasWindowLocalStorage: hasWindowLocalStorage(),

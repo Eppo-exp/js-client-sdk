@@ -1,6 +1,6 @@
-import { AbstractStringValuedConfigurationStore } from './abstract-string-valued-configuration.store';
+import { AbstractStringValuedAsyncStore } from './abstract-string-valued.store';
 
-export class ChromeStorageAsyncStore<T> extends AbstractStringValuedConfigurationStore<T> {
+export class ChromeStorageAsyncStore<T> extends AbstractStringValuedAsyncStore<T> {
   private chromeStorageKey = 'eppo-sdk';
 
   constructor(private storageArea: chrome.storage.StorageArea, cooldownSeconds?: number) {

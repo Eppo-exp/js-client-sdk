@@ -26,7 +26,7 @@ import {
   validateTestAssignments,
 } from '../test/testHelpers';
 
-import { LocalStorageBackedAsyncStore } from './local-storage-configuration-store';
+import { LocalStorageBackedAsyncStore } from './local-storage.store';
 
 import { IAssignmentLogger, IEppoClient, getInstance, init } from './index';
 

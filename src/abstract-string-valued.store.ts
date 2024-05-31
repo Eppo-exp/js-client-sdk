@@ -1,6 +1,6 @@
 import { IAsyncStore } from '@eppo/js-client-sdk-common';
 
-export abstract class AbstractStringValuedConfigurationStore<T> implements IAsyncStore<T> {
+export abstract class AbstractStringValuedAsyncStore<T> implements IAsyncStore<T> {
   protected configurationKey = 'eppo-configuration';
   protected metaKey = 'eppo-configuration-meta';
   private initialized = false;
