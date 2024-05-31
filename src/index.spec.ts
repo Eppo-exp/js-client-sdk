@@ -26,6 +26,8 @@ import {
   validateTestAssignments,
 } from '../test/testHelpers';
 
+import { LocalStorageBackedAsyncStore } from './local-storage';
+
 import { IAssignmentLogger, IEppoClient, getInstance, init } from './index';
 
 function md5Hash(input: string): string {
@@ -631,6 +633,100 @@ describe('initialization options', () => {
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
     // store entries should reflect latest fetch
     expect(mockStoreEntries).toEqual(mockConfigResponse.flags);
+  });
+
+  it('Fetch updates cache', async () => {
+    // Mock fetch so first call works immediately, second takes time and returns a different config
+    let fetchResolveCount = 0;
+    let fetchCallCount = 0;
+    const secondFetchResolveDelayMs = 500;
+
+    const flagKey1 = 'flagKey1';
+    const flagKey2 = 'flagKey2';
+
+    const store = new LocalStorageBackedAsyncStore(window.localStorage);
+
+    global.fetch = jest.fn(() => {
+      const fetchResolveDelayMs = ++fetchCallCount === 1 ? 0 : secondFetchResolveDelayMs;
+      const flagKey = fetchCallCount === 1 ? flagKey1 : flagKey2;
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          console.log('>>> ' + fetchCallCount + '>>>> Fetch resolving');
+          fetchResolveCount += 1;
+          resolve({
+            ok: true,
+            status: 200,
+            json: () =>
+              Promise.resolve({
+                flags: {
+                  [md5Hash(flagKey)]: mockUfcFlagConfig,
+                },
+              }),
+          });
+        }, fetchResolveDelayMs);
+      });
+    }) as jest.Mock;
+
+    // First initialization will have nothing cached, will need fetch to resolve
+    console.log('>>>> FIRST INIT');
+    let client = await init({
+      apiKey,
+      baseUrl,
+    });
+
+    console.log('>> 1 >>>', store.getEntries());
+
+    expect(fetchCallCount).toBe(1);
+    expect(fetchResolveCount).toBe(1);
+    expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe('control');
+    expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe(
+      'default-value',
+    );
+
+    // Init again where we know cache will succeed and fetch will be delayed
+    console.log('>>>> SECOND INIT');
+    client = await init({
+      apiKey,
+      baseUrl,
+    });
+
+    console.log('>> 2 >>>', store.getEntries());
+
+    // Should serve assignment from cache before fetch completes
+    expect(fetchCallCount).toBe(2);
+    expect(fetchResolveCount).toBe(1);
+    expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe('control');
+    expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe(
+      'default-value',
+    );
+
+    // Completed fetch should update cache but not the serving store
+    console.log('>>>> ADVANCING TIME');
+    await jest.advanceTimersByTimeAsync(secondFetchResolveDelayMs);
+    expect(fetchCallCount).toBe(2);
+    expect(fetchResolveCount).toBe(2);
+
+    console.log('>> 3 >>>', store.getEntries());
+
+    expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe('control');
+    expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe('control'); // TODO: why
+
+    // Init again to load updated cache
+    console.log('>>>> THIRD INIT');
+    client = await init({
+      apiKey,
+      baseUrl,
+    });
+
+    expect(fetchCallCount).toBe(3);
+    expect(fetchResolveCount).toBe(2);
+
+    console.log('>> 4 >>>', store.getEntries());
+
+    expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe(
+      'default-value',
+    );
+    expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe('control');
   });
 
   describe('With reloaded index module', () => {

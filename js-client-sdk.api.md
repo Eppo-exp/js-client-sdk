@@ -6,6 +6,7 @@
 
 /// <reference types="chrome" />
 
+import { AttributeType } from '@eppo/js-client-sdk-common';
 import { EppoClient } from '@eppo/js-client-sdk-common';
 import { Flag } from '@eppo/js-client-sdk-common';
 import { IAssignmentEvent } from '@eppo/js-client-sdk-common';
@@ -29,15 +30,15 @@ export class ChromeStorageAsyncStore<T> implements IAsyncStore<T> {
 // @public
 export class EppoJSClient extends EppoClient {
     // (undocumented)
-    getBoolAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: boolean): boolean;
+    getBoolAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: boolean): boolean;
     // (undocumented)
-    getIntegerAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: number): number;
+    getIntegerAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: number): number;
     // (undocumented)
-    getJSONAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: object): object;
+    getJSONAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: object): object;
     // (undocumented)
-    getNumericAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: number): number;
+    getNumericAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: number): number;
     // (undocumented)
-    getStringAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: string): string;
+    getStringAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: string): string;
     // (undocumented)
     static initialized: boolean;
     // (undocumented)
@@ -50,6 +51,8 @@ export function getInstance(): IEppoClient;
 export { IAssignmentEvent }
 
 export { IAssignmentLogger }
+
+export { IAsyncStore }
 
 // @public
 export interface IClientConfig {
