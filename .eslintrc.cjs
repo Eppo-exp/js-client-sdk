@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   root: true,
   env: {
     es6: true,
@@ -33,7 +33,7 @@ module.exports = {
             group: 'parent',
             position: 'before',
           },
-       ],
+        ],
         groups: ['builtin', 'external', 'parent', 'sibling', 'index'],
         'newlines-between': 'always',
         alphabetize: {
