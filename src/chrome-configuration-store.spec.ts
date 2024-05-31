@@ -1,6 +1,6 @@
-import { ChromeStorageAsyncStore } from './chrome.configuration-store';
+import { ChromeStorageAsyncStore } from './chrome-configuration-store';
 
-describe('ChromeStore', () => {
+describe('ChromeConfigurationStore', () => {
   const mockEntries: Record<string, string> = { key1: 'value1', key2: 'value2' };
   let chromeStore: ChromeStorageAsyncStore<string>;
   let extendedStorageLocal: chrome.storage.StorageArea;

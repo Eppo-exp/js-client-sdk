@@ -92,7 +92,7 @@ export {
   IEppoClient,
   IAsyncStore,
 } from '@eppo/js-client-sdk-common';
-export { ChromeStorageAsyncStore } from './chrome.configuration-store';
+export { ChromeStorageAsyncStore } from './chrome-configuration-store';
 
 // Instantiate the configuration store with memory-only implementation.
 const configurationStore = configurationStorageFactory({ forceMemoryOnly: true });

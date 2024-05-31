@@ -7,8 +7,8 @@ import {
   MemoryStore,
 } from '@eppo/js-client-sdk-common';
 
-import { ChromeStorageAsyncStore } from './chrome.configuration-store';
-import { LocalStorageBackedAsyncStore } from './local-storage';
+import { ChromeStorageAsyncStore } from './chrome-configuration-store';
+import { LocalStorageBackedAsyncStore } from './local-storage-configuration-store';
 
 export function configurationStorageFactory(
   {

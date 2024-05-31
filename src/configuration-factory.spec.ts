@@ -1,8 +1,8 @@
 import { MemoryOnlyConfigurationStore, HybridConfigurationStore } from '@eppo/js-client-sdk-common';
 
-import { ChromeStorageAsyncStore } from './chrome.configuration-store';
+import { ChromeStorageAsyncStore } from './chrome-configuration-store';
 import { configurationStorageFactory } from './configuration-factory';
-import { LocalStorageBackedAsyncStore } from './local-storage';
+import { LocalStorageBackedAsyncStore } from './local-storage-configuration-store';
 
 describe('configurationStorageFactory', () => {
   afterEach(() => {
