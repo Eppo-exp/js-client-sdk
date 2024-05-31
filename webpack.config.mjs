@@ -24,9 +24,9 @@ export default {
     },
   },
   output: {
-    filename: 'js-sdk.js',
+    filename: 'eppo-sdk.js',
     library: {
-      name: 'jsSdk',
+      name: 'eppo',
       type: 'var',
     },
     path: path.resolve('dist'),
