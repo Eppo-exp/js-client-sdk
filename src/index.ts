@@ -14,6 +14,7 @@ import {
   hasChromeStorage,
   hasWindowLocalStorage,
 } from './configuration-factory';
+import { ServingStoreUpdateStrategy } from './isolated-hybrid.store';
 import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 import { sdkName, sdkVersion } from './sdk-data';
 
@@ -96,7 +97,7 @@ export interface IClientConfig {
    * - expired: immediately start using the new configuration only if the current one has expired
    * - never: keep using the current configuration, update the persistent store only
    */
-  updateOnFetch?: 'always' | 'expired' | 'never';
+  updateOnFetch?: ServingStoreUpdateStrategy;
 
   /**
    * A custom class to use for storing flag configurations.
@@ -209,6 +210,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     const configurationStore = configurationStorageFactory(
       {
         maxAgeSeconds: config.maxCacheAgeSeconds,
+        servingStoreUpdateStrategy: config.updateOnFetch,
         persistentStore: config.persistentStore,
         hasChromeStorage: hasChromeStorage(),
         hasWindowLocalStorage: hasWindowLocalStorage(),
