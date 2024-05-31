@@ -269,6 +269,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
         initFromFetchError = e;
       });
 
+    // TODO: factor in useExpiredCache
     let initializationSource = await Promise.race([
       attemptInitFromConfigStore,
       attemptInitFromFetch,

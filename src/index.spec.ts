@@ -26,7 +26,7 @@ import {
   validateTestAssignments,
 } from '../test/testHelpers';
 
-import { LocalStorageBackedAsyncStore } from './local-storage.store';
+import { ServingStoreUpdateStrategy } from './isolated-hybrid.store';
 
 import { IAssignmentLogger, IEppoClient, getInstance, init } from './index';
 
@@ -538,7 +538,7 @@ describe('initialization options', () => {
         });
       } else {
         // WAIT 200 ms and then reject
-        return new Promise((resolve, reject) => {
+        return new Promise((_resolve, reject) => {
           setTimeout(() => {
             fetchResolveCount += 1;
             reject('Intentional failed fetch error for test');
@@ -634,86 +634,95 @@ describe('initialization options', () => {
     expect(mockStoreEntries).toEqual(mockConfigResponse.flags);
   });
 
-  it('Fetch updates cache', async () => {
-    // Mock fetch so first call works immediately, second takes time and returns a different config
-    let fetchResolveCount = 0;
-    let fetchCallCount = 0;
-    const secondFetchResolveDelayMs = 500;
+  test.each(['always', 'expired', 'never'])(
+    'Fetch updates cache according to the "%s" update strategy',
+    async (updateStrategy: ServingStoreUpdateStrategy) => {
+      // Mock fetch so first call works immediately, and all others takes time
+      // Also mock fetch so that it alternates the config it returns each time
+      let fetchResolveCount = 0;
+      let fetchCallCount = 0;
+      const fetchResolveDelayMs = 500;
 
-    const flagKey1 = 'flagKey1';
-    const flagKey2 = 'flagKey2';
+      const flagKey1 = 'flagKey1';
+      const flagKey2 = 'flagKey2';
 
-    const store = new LocalStorageBackedAsyncStore(window.localStorage);
+      global.fetch = jest.fn(() => {
+        const delayMs = ++fetchCallCount === 1 ? 0 : fetchResolveDelayMs;
+        const flagKey = fetchCallCount % 2 === 1 ? flagKey1 : flagKey2;
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            fetchResolveCount += 1;
+            resolve({
+              ok: true,
+              status: 200,
+              json: () =>
+                Promise.resolve({
+                  flags: {
+                    [md5Hash(flagKey)]: mockUfcFlagConfig,
+                  },
+                }),
+            });
+          }, delayMs);
+        });
+      }) as jest.Mock;
 
-    global.fetch = jest.fn(() => {
-      const fetchResolveDelayMs = ++fetchCallCount === 1 ? 0 : secondFetchResolveDelayMs;
-      const flagKey = fetchCallCount === 1 ? flagKey1 : flagKey2;
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          fetchResolveCount += 1;
-          resolve({
-            ok: true,
-            status: 200,
-            json: () =>
-              Promise.resolve({
-                flags: {
-                  [md5Hash(flagKey)]: mockUfcFlagConfig,
-                },
-              }),
-          });
-        }, fetchResolveDelayMs);
+      // First initialization will have nothing cached, will need fetch to resolve
+      let client = await init({
+        apiKey,
+        baseUrl,
+        updateStrategy,
       });
-    }) as jest.Mock;
 
-    // First initialization will have nothing cached, will need fetch to resolve
-    let client = await init({
-      apiKey,
-      baseUrl,
-    });
+      expect(fetchCallCount).toBe(1);
+      expect(fetchResolveCount).toBe(1);
+      expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe('control');
+      expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe(
+        'default-value',
+      );
 
-    expect(fetchCallCount).toBe(1);
-    expect(fetchResolveCount).toBe(1);
-    expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe('control');
-    expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe(
-      'default-value',
-    );
+      // Init again where we know cache will succeed and fetch will be delayed
+      client = await init({
+        apiKey,
+        baseUrl,
+        updateStrategy,
+      });
 
-    // Init again where we know cache will succeed and fetch will be delayed
-    client = await init({
-      apiKey,
-      baseUrl,
-    });
+      // Should serve assignment from cache before fetch completes
+      expect(fetchCallCount).toBe(2);
+      expect(fetchResolveCount).toBe(1);
+      expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe('control');
+      expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe(
+        'default-value',
+      );
 
-    // Should serve assignment from cache before fetch completes
-    expect(fetchCallCount).toBe(2);
-    expect(fetchResolveCount).toBe(1);
-    expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe('control');
-    expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe(
-      'default-value',
-    );
+      // Completed fetch will update assignments unless told never to as default store is always expired
+      await jest.advanceTimersByTimeAsync(fetchResolveDelayMs);
+      expect(fetchCallCount).toBe(2);
+      expect(fetchResolveCount).toBe(2);
+      expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe(
+        updateStrategy === 'never' ? 'control' : 'default-value',
+      );
+      expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe(
+        updateStrategy === 'never' ? 'default-value' : 'control',
+      );
 
-    // Completed fetch should update assignments
-    await jest.advanceTimersByTimeAsync(secondFetchResolveDelayMs);
-    expect(fetchCallCount).toBe(2);
-    expect(fetchResolveCount).toBe(2);
-    expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe(
-      'default-value',
-    );
-    expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe('control');
+      // Init from updated cache, with allowable cache age
+      client = await init({
+        apiKey,
+        baseUrl,
+        updateStrategy,
+        maxCacheAgeSeconds: fetchResolveDelayMs * 10,
+      });
 
-    // Init one last time load from updated cache
-    client = await init({
-      apiKey,
-      baseUrl,
-    });
-
-    expect(fetchCallCount).toBe(3);
-    expect(fetchResolveCount).toBe(2);
-    expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe(
-      'default-value',
-    );
-    expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe('control');
-  });
+      // No fetch will have been kicked off because of valid cache; previously fetched values will be served
+      expect(fetchCallCount).toBe(2);
+      expect(fetchResolveCount).toBe(2);
+      expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe(
+        'default-value',
+      );
+      expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe('control');
+    },
+  );
 
   describe('With reloaded index module', () => {
     // eslint-disable-next-line @typescript-eslint/ban-types
