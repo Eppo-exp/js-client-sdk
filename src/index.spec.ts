@@ -259,7 +259,6 @@ describe('EppoJSClient E2E test', () => {
         });
       }) as jest.Mock;
 
-      console.log('UFC Obfuscated global init');
       globalClient = await init({
         apiKey,
         baseUrl,
@@ -651,7 +650,6 @@ describe('initialization options', () => {
       const flagKey = fetchCallCount === 1 ? flagKey1 : flagKey2;
       return new Promise((resolve) => {
         setTimeout(() => {
-          console.log('>>> ' + fetchCallCount + '>>>> Fetch resolving');
           fetchResolveCount += 1;
           resolve({
             ok: true,
@@ -668,13 +666,10 @@ describe('initialization options', () => {
     }) as jest.Mock;
 
     // First initialization will have nothing cached, will need fetch to resolve
-    console.log('>>>> FIRST INIT');
     let client = await init({
       apiKey,
       baseUrl,
     });
-
-    console.log('>> 1 >>>', store.getEntries());
 
     expect(fetchCallCount).toBe(1);
     expect(fetchResolveCount).toBe(1);
@@ -684,13 +679,10 @@ describe('initialization options', () => {
     );
 
     // Init again where we know cache will succeed and fetch will be delayed
-    console.log('>>>> SECOND INIT');
     client = await init({
       apiKey,
       baseUrl,
     });
-
-    console.log('>> 2 >>>', store.getEntries());
 
     // Should serve assignment from cache before fetch completes
     expect(fetchCallCount).toBe(2);
@@ -700,19 +692,16 @@ describe('initialization options', () => {
       'default-value',
     );
 
-    // Completed fetch should update cache but not the serving store
-    console.log('>>>> ADVANCING TIME');
+    // Completed fetch should update assignments
     await jest.advanceTimersByTimeAsync(secondFetchResolveDelayMs);
     expect(fetchCallCount).toBe(2);
     expect(fetchResolveCount).toBe(2);
+    expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe(
+      'default-value',
+    );
+    expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe('control');
 
-    console.log('>> 3 >>>', store.getEntries());
-
-    expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe('control');
-    expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe('control'); // TODO: why
-
-    // Init again to load updated cache
-    console.log('>>>> THIRD INIT');
+    // Init one last time load from updated cache
     client = await init({
       apiKey,
       baseUrl,
@@ -720,9 +709,6 @@ describe('initialization options', () => {
 
     expect(fetchCallCount).toBe(3);
     expect(fetchResolveCount).toBe(2);
-
-    console.log('>> 4 >>>', store.getEntries());
-
     expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe(
       'default-value',
     );
