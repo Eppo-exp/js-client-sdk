@@ -1,8 +1,9 @@
-const path = require('path');
+import path from 'path';
 
-const TerserPlugin = require('terser-webpack-plugin');
+import TerserPlugin from 'terser-webpack-plugin';
+import webpack from 'webpack';
 
-module.exports = {
+export default {
   entry: './src/index.ts',
   mode: 'production',
   devtool: 'inline-source-map',
@@ -18,17 +19,25 @@ module.exports = {
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
+    fallback: {
+      buffer: 'buffer',
+    },
   },
   output: {
-    filename: 'eppo-sdk.js',
+    filename: 'js-sdk.js',
     library: {
-      name: 'eppo',
+      name: 'jsSdk',
       type: 'var',
     },
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve('dist'),
   },
   optimization: {
     minimize: true,
     minimizer: [new TerserPlugin()],
   },
+  plugins: [
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
+    }),
+  ],
 };

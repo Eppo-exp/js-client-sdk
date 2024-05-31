@@ -51,6 +51,8 @@ export { IAssignmentEvent }
 
 export { IAssignmentLogger }
 
+export { IAsyncStore }
+
 // @public
 export interface IClientConfig {
     apiKey: string;
