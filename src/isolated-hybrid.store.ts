@@ -1,6 +1,6 @@
 import { HybridConfigurationStore, IAsyncStore, ISyncStore } from '@eppo/js-client-sdk-common';
 
-export type ServingStoreUpdateStrategy = 'always' | 'expired' | 'never';
+export type ServingStoreUpdateStrategy = 'always' | 'expired' | 'empty';
 
 /**
  * Extension of the HybridConfigurationStore that allows isolating the serving store from updates.
@@ -23,11 +23,19 @@ export class IsolatedHybridConfigurationStore<T> extends HybridConfigurationStor
       // always update persistent store
       await this.persistentStore.setEntries(entries);
     }
+
     const persistentStoreIsExpired =
       !this.persistentStore || (await this.persistentStore.isExpired());
+    const servingStoreIsEmpty = !this.servingStore.getKeys()?.length;
+
+    // Update the serving store based on the update strategy:
+    // "always" - always update the serving store
+    // "expired" - only update if the persistent store is expired
+    // "empty" - only update if the persistent store is expired and the serving store is empty
     const updateServingStore =
       this.servingStoreUpdateStrategy === 'always' ||
-      (this.servingStoreUpdateStrategy === 'expired' && persistentStoreIsExpired);
+      (persistentStoreIsExpired && this.servingStoreUpdateStrategy === 'expired') ||
+      (persistentStoreIsExpired && servingStoreIsEmpty);
 
     if (updateServingStore) {
       this.servingStore.setEntries(entries);

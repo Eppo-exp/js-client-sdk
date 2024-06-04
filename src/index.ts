@@ -95,7 +95,7 @@ export interface IClientConfig {
    * Sets how the configuration is updated after a successful fetch
    * - always: immediately start using the new configuration
    * - expired: immediately start using the new configuration only if the current one has expired
-   * - never: keep using the current configuration, update the persistent store only
+   * - empty: only use the new configuration if the current one is both expired and uninitialized/empty
    */
   updateOnFetch?: ServingStoreUpdateStrategy;
 
@@ -276,10 +276,13 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     ]);
 
     if (!initializationSource) {
+      console.log('NO INIT SOURCE');
       // First attempt failed, but we have a second at bat that will be executed in the scope of the top-level try-catch
       if (!initFromConfigStoreError) {
+        console.log('>>>>> WAITING FOR CONFIG');
         initializationSource = await attemptInitFromConfigStore;
       } else {
+        console.log('>>>>> WAITING FOR FETCH');
         initializationSource = await attemptInitFromFetch;
       }
     }

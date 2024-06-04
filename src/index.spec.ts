@@ -634,9 +634,9 @@ describe('initialization options', () => {
     expect(mockStoreEntries).toEqual(mockConfigResponse.flags);
   });
 
-  test.each(['always', 'expired', 'never'])(
+  test.each(['always', 'expired', 'empty'])(
     'Fetch updates cache according to the "%s" update strategy',
-    async (updateStrategy: ServingStoreUpdateStrategy) => {
+    async (updateOnFetch: ServingStoreUpdateStrategy) => {
       // Mock fetch so first call works immediately, and all others takes time
       // Also mock fetch so that it alternates the config it returns each time
       let fetchResolveCount = 0;
@@ -670,7 +670,7 @@ describe('initialization options', () => {
       let client = await init({
         apiKey,
         baseUrl,
-        updateStrategy,
+        updateOnFetch,
       });
 
       expect(fetchCallCount).toBe(1);
@@ -684,7 +684,7 @@ describe('initialization options', () => {
       client = await init({
         apiKey,
         baseUrl,
-        updateStrategy,
+        updateOnFetch,
       });
 
       // Should serve assignment from cache before fetch completes
@@ -700,17 +700,17 @@ describe('initialization options', () => {
       expect(fetchCallCount).toBe(2);
       expect(fetchResolveCount).toBe(2);
       expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe(
-        updateStrategy === 'never' ? 'control' : 'default-value',
+        updateOnFetch === 'empty' ? 'control' : 'default-value',
       );
       expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe(
-        updateStrategy === 'never' ? 'default-value' : 'control',
+        updateOnFetch === 'empty' ? 'default-value' : 'control',
       );
 
       // Init from updated cache, with allowable cache age
       client = await init({
         apiKey,
         baseUrl,
-        updateStrategy,
+        updateOnFetch,
         maxCacheAgeSeconds: fetchResolveDelayMs * 10,
       });
 
