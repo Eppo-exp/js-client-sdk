@@ -85,7 +85,7 @@ export interface IClientConfig {
   maxCacheAgeSeconds?: number;
 
   /**
-   * Whether initialization will considered successfully complete if expired cache values are
+   * Whether initialization will be considered successfully complete if expired cache values are
    * loaded. If false, initialization will always wait for a fetch if cached values are expired.
    * (default: false)
    */
@@ -276,13 +276,10 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     ]);
 
     if (!initializationSource) {
-      console.log('NO INIT SOURCE');
       // First attempt failed, but we have a second at bat that will be executed in the scope of the top-level try-catch
       if (!initFromConfigStoreError) {
-        console.log('>>>>> WAITING FOR CONFIG');
         initializationSource = await attemptInitFromConfigStore;
       } else {
-        console.log('>>>>> WAITING FOR FETCH');
         initializationSource = await attemptInitFromFetch;
       }
     }

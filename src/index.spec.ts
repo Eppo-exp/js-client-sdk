@@ -695,7 +695,8 @@ describe('initialization options', () => {
         'default-value',
       );
 
-      // Completed fetch will update assignments unless told never to as default store is always expired
+      // Completed fetch will now result in updated assignments unless set not to update a previously
+      // populated serving store
       await jest.advanceTimersByTimeAsync(fetchResolveDelayMs);
       expect(fetchCallCount).toBe(2);
       expect(fetchResolveCount).toBe(2);
