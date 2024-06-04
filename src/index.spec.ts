@@ -576,6 +576,8 @@ describe('initialization options', () => {
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
   });
 
+  // TODO: test with an expired cache for useExpiredCache true and false
+
   it('Ignores cache if fetch finishes first', async () => {
     // Mock fetch so first call works, second fails
     let fetchCallCount = 0;
