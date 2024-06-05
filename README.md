@@ -17,7 +17,7 @@
 
 ## Installation
 
-```javascript
+```bash
 npm install @eppo/js-client-sdk
 ```
 
@@ -53,7 +53,7 @@ const variation = eppoClient.getBooleanAssignment('show-new-feature', user.id, {
 Every Eppo flag has a return type that is set once on creation in the dashboard. Once a flag is created, assignments in code should be made using the corresponding typed function: 
 
 ```javascript
-getBoolAssignment(...)
+getBooleanAssignment(...)
 getNumericAssignment(...)
 getIntegerAssignment(...)
 getStringAssignment(...)

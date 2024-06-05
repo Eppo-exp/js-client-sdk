@@ -31,6 +31,8 @@ export class EppoJSClient extends EppoClient {
     // (undocumented)
     getBoolAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: boolean): boolean;
     // (undocumented)
+    getBooleanAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: boolean): boolean;
+    // (undocumented)
     getIntegerAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: number): number;
     // (undocumented)
     getJSONAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: object): object;
@@ -50,6 +52,8 @@ export function getInstance(): IEppoClient;
 export { IAssignmentEvent }
 
 export { IAssignmentLogger }
+
+export { IAsyncStore }
 
 // @public
 export interface IClientConfig {

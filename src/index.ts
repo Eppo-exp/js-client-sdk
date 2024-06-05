@@ -94,7 +94,9 @@ export {
 export { ChromeStorageAsyncStore } from './chrome.configuration-store';
 
 // Instantiate the configuration store with memory-only implementation.
-const configurationStore = configurationStorageFactory({ forceMemoryOnly: true });
+const configurationStore = configurationStorageFactory({
+  forceMemoryOnly: true,
+});
 
 /**
  * Client for assigning experiment variations.
@@ -117,7 +119,19 @@ export class EppoJSClient extends EppoClient {
     return super.getStringAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
+  /**
+   * @deprecated Use getBooleanAssignment instead
+   */
   public getBoolAssignment(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, any>,
+    defaultValue: boolean,
+  ): boolean {
+    return this.getBooleanAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
+
+  public getBooleanAssignment(
     flagKey: string,
     subjectKey: string,
     subjectAttributes: Record<string, any>,
@@ -179,7 +193,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     }
 
     // Set the configuration store to the desired persistent store, if provided.
-    // Otherwise the factory method will detect the current environment and instantiate the correct store.
+    // Otherwise, the factory method will detect the current environment and instantiate the correct store.
     const configurationStore = configurationStorageFactory(
       {
         persistentStore: config.persistentStore,
