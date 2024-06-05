@@ -1,31 +1,38 @@
-import { AbstractStringValuedAsyncStore } from './abstract-string-valued.store';
+import { CONFIGURATION_KEY, META_KEY } from './constants';
+import { StringValuedAsyncStore } from './string-valued.store';
+import { IStorageEngine } from './types';
 
-export class ChromeStorageAsyncStore<T> extends AbstractStringValuedAsyncStore<T> {
+export class ChromeStorageAsyncStore implements IStorageEngine {
   private chromeStorageKey = 'eppo-sdk';
 
-  constructor(private storageArea: chrome.storage.StorageArea, cooldownSeconds?: number) {
-    super(cooldownSeconds);
-  }
+  constructor(private storageArea: chrome.storage.StorageArea) {}
 
-  protected getConfigurationJsonString = async (): Promise<string | null> => {
-    const storage = await this.storageArea.get(this.chromeStorageKey);
-    return storage?.[this.configurationKey] ?? null;
+  static createStringValuedStore = <T>(
+    storageArea: chrome.storage.StorageArea,
+    cooldownSeconds: number,
+  ) => {
+    return new StringValuedAsyncStore<T>(new ChromeStorageAsyncStore(storageArea), cooldownSeconds);
   };
 
-  protected getMetaConfigurationJsonString = async (): Promise<string | null> => {
+  getConfigurationJsonString = async (): Promise<string | null> => {
     const storage = await this.storageArea.get(this.chromeStorageKey);
-    return storage?.[this.metaKey] ?? null;
+    return storage?.[CONFIGURATION_KEY] ?? null;
   };
 
-  protected setConfigurationJsonString = async (configurationJsonString: string): Promise<void> => {
+  getMetaConfigurationJsonString = async (): Promise<string | null> => {
+    const storage = await this.storageArea.get(this.chromeStorageKey);
+    return storage?.[META_KEY] ?? null;
+  };
+
+  setConfigurationJsonString = async (configurationJsonString: string): Promise<void> => {
     await this.storageArea.set({
-      [this.configurationKey]: configurationJsonString,
+      [CONFIGURATION_KEY]: configurationJsonString,
     });
   };
 
-  protected setMetaJsonString = async (metaJsonString: string): Promise<void> => {
+  setMetaJsonString = async (metaJsonString: string): Promise<void> => {
     await this.storageArea.set({
-      [this.metaKey]: metaJsonString,
+      [META_KEY]: metaJsonString,
     });
   };
 }

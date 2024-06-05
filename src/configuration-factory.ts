@@ -6,12 +6,13 @@ import {
   MemoryStore,
 } from '@eppo/js-client-sdk-common';
 
-import { ChromeStorageAsyncStore } from './chrome-storage.store';
 import {
   IsolatedHybridConfigurationStore,
   ServingStoreUpdateStrategy,
 } from './isolated-hybrid.store';
-import { LocalStorageBackedAsyncStore } from './local-storage.store';
+import { LocalStorageAsyncStore } from './local-storage.store';
+
+import { ChromeStorageAsyncStore } from '.';
 
 export function configurationStorageFactory(
   {
@@ -46,14 +47,14 @@ export function configurationStorageFactory(
     // Chrome storage is available, use it as a fallback
     return new IsolatedHybridConfigurationStore(
       new MemoryStore<Flag>(),
-      new ChromeStorageAsyncStore<Flag>(chromeStorage, maxAgeSeconds),
+      ChromeStorageAsyncStore.createStringValuedStore(chromeStorage, maxAgeSeconds),
       servingStoreUpdateStrategy,
     );
   } else if (hasWindowLocalStorage && windowLocalStorage) {
     // window.localStorage is available, use it as a fallback
     return new IsolatedHybridConfigurationStore(
       new MemoryStore<Flag>(),
-      new LocalStorageBackedAsyncStore<Flag>(windowLocalStorage, maxAgeSeconds),
+      LocalStorageAsyncStore.createStringValuedStore(localStorage, maxAgeSeconds),
       servingStoreUpdateStrategy,
     );
   }

@@ -1,27 +1,22 @@
 import { IAsyncStore } from '@eppo/js-client-sdk-common';
 
-export abstract class AbstractStringValuedAsyncStore<T> implements IAsyncStore<T> {
-  protected configurationKey = 'eppo-configuration';
-  protected metaKey = 'eppo-configuration-meta';
+import { IStorageEngine } from './types';
+
+export class StringValuedAsyncStore<T> implements IAsyncStore<T> {
   private initialized = false;
 
-  protected constructor(private cooldownSeconds = 0) {}
+  constructor(private storageEngine: IStorageEngine, private cooldownSeconds = 0) {}
 
   public isInitialized(): boolean {
     return this.initialized;
   }
-
-  protected abstract getConfigurationJsonString: () => Promise<string | null>;
-  protected abstract getMetaConfigurationJsonString: () => Promise<string | null>;
-  protected abstract setConfigurationJsonString: (configurationJsonString: string) => Promise<void>;
-  protected abstract setMetaJsonString: (metaJsonString: string) => Promise<void>;
 
   public async isExpired(): Promise<boolean> {
     if (!this.cooldownSeconds) {
       return true;
     }
 
-    const metaJsonString = await this.getMetaConfigurationJsonString();
+    const metaJsonString = await this.storageEngine.getMetaConfigurationJsonString();
     let isExpired = true;
     if (metaJsonString) {
       const parsedMeta = JSON.parse(metaJsonString);
@@ -32,7 +27,7 @@ export abstract class AbstractStringValuedAsyncStore<T> implements IAsyncStore<T
   }
 
   public async getEntries(): Promise<Record<string, T>> {
-    const configurationJsonString = await this.getConfigurationJsonString();
+    const configurationJsonString = await this.storageEngine.getConfigurationJsonString();
     const parsedConfiguration = configurationJsonString ? JSON.parse(configurationJsonString) : {};
     return parsedConfiguration;
   }
@@ -40,9 +35,9 @@ export abstract class AbstractStringValuedAsyncStore<T> implements IAsyncStore<T
   public async setEntries(entries: Record<string, T>): Promise<void> {
     // String-based storage takes a dictionary of key-value string pairs,
     // so we write the entire configuration and meta to a single location for each.
-    await this.setConfigurationJsonString(JSON.stringify(entries));
+    await this.storageEngine.setConfigurationJsonString(JSON.stringify(entries));
     const updatedMeta = { lastUpdatedAtMs: new Date().getTime() };
-    await this.setMetaJsonString(JSON.stringify(updatedMeta));
+    await this.storageEngine.setMetaJsonString(JSON.stringify(updatedMeta));
     this.initialized = true;
   }
 }

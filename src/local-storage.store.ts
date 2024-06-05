@@ -1,4 +1,6 @@
-import { AbstractStringValuedAsyncStore } from './abstract-string-valued.store';
+import { CONFIGURATION_KEY, META_KEY } from './constants';
+import { StringValuedAsyncStore } from './string-valued.store';
+import { IStorageEngine } from './types';
 
 /*
  * Removing stale keys is facilitating by storing the entire configuration into a single
@@ -8,24 +10,27 @@ import { AbstractStringValuedAsyncStore } from './abstract-string-valued.store';
  * the configuration from the string and return it. If the configuration does not exist,
  * we return null.
  */
-export class LocalStorageBackedAsyncStore<T> extends AbstractStringValuedAsyncStore<T> {
-  constructor(private localStorage: Storage, cooldownSeconds?: number) {
-    super(cooldownSeconds);
-  }
+export class LocalStorageAsyncStore implements IStorageEngine {
+  constructor(private localStorage: Storage) {}
 
-  protected getConfigurationJsonString = async (): Promise<string | null> => {
-    return this.localStorage.getItem(this.configurationKey);
+  static createStringValuedStore = <T>(localStorage: Storage, cooldownSeconds: number) => {
+    const localStorageStore = new LocalStorageAsyncStore(localStorage);
+    return new StringValuedAsyncStore<T>(localStorageStore, cooldownSeconds);
   };
 
-  protected getMetaConfigurationJsonString = async (): Promise<string | null> => {
-    return this.localStorage.getItem(this.metaKey);
+  getConfigurationJsonString = async (): Promise<string | null> => {
+    return this.localStorage.getItem(CONFIGURATION_KEY);
   };
 
-  protected setConfigurationJsonString = async (configurationJsonString: string): Promise<void> => {
-    this.localStorage.setItem(this.configurationKey, configurationJsonString);
+  getMetaConfigurationJsonString = async (): Promise<string | null> => {
+    return this.localStorage.getItem(META_KEY);
   };
 
-  protected setMetaJsonString = async (metaJsonString: string): Promise<void> => {
-    this.localStorage.setItem(this.metaKey, metaJsonString);
+  setConfigurationJsonString = async (configurationJsonString: string): Promise<void> => {
+    this.localStorage.setItem(CONFIGURATION_KEY, configurationJsonString);
+  };
+
+  setMetaJsonString = async (metaJsonString: string): Promise<void> => {
+    this.localStorage.setItem(META_KEY, metaJsonString);
   };
 }
