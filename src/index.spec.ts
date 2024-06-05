@@ -523,59 +523,6 @@ describe('initialization options', () => {
     expect(callCount).toBe(0);
   });
 
-  it('Uses its cache', async () => {
-    // Mock fetch so first call works, second fails
-    let fetchCallCount = 0;
-    let fetchResolveCount = 0;
-    const fetchResolveDelayMs = 500;
-    global.fetch = jest.fn(() => {
-      if (++fetchCallCount === 1) {
-        fetchResolveCount += 1;
-        return Promise.resolve({
-          ok: true,
-          status: 200,
-          json: () => Promise.resolve(mockConfigResponse),
-        });
-      } else {
-        // WAIT 200 ms and then reject
-        return new Promise((_resolve, reject) => {
-          setTimeout(() => {
-            fetchResolveCount += 1;
-            reject('Intentional failed fetch error for test');
-          }, fetchResolveDelayMs);
-        });
-      }
-    }) as jest.Mock;
-
-    // First initialization will have nothing cached, will need fetch to resolve
-    let client = await init({
-      apiKey,
-      baseUrl,
-      assignmentLogger: mockLogger,
-    });
-
-    expect(fetchCallCount).toBe(1);
-    expect(fetchResolveCount).toBe(1);
-    expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
-
-    // Init again where we know cache will succeed and fetch will fail
-    client = await init({
-      apiKey,
-      baseUrl: 'https://thisisabaddomainforthistest.com',
-      assignmentLogger: mockLogger,
-    });
-
-    // Should serve assignment from cache before fetch even fails
-    expect(fetchCallCount).toBe(2);
-    expect(fetchResolveCount).toBe(1);
-    expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
-
-    // Should not be tripped up by failed fetch
-    await jest.advanceTimersByTimeAsync(fetchResolveDelayMs);
-    expect(fetchResolveCount).toBe(2);
-    expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
-  });
-
   test.each([false, true])(
     'Wait or not for fetch when cache is expired - %s',
     async (useExpiredCache) => {
@@ -646,6 +593,60 @@ describe('initialization options', () => {
       expect(initComplete).toBe(true);
     },
   );
+
+  it('Uses its cache', async () => {
+    // Mock fetch so first call works, second fails
+    let fetchCallCount = 0;
+    let fetchResolveCount = 0;
+    const fetchResolveDelayMs = 500;
+    global.fetch = jest.fn(() => {
+      if (++fetchCallCount === 1) {
+        fetchResolveCount += 1;
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(mockConfigResponse),
+        });
+      } else {
+        // WAIT 200 ms and then reject
+        return new Promise((_resolve, reject) => {
+          setTimeout(() => {
+            fetchResolveCount += 1;
+            reject('Intentional failed fetch error for test');
+          }, fetchResolveDelayMs);
+        });
+      }
+    }) as jest.Mock;
+
+    // First initialization will have nothing cached, will need fetch to resolve to populate it
+    let client = await init({
+      apiKey,
+      baseUrl,
+      assignmentLogger: mockLogger,
+    });
+
+    expect(fetchCallCount).toBe(1);
+    expect(fetchResolveCount).toBe(1);
+    expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
+
+    // Init again where we know cache will succeed and fetch will fail
+    client = await init({
+      apiKey,
+      baseUrl: 'https://thisisabaddomainforthistest.com',
+      assignmentLogger: mockLogger,
+      useExpiredCache: true,
+    });
+
+    // Should serve assignment from cache before fetch even fails
+    expect(fetchCallCount).toBe(2);
+    expect(fetchResolveCount).toBe(1);
+    expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
+
+    // Should not be tripped up by failed fetch
+    await jest.advanceTimersByTimeAsync(fetchResolveDelayMs);
+    expect(fetchResolveCount).toBe(2);
+    expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
+  });
 
   it('Ignores cache if fetch finishes first', async () => {
     // Mock fetch so first call works, second fails
@@ -752,12 +753,14 @@ describe('initialization options', () => {
         'default-value',
       );
 
-      // Init again where we know cache will succeed and fetch will be delayed
+      // Init again with an expired cache so a fetch will kicked off too
+      // We allow the expired cache, so it will succeed and fetch will be delayed
       client = await init({
         apiKey,
         baseUrl,
         assignmentLogger: mockLogger,
         updateOnFetch,
+        useExpiredCache: true,
       });
 
       // Should serve assignment from cache before fetch completes

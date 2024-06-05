@@ -245,11 +245,18 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
 
     const attemptInitFromConfigStore = configurationStore
       .init()
-      .then(() => {
+      .then(async () => {
         if (!configurationStore.getKeys().length) {
           // Consider empty configuration stores invalid
-          console.warn('Empty cached configuration');
+          console.warn('Eppo SDK cached configuration is empty');
           initFromConfigStoreError = new Error('Configuration store was empty');
+          return '';
+        }
+
+        const cacheIsExpired = await configurationStore.isExpired();
+        if (cacheIsExpired && !config.useExpiredCache) {
+          console.warn('Eppo SDK set not to use expired cached configuration');
+          initFromConfigStoreError = new Error('Configuration store was expired');
           return '';
         }
         return 'config store';
@@ -269,7 +276,6 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
         initFromFetchError = e;
       });
 
-    // TODO: factor in useExpiredCache
     let initializationSource = await Promise.race([
       attemptInitFromConfigStore,
       attemptInitFromFetch,
