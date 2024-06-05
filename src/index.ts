@@ -138,7 +138,7 @@ export class EppoJSClient extends EppoClient {
     defaultValue: boolean,
   ): boolean {
     EppoJSClient.getAssignmentInitializationCheck();
-    return super.getBoolAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
+    return super.getBooleanAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
   public getIntegerAssignment(
