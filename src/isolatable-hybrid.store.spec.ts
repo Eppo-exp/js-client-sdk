@@ -1,9 +1,9 @@
 import {
-  IsolatedHybridConfigurationStore,
+  IsolatableHybridConfigurationStore,
   ServingStoreUpdateStrategy,
-} from './isolated-hybrid.store';
+} from './isolatable-hybrid.store';
 
-describe('IsolatedHybridConfigurationStore', () => {
+describe('IsolatableHybridConfigurationStore', () => {
   const syncStoreMock = {
     get: jest.fn(),
     getKeys: jest.fn(),
@@ -20,15 +20,15 @@ describe('IsolatedHybridConfigurationStore', () => {
 
   const servingStoreUpdateStrategies: ServingStoreUpdateStrategy[] = ['always', 'expired', 'empty'];
 
-  // Dynamically create a describe() block for stores initialized with each of the three update strategies
-  servingStoreUpdateStrategies.forEach((updateStrategy) => {
-    const store = new IsolatedHybridConfigurationStore(
-      syncStoreMock,
-      asyncStoreMock,
-      updateStrategy,
-    );
+  describe.each(servingStoreUpdateStrategies)(
+    '%s serving store update strategy',
+    (updateStrategy: ServingStoreUpdateStrategy) => {
+      const store = new IsolatableHybridConfigurationStore(
+        syncStoreMock,
+        asyncStoreMock,
+        updateStrategy,
+      );
 
-    describe(updateStrategy + ' serving store update strategy', () => {
       beforeEach(() => {
         jest.resetAllMocks();
       });
@@ -127,6 +127,6 @@ describe('IsolatedHybridConfigurationStore', () => {
           expect(syncStoreMock.setEntries).not.toHaveBeenCalled();
         }
       });
-    });
-  });
+    },
+  );
 });

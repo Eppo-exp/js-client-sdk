@@ -8,9 +8,9 @@ import {
 
 import { ChromeStorageEngine } from './chrome-storage-engine';
 import {
-  IsolatedHybridConfigurationStore,
+  IsolatableHybridConfigurationStore,
   ServingStoreUpdateStrategy,
-} from './isolated-hybrid.store';
+} from './isolatable-hybrid.store';
 import { LocalStorageEngine } from './local-storage-engine';
 import { StringValuedAsyncStore } from './string-valued.store';
 
@@ -38,7 +38,7 @@ export function configurationStorageFactory(
   if (forceMemoryOnly) {
     return new MemoryOnlyConfigurationStore();
   } else if (persistentStore) {
-    return new IsolatedHybridConfigurationStore(
+    return new IsolatableHybridConfigurationStore(
       new MemoryStore<Flag>(),
       persistentStore,
       servingStoreUpdateStrategy,
@@ -46,7 +46,7 @@ export function configurationStorageFactory(
   } else if (hasChromeStorage && chromeStorage) {
     // Chrome storage is available, use it as a fallback
     const chromeStorageEngine = new ChromeStorageEngine(chromeStorage);
-    return new IsolatedHybridConfigurationStore(
+    return new IsolatableHybridConfigurationStore(
       new MemoryStore<Flag>(),
       new StringValuedAsyncStore<Flag>(chromeStorageEngine, maxAgeSeconds),
       servingStoreUpdateStrategy,
@@ -54,7 +54,7 @@ export function configurationStorageFactory(
   } else if (hasWindowLocalStorage && windowLocalStorage) {
     // window.localStorage is available, use it as a fallback
     const localStorageEngine = new LocalStorageEngine(windowLocalStorage);
-    return new IsolatedHybridConfigurationStore(
+    return new IsolatableHybridConfigurationStore(
       new MemoryStore<Flag>(),
       new StringValuedAsyncStore<Flag>(localStorageEngine, maxAgeSeconds),
       servingStoreUpdateStrategy,

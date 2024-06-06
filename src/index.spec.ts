@@ -26,7 +26,7 @@ import {
   validateTestAssignments,
 } from '../test/testHelpers';
 
-import { ServingStoreUpdateStrategy } from './isolated-hybrid.store';
+import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 
 import { IAssignmentLogger, IEppoClient, getInstance, init, IClientConfig } from './index';
 

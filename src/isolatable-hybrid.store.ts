@@ -3,12 +3,13 @@ import { HybridConfigurationStore, IAsyncStore, ISyncStore } from '@eppo/js-clie
 export type ServingStoreUpdateStrategy = 'always' | 'expired' | 'empty';
 
 /**
- * Extension of the HybridConfigurationStore that allows isolating the serving store from updates.
+ * Extension of the HybridConfigurationStore that allows optionally isolating the serving store from
+ * updates.
  * This could be useful when you want to avoid updating the serving store to maintain greater
  * consistency within a session, but still want to update the cache for a quick, updated
  * initialization the next session.
  */
-export class IsolatedHybridConfigurationStore<T> extends HybridConfigurationStore<T> {
+export class IsolatableHybridConfigurationStore<T> extends HybridConfigurationStore<T> {
   constructor(
     servingStore: ISyncStore<T>,
     persistentStore: IAsyncStore<T> | null,

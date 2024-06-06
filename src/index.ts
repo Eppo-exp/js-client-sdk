@@ -14,7 +14,7 @@ import {
   hasChromeStorage,
   hasWindowLocalStorage,
 } from './configuration-factory';
-import { ServingStoreUpdateStrategy } from './isolated-hybrid.store';
+import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 import { sdkName, sdkVersion } from './sdk-data';
 
