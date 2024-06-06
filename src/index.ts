@@ -6,6 +6,7 @@ import {
   FlagConfigurationRequestParameters,
   Flag,
   IAsyncStore,
+  AttributeType,
 } from '@eppo/js-client-sdk-common';
 
 import {
@@ -13,6 +14,7 @@ import {
   hasChromeStorage,
   hasWindowLocalStorage,
 } from './configuration-factory';
+import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 import { sdkName, sdkVersion } from './sdk-data';
 
@@ -72,16 +74,37 @@ export interface IClientConfig {
   numPollRequestRetries?: number;
 
   /**
+   * Skip the request for new configurations during initialization. (default: false)
+   */
+  skipInitialRequest?: boolean;
+
+  /**
+   * Maximum age, in seconds, previously cached values are considered valid until new values will be
+   * fetched (default: 0)
+   */
+  maxCacheAgeSeconds?: number;
+
+  /**
+   * Whether initialization will be considered successfully complete if expired cache values are
+   * loaded. If false, initialization will always wait for a fetch if cached values are expired.
+   * (default: false)
+   */
+  useExpiredCache?: boolean;
+
+  /**
+   * Sets how the configuration is updated after a successful fetch
+   * - always: immediately start using the new configuration
+   * - expired: immediately start using the new configuration only if the current one has expired
+   * - empty: only use the new configuration if the current one is both expired and uninitialized/empty
+   */
+  updateOnFetch?: ServingStoreUpdateStrategy;
+
+  /**
    * A custom class to use for storing flag configurations.
    * This is useful for cases where you want to use a different storage mechanism
    * than the default storage provided by the SDK.
    */
   persistentStore?: IAsyncStore<Flag>;
-
-  /**
-   * Skip the request for new configurations during initialization. (default: false)
-   */
-  skipInitialRequest?: boolean;
 }
 
 // Export the common types and classes from the SDK.
@@ -91,7 +114,7 @@ export {
   IEppoClient,
   IAsyncStore,
 } from '@eppo/js-client-sdk-common';
-export { ChromeStorageAsyncStore } from './chrome.configuration-store';
+export { ChromeStorageEngine } from './chrome-storage-engine';
 
 // Instantiate the configuration store with memory-only implementation.
 const configurationStore = configurationStorageFactory({
@@ -112,7 +135,7 @@ export class EppoJSClient extends EppoClient {
   public getStringAssignment(
     flagKey: string,
     subjectKey: string,
-    subjectAttributes: Record<string, any>,
+    subjectAttributes: Record<string, AttributeType>,
     defaultValue: string,
   ): string {
     EppoJSClient.getAssignmentInitializationCheck();
@@ -125,7 +148,7 @@ export class EppoJSClient extends EppoClient {
   public getBoolAssignment(
     flagKey: string,
     subjectKey: string,
-    subjectAttributes: Record<string, any>,
+    subjectAttributes: Record<string, AttributeType>,
     defaultValue: boolean,
   ): boolean {
     return this.getBooleanAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
@@ -144,7 +167,7 @@ export class EppoJSClient extends EppoClient {
   public getIntegerAssignment(
     flagKey: string,
     subjectKey: string,
-    subjectAttributes: Record<string, any>,
+    subjectAttributes: Record<string, AttributeType>,
     defaultValue: number,
   ): number {
     EppoJSClient.getAssignmentInitializationCheck();
@@ -154,7 +177,7 @@ export class EppoJSClient extends EppoClient {
   public getNumericAssignment(
     flagKey: string,
     subjectKey: string,
-    subjectAttributes: Record<string, any>,
+    subjectAttributes: Record<string, AttributeType>,
     defaultValue: number,
   ): number {
     EppoJSClient.getAssignmentInitializationCheck();
@@ -164,7 +187,7 @@ export class EppoJSClient extends EppoClient {
   public getJSONAssignment(
     flagKey: string,
     subjectKey: string,
-    subjectAttributes: Record<string, any>,
+    subjectAttributes: Record<string, AttributeType>,
     defaultValue: object,
   ): object {
     EppoJSClient.getAssignmentInitializationCheck();
@@ -186,16 +209,22 @@ export class EppoJSClient extends EppoClient {
  */
 export async function init(config: IClientConfig): Promise<IEppoClient> {
   validation.validateNotBlank(config.apiKey, 'API key required');
+  let initializationError: Error | undefined;
   try {
     // If any existing instances; ensure they are not polling
-    if (EppoJSClient.instance) {
-      EppoJSClient.instance.stopPolling();
-    }
+    EppoJSClient.instance.stopPolling();
+    // Set up assignment logger and cache
+    EppoJSClient.instance.setLogger(config.assignmentLogger);
+    // default behavior is to use a LocalStorage-based assignment cache.
+    // this can be overridden after initialization.
+    EppoJSClient.instance.useCustomAssignmentCache(new LocalStorageAssignmentCache());
 
     // Set the configuration store to the desired persistent store, if provided.
     // Otherwise, the factory method will detect the current environment and instantiate the correct store.
     const configurationStore = configurationStorageFactory(
       {
+        maxAgeSeconds: config.maxCacheAgeSeconds,
+        servingStoreUpdateStrategy: config.updateOnFetch,
         persistentStore: config.persistentStore,
         hasChromeStorage: hasChromeStorage(),
         hasWindowLocalStorage: hasWindowLocalStorage(),
@@ -205,9 +234,9 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
         windowLocalStorage: hasWindowLocalStorage() ? window.localStorage : undefined,
       },
     );
-    await configurationStore.init();
     EppoJSClient.instance.setConfigurationStore(configurationStore);
 
+    // Set up parameters for requesting updated configurations
     const requestConfiguration: FlagConfigurationRequestParameters = {
       apiKey: config.apiKey,
       sdkName,
@@ -221,25 +250,80 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
       throwOnFailedInitialization: true, // always use true here as underlying instance fetch is surrounded by try/catch
       skipInitialPoll: config.skipInitialRequest ?? false,
     };
-
-    EppoJSClient.instance.setLogger(config.assignmentLogger);
-
-    // default behavior is to use a LocalStorage-based assignment cache.
-    // this can be overridden after initialization.
-    EppoJSClient.instance.useCustomAssignmentCache(new LocalStorageAssignmentCache());
     EppoJSClient.instance.setConfigurationRequestParameters(requestConfiguration);
-    await EppoJSClient.instance.fetchFlagConfigurations();
+
+    // We have two at-bats for initialization: from the configuration store and from fetching
+    // We can resolve the initialization promise as soon as either one succeeds
+    let initFromConfigStoreError = undefined;
+    let initFromFetchError = undefined;
+
+    const attemptInitFromConfigStore = configurationStore
+      .init()
+      .then(async () => {
+        if (!configurationStore.getKeys().length) {
+          // Consider empty configuration stores invalid
+          console.warn('Eppo SDK cached configuration is empty');
+          initFromConfigStoreError = new Error('Configuration store was empty');
+          return '';
+        }
+
+        const cacheIsExpired = await configurationStore.isExpired();
+        if (cacheIsExpired && !config.useExpiredCache) {
+          console.warn('Eppo SDK set not to use expired cached configuration');
+          initFromConfigStoreError = new Error('Configuration store was expired');
+          return '';
+        }
+        return 'config store';
+      })
+      .catch((e) => {
+        console.warn('Eppo SDK encountered an error initializing from the configuration store', e);
+        initFromConfigStoreError = e;
+      });
+    const attemptInitFromFetch = EppoJSClient.instance
+      .fetchFlagConfigurations()
+      .then(() => {
+        return 'fetch';
+      })
+      .catch((e) => {
+        console.warn('Eppo SDK encountered an error initializing from fetching', e);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        initFromFetchError = e;
+      });
+
+    let initializationSource = await Promise.race([
+      attemptInitFromConfigStore,
+      attemptInitFromFetch,
+    ]);
+
+    if (!initializationSource) {
+      // First attempt failed, but we have a second at bat that will be executed in the scope of the top-level try-catch
+      if (!initFromConfigStoreError) {
+        initializationSource = await attemptInitFromConfigStore;
+      } else {
+        initializationSource = await attemptInitFromFetch;
+      }
+    }
+
+    if (!initializationSource) {
+      // both failed, make the "fatal" error the fetch one
+      initializationError = initFromFetchError;
+    }
   } catch (error) {
+    initializationError = error;
+  }
+
+  if (initializationError) {
     console.warn(
-      'Eppo SDK encountered an error initializing, assignment calls will return the default value and not be logged' +
+      'Eppo SDK was unable to initialize with a configuration, assignment calls will return the default value and not be logged' +
         (config.pollAfterFailedInitialization
           ? ' until an experiment configuration is successfully retrieved'
           : ''),
     );
     if (config.throwOnFailedInitialization ?? true) {
-      throw error;
+      throw initializationError;
     }
   }
+
   EppoJSClient.initialized = true;
   return EppoJSClient.instance;
 }

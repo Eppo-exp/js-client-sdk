@@ -1,22 +1,30 @@
 import {
   Flag,
-  HybridConfigurationStore,
   IAsyncStore,
   IConfigurationStore,
   MemoryOnlyConfigurationStore,
   MemoryStore,
 } from '@eppo/js-client-sdk-common';
 
-import { ChromeStorageAsyncStore } from './chrome.configuration-store';
-import { LocalStorageBackedAsyncStore } from './local-storage';
+import { ChromeStorageEngine } from './chrome-storage-engine';
+import {
+  IsolatableHybridConfigurationStore,
+  ServingStoreUpdateStrategy,
+} from './isolatable-hybrid.store';
+import { LocalStorageEngine } from './local-storage-engine';
+import { StringValuedAsyncStore } from './string-valued.store';
 
 export function configurationStorageFactory(
   {
+    maxAgeSeconds = 0,
+    servingStoreUpdateStrategy = 'always',
     hasChromeStorage = false,
     hasWindowLocalStorage = false,
     persistentStore = undefined,
     forceMemoryOnly = false,
   }: {
+    maxAgeSeconds?: number;
+    servingStoreUpdateStrategy?: ServingStoreUpdateStrategy;
     hasChromeStorage?: boolean;
     hasWindowLocalStorage?: boolean;
     persistentStore?: IAsyncStore<Flag>;
@@ -30,18 +38,26 @@ export function configurationStorageFactory(
   if (forceMemoryOnly) {
     return new MemoryOnlyConfigurationStore();
   } else if (persistentStore) {
-    return new HybridConfigurationStore(new MemoryStore<Flag>(), persistentStore);
+    return new IsolatableHybridConfigurationStore(
+      new MemoryStore<Flag>(),
+      persistentStore,
+      servingStoreUpdateStrategy,
+    );
   } else if (hasChromeStorage && chromeStorage) {
     // Chrome storage is available, use it as a fallback
-    return new HybridConfigurationStore(
+    const chromeStorageEngine = new ChromeStorageEngine(chromeStorage);
+    return new IsolatableHybridConfigurationStore(
       new MemoryStore<Flag>(),
-      new ChromeStorageAsyncStore<Flag>(chromeStorage),
+      new StringValuedAsyncStore<Flag>(chromeStorageEngine, maxAgeSeconds),
+      servingStoreUpdateStrategy,
     );
   } else if (hasWindowLocalStorage && windowLocalStorage) {
     // window.localStorage is available, use it as a fallback
-    return new HybridConfigurationStore(
+    const localStorageEngine = new LocalStorageEngine(windowLocalStorage);
+    return new IsolatableHybridConfigurationStore(
       new MemoryStore<Flag>(),
-      new LocalStorageBackedAsyncStore<Flag>(windowLocalStorage),
+      new StringValuedAsyncStore<Flag>(localStorageEngine, maxAgeSeconds),
+      servingStoreUpdateStrategy,
     );
   }
 
@@ -57,7 +73,7 @@ export function hasWindowLocalStorage(): boolean {
   try {
     return typeof window !== 'undefined' && !!window.localStorage;
   } catch {
-    // Chrome throws an error if local storage is disabled and you try to access it
+    // Chrome throws an error if local storage is disabled, and you try to access it
     return false;
   }
 }

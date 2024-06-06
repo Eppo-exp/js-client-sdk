@@ -6,6 +6,7 @@
 
 /// <reference types="chrome" />
 
+import { AttributeType } from '@eppo/js-client-sdk-common';
 import { EppoClient } from '@eppo/js-client-sdk-common';
 import { Flag } from '@eppo/js-client-sdk-common';
 import { IAssignmentEvent } from '@eppo/js-client-sdk-common';
@@ -13,33 +14,35 @@ import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
 import { IAsyncStore } from '@eppo/js-client-sdk-common';
 import { IEppoClient } from '@eppo/js-client-sdk-common';
 
-// @public (undocumented)
-export class ChromeStorageAsyncStore<T> implements IAsyncStore<T> {
-    constructor(storageArea: chrome.storage.StorageArea, cooldownSeconds?: number | undefined);
+// Warning: (ae-forgotten-export) The symbol "IStringStorageEngine" needs to be exported by the entry point index.d.ts
+//
+// @public
+export class ChromeStorageEngine implements IStringStorageEngine {
+    constructor(storageArea: chrome.storage.StorageArea);
     // (undocumented)
-    getEntries(): Promise<Record<string, T>>;
+    getContentsJsonString: () => Promise<string | null>;
     // (undocumented)
-    isExpired(): Promise<boolean>;
+    getMetaJsonString: () => Promise<string | null>;
     // (undocumented)
-    isInitialized(): boolean;
+    setContentsJsonString: (configurationJsonString: string) => Promise<void>;
     // (undocumented)
-    setEntries(entries: Record<string, T>): Promise<void>;
+    setMetaJsonString: (metaJsonString: string) => Promise<void>;
 }
 
 // @public
 export class EppoJSClient extends EppoClient {
-    // (undocumented)
-    getBoolAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: boolean): boolean;
+    // @deprecated (undocumented)
+    getBoolAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: boolean): boolean;
     // (undocumented)
     getBooleanAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: boolean): boolean;
     // (undocumented)
-    getIntegerAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: number): number;
+    getIntegerAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: number): number;
     // (undocumented)
-    getJSONAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: object): object;
+    getJSONAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: object): object;
     // (undocumented)
-    getNumericAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: number): number;
+    getNumericAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: number): number;
     // (undocumented)
-    getStringAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: string): string;
+    getStringAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: string): string;
     // (undocumented)
     static initialized: boolean;
     // (undocumented)
@@ -60,6 +63,7 @@ export interface IClientConfig {
     apiKey: string;
     assignmentLogger: IAssignmentLogger;
     baseUrl?: string;
+    maxCacheAgeSeconds?: number;
     numInitialRequestRetries?: number;
     numPollRequestRetries?: number;
     persistentStore?: IAsyncStore<Flag>;
@@ -68,6 +72,9 @@ export interface IClientConfig {
     requestTimeoutMs?: number;
     skipInitialRequest?: boolean;
     throwOnFailedInitialization?: boolean;
+    // Warning: (ae-forgotten-export) The symbol "ServingStoreUpdateStrategy" needs to be exported by the entry point index.d.ts
+    updateOnFetch?: ServingStoreUpdateStrategy;
+    useExpiredCache?: boolean;
 }
 
 export { IEppoClient }
