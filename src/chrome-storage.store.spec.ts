@@ -1,37 +1,24 @@
-import { ChromeStorageAsyncStore } from './chrome-storage.store';
+import { IAsyncStore } from '@eppo/js-client-sdk-common';
 
-describe('ChromeConfigurationStore', () => {
+import { ChromeStorageEngine } from './chrome-storage-engine';
+import { StringValuedAsyncStore } from './string-valued.store';
+
+import StorageArea = chrome.storage.StorageArea;
+
+describe('ChromeStorageStore', () => {
   const mockEntries: Record<string, string> = { key1: 'value1', key2: 'value2' };
-  let chromeStore: ChromeStorageAsyncStore<string>;
-  let extendedStorageLocal: chrome.storage.StorageArea;
+  const storageGetFake = jest.fn();
+  const chromeStorageEngine = new ChromeStorageEngine({
+    get: storageGetFake,
+    set: jest.fn(),
+  } as unknown as StorageArea);
+  let chromeStore: IAsyncStore<unknown>;
   let now: number;
 
   beforeEach(() => {
     now = Date.now();
-
     jest.useFakeTimers();
-
-    const get = jest.fn();
-    const set = jest.fn();
-    extendedStorageLocal = {
-      set,
-      get,
-      clear: jest.fn(),
-      remove: jest.fn(),
-      getBytesInUse: jest.fn(),
-      setAccessLevel: jest.fn(),
-      onChanged: {
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-        getRules: jest.fn(),
-        hasListener: jest.fn(),
-        removeRules: jest.fn(),
-        addRules: jest.fn(),
-        hasListeners: jest.fn(),
-      },
-    };
-
-    chromeStore = new ChromeStorageAsyncStore(extendedStorageLocal);
+    chromeStore = new StringValuedAsyncStore(chromeStorageEngine);
   });
 
   afterEach(() => {
@@ -40,14 +27,14 @@ describe('ChromeConfigurationStore', () => {
   });
 
   it('is always expired without cooldown', async () => {
-    chromeStore = new ChromeStorageAsyncStore(extendedStorageLocal, undefined);
+    chromeStore = new StringValuedAsyncStore(chromeStorageEngine, undefined);
     expect(await chromeStore.isExpired()).toBe(true);
   });
 
   it('is not expired with cooldown', async () => {
-    chromeStore = new ChromeStorageAsyncStore(extendedStorageLocal, 10);
+    chromeStore = new StringValuedAsyncStore(chromeStorageEngine, 10);
 
-    (extendedStorageLocal.get as jest.Mock).mockImplementation(() => {
+    storageGetFake.mockImplementation(() => {
       return Promise.resolve({
         ['eppo-configuration']: JSON.stringify(mockEntries),
         ['eppo-configuration-meta']: JSON.stringify({
@@ -60,9 +47,9 @@ describe('ChromeConfigurationStore', () => {
   });
 
   it('is expired after cooldown', async () => {
-    chromeStore = new ChromeStorageAsyncStore(extendedStorageLocal, 10);
+    chromeStore = new StringValuedAsyncStore(chromeStorageEngine, 10);
 
-    (extendedStorageLocal.get as jest.Mock).mockImplementation(() => {
+    storageGetFake.mockImplementation(() => {
       return Promise.resolve({
         ['eppo-configuration']: JSON.stringify(mockEntries),
         ['eppo-configuration-meta']: JSON.stringify({
@@ -86,7 +73,7 @@ describe('ChromeConfigurationStore', () => {
   });
 
   it('should get entries', async () => {
-    (extendedStorageLocal.get as jest.Mock).mockImplementation(() => {
+    storageGetFake.mockImplementation(() => {
       return Promise.resolve({ ['eppo-configuration']: JSON.stringify(mockEntries) });
     });
 

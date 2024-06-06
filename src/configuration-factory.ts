@@ -6,12 +6,13 @@ import {
   MemoryStore,
 } from '@eppo/js-client-sdk-common';
 
-import { ChromeStorageAsyncStore } from './chrome-storage.store';
+import { ChromeStorageEngine } from './chrome-storage-engine';
 import {
   IsolatedHybridConfigurationStore,
   ServingStoreUpdateStrategy,
 } from './isolated-hybrid.store';
-import { LocalStorageBackedAsyncStore } from './local-storage.store';
+import { LocalStorageEngine } from './local-storage-engine';
+import { StringValuedAsyncStore } from './string-valued.store';
 
 export function configurationStorageFactory(
   {
@@ -44,16 +45,18 @@ export function configurationStorageFactory(
     );
   } else if (hasChromeStorage && chromeStorage) {
     // Chrome storage is available, use it as a fallback
+    const chromeStorageEngine = new ChromeStorageEngine(chromeStorage);
     return new IsolatedHybridConfigurationStore(
       new MemoryStore<Flag>(),
-      new ChromeStorageAsyncStore<Flag>(chromeStorage, maxAgeSeconds),
+      new StringValuedAsyncStore<Flag>(chromeStorageEngine, maxAgeSeconds),
       servingStoreUpdateStrategy,
     );
   } else if (hasWindowLocalStorage && windowLocalStorage) {
     // window.localStorage is available, use it as a fallback
+    const localStorageEngine = new LocalStorageEngine(windowLocalStorage);
     return new IsolatedHybridConfigurationStore(
       new MemoryStore<Flag>(),
-      new LocalStorageBackedAsyncStore<Flag>(windowLocalStorage, maxAgeSeconds),
+      new StringValuedAsyncStore<Flag>(localStorageEngine, maxAgeSeconds),
       servingStoreUpdateStrategy,
     );
   }

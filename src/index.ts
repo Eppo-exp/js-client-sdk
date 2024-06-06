@@ -114,7 +114,7 @@ export {
   IEppoClient,
   IAsyncStore,
 } from '@eppo/js-client-sdk-common';
-export { ChromeStorageAsyncStore } from './chrome-storage.store';
+export { ChromeStorageEngine } from './chrome-storage-engine';
 
 // Instantiate the configuration store with memory-only implementation.
 const configurationStore = configurationStorageFactory({ forceMemoryOnly: true });
