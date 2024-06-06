@@ -26,7 +26,9 @@ import {
   validateTestAssignments,
 } from '../test/testHelpers';
 
-import { IAssignmentLogger, IEppoClient, getInstance, init } from './index';
+import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
+
+import { IAssignmentLogger, IEppoClient, getInstance, init, IClientConfig } from './index';
 
 function md5Hash(input: string): string {
   return createHash('md5').update(input).digest('hex');
@@ -311,9 +313,9 @@ describe('initialization options', () => {
   } as unknown as Record<'flags', Record<string, Flag>>;
 
   // eslint-disable-next-line @typescript-eslint/ban-types
-  let init: Function;
+  let init: (config: IClientConfig) => Promise<IEppoClient>;
   // eslint-disable-next-line @typescript-eslint/ban-types
-  let getInstance: Function;
+  let getInstance: () => IEppoClient;
 
   beforeEach(async () => {
     jest.isolateModules(() => {
@@ -522,6 +524,77 @@ describe('initialization options', () => {
     expect(callCount).toBe(0);
   });
 
+  test.each([false, true])(
+    'Wait or not for fetch when cache is expired - %s',
+    async (useExpiredCache) => {
+      let updatedStoreEntries = null;
+      const mockStore: IAsyncStore<Flag> = {
+        isInitialized() {
+          return true;
+        },
+        async isExpired() {
+          return true;
+        },
+        async getEntries() {
+          return {
+            'old-key': mockUfcFlagConfig,
+          };
+        },
+        async setEntries(entries) {
+          updatedStoreEntries = entries;
+        },
+      };
+
+      // TODO: use jest to mock fetch so it can be restored
+      const fetchDelayMs = 500;
+      let fetchResolved = false;
+      global.fetch = jest.fn(() => {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            fetchResolved = true;
+            resolve({
+              ok: true,
+              status: 200,
+              json: () => Promise.resolve(mockConfigResponse),
+            });
+          }, fetchDelayMs);
+        });
+      }) as jest.Mock;
+
+      let initComplete = false;
+      init({
+        apiKey,
+        baseUrl,
+        assignmentLogger: mockLogger,
+        persistentStore: mockStore,
+        useExpiredCache,
+      })
+        .then((client) => {
+          initComplete = true;
+          return client;
+        })
+        .catch((err) => {
+          throw err;
+        });
+
+      await jest.advanceTimersByTimeAsync(250);
+
+      expect(fetchResolved).toBe(false);
+      expect(updatedStoreEntries).toBeNull();
+
+      if (useExpiredCache) {
+        expect(initComplete).toBe(true);
+      } else {
+        expect(initComplete).toBe(false);
+      }
+
+      await jest.advanceTimersByTimeAsync(250);
+      expect(fetchResolved).toBe(true);
+      expect(updatedStoreEntries).toBe(mockConfigResponse.flags);
+      expect(initComplete).toBe(true);
+    },
+  );
+
   it('Uses its cache', async () => {
     // Mock fetch so first call works, second fails
     let fetchCallCount = 0;
@@ -537,7 +610,7 @@ describe('initialization options', () => {
         });
       } else {
         // WAIT 200 ms and then reject
-        return new Promise((resolve, reject) => {
+        return new Promise((_resolve, reject) => {
           setTimeout(() => {
             fetchResolveCount += 1;
             reject('Intentional failed fetch error for test');
@@ -546,10 +619,11 @@ describe('initialization options', () => {
       }
     }) as jest.Mock;
 
-    // First initialization will have nothing cached, will need fetch to resolve
+    // First initialization will have nothing cached, will need fetch to resolve to populate it
     let client = await init({
       apiKey,
       baseUrl,
+      assignmentLogger: mockLogger,
     });
 
     expect(fetchCallCount).toBe(1);
@@ -560,6 +634,8 @@ describe('initialization options', () => {
     client = await init({
       apiKey,
       baseUrl: 'https://thisisabaddomainforthistest.com',
+      assignmentLogger: mockLogger,
+      useExpiredCache: true,
     });
 
     // Should serve assignment from cache before fetch even fails
@@ -571,74 +647,6 @@ describe('initialization options', () => {
     await jest.advanceTimersByTimeAsync(fetchResolveDelayMs);
     expect(fetchResolveCount).toBe(2);
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
-  });
-
-  it('Cache is per API key', async () => {
-    const apiKeyA = 'apiKeyA';
-    const apiKeyB = 'apiKeyB';
-    const flagKey1 = 'flagA';
-    const flagKey2 = 'flagB';
-
-    // Mock fetch so that the first call returns one config, second returns another, and all others fail
-    let fetchCallCount = 0;
-    global.fetch = jest.fn(() => {
-      if (++fetchCallCount <= 2) {
-        return Promise.resolve({
-          ok: true,
-          status: 200,
-          json: () =>
-            Promise.resolve({
-              flags: {
-                [md5Hash(fetchCallCount === 1 ? flagKey1 : flagKey2)]: mockUfcFlagConfig,
-              },
-            }),
-        });
-      } else {
-        return Promise.reject('Intentional failed fetch error for test');
-      }
-    }) as jest.Mock;
-
-    // First initialization uses first API key and will fetch and cache flag configuration A
-    let client = await init({
-      apiKey: apiKeyA,
-    });
-
-    expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe('control');
-    expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe(
-      'default-value',
-    );
-
-    // Second initialization uses second API key and will fetch and cache flag configuration B
-    client = await init({
-      apiKey: apiKeyB,
-    });
-
-    expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe(
-      'default-value',
-    );
-    expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe('control');
-
-    // Third initialization uses first API key which should load cached configuration A
-    client = await init({
-      apiKey: apiKeyA,
-      baseUrl: 'https://thisisabaddomainforthistest.com',
-    });
-
-    expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe('control');
-    expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe(
-      'default-value',
-    );
-
-    // Fourth initialization uses second API key which should load cached configuration B
-    client = await init({
-      apiKey: apiKeyB,
-      baseUrl: 'https://thisisabaddomainforthistest.com',
-    });
-
-    expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe(
-      'default-value',
-    );
-    expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe('control');
   });
 
   it('Ignores cache if fetch finishes first', async () => {
@@ -698,6 +706,102 @@ describe('initialization options', () => {
     // store entries should reflect latest fetch
     expect(mockStoreEntries).toEqual(mockConfigResponse.flags);
   });
+
+  test.each(['always', 'expired', 'empty'])(
+    'Fetch updates cache according to the "%s" update strategy',
+    async (updateOnFetch: ServingStoreUpdateStrategy) => {
+      // Mock fetch so first call works immediately, and all others takes time
+      // Also mock fetch so that it alternates the config it returns each time
+      let fetchResolveCount = 0;
+      let fetchCallCount = 0;
+      const fetchResolveDelayMs = 500;
+
+      const flagKey1 = 'flagKey1';
+      const flagKey2 = 'flagKey2';
+
+      global.fetch = jest.fn(() => {
+        const delayMs = ++fetchCallCount === 1 ? 0 : fetchResolveDelayMs;
+        const flagKey = fetchCallCount % 2 === 1 ? flagKey1 : flagKey2;
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            fetchResolveCount += 1;
+            resolve({
+              ok: true,
+              status: 200,
+              json: () =>
+                Promise.resolve({
+                  flags: {
+                    [md5Hash(flagKey)]: mockUfcFlagConfig,
+                  },
+                }),
+            });
+          }, delayMs);
+        });
+      }) as jest.Mock;
+
+      // First initialization will have nothing cached, will need fetch to resolve
+      let client = await init({
+        apiKey,
+        baseUrl,
+        assignmentLogger: mockLogger,
+        updateOnFetch,
+      });
+
+      expect(fetchCallCount).toBe(1);
+      expect(fetchResolveCount).toBe(1);
+      expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe('control');
+      expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe(
+        'default-value',
+      );
+
+      // Init again with an expired cache so a fetch will kicked off too
+      // We allow the expired cache, so it will succeed and fetch will be delayed
+      client = await init({
+        apiKey,
+        baseUrl,
+        assignmentLogger: mockLogger,
+        updateOnFetch,
+        useExpiredCache: true,
+      });
+
+      // Should serve assignment from cache before fetch completes
+      expect(fetchCallCount).toBe(2);
+      expect(fetchResolveCount).toBe(1);
+      expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe('control');
+      expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe(
+        'default-value',
+      );
+
+      // Completed fetch will now result in updated assignments unless set not to update a previously
+      // populated serving store
+      await jest.advanceTimersByTimeAsync(fetchResolveDelayMs);
+      expect(fetchCallCount).toBe(2);
+      expect(fetchResolveCount).toBe(2);
+      expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe(
+        updateOnFetch === 'empty' ? 'control' : 'default-value',
+      );
+      expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe(
+        updateOnFetch === 'empty' ? 'default-value' : 'control',
+      );
+
+      // Init from updated cache, with allowable cache age
+      client = await init({
+        apiKey,
+        baseUrl,
+        assignmentLogger: mockLogger,
+        updateOnFetch,
+        maxCacheAgeSeconds: fetchResolveDelayMs * 10,
+      });
+
+      // No fetch will have been kicked off because of valid cache; previously fetched values will be served
+      expect(fetchCallCount).toBe(2);
+      expect(fetchResolveCount).toBe(2);
+      expect(client.getStringAssignment(flagKey1, 'subject', {}, 'default-value')).toBe(
+        'default-value',
+      );
+      expect(client.getStringAssignment(flagKey2, 'subject', {}, 'default-value')).toBe('control');
+    },
+  );
 
   describe('With reloaded index module', () => {
     // eslint-disable-next-line @typescript-eslint/ban-types

@@ -14,6 +14,7 @@ import {
   hasChromeStorage,
   hasWindowLocalStorage,
 } from './configuration-factory';
+import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 import { sdkName, sdkVersion } from './sdk-data';
 
@@ -73,16 +74,37 @@ export interface IClientConfig {
   numPollRequestRetries?: number;
 
   /**
+   * Skip the request for new configurations during initialization. (default: false)
+   */
+  skipInitialRequest?: boolean;
+
+  /**
+   * Maximum age, in seconds, previously cached values are considered valid until new values will be
+   * fetched (default: 0)
+   */
+  maxCacheAgeSeconds?: number;
+
+  /**
+   * Whether initialization will be considered successfully complete if expired cache values are
+   * loaded. If false, initialization will always wait for a fetch if cached values are expired.
+   * (default: false)
+   */
+  useExpiredCache?: boolean;
+
+  /**
+   * Sets how the configuration is updated after a successful fetch
+   * - always: immediately start using the new configuration
+   * - expired: immediately start using the new configuration only if the current one has expired
+   * - empty: only use the new configuration if the current one is both expired and uninitialized/empty
+   */
+  updateOnFetch?: ServingStoreUpdateStrategy;
+
+  /**
    * A custom class to use for storing flag configurations.
    * This is useful for cases where you want to use a different storage mechanism
    * than the default storage provided by the SDK.
    */
   persistentStore?: IAsyncStore<Flag>;
-
-  /**
-   * Skip the request for new configurations during initialization. (default: false)
-   */
-  skipInitialRequest?: boolean;
 }
 
 // Export the common types and classes from the SDK.
@@ -92,10 +114,12 @@ export {
   IEppoClient,
   IAsyncStore,
 } from '@eppo/js-client-sdk-common';
-export { ChromeStorageAsyncStore } from './chrome.configuration-store';
+export { ChromeStorageEngine } from './chrome-storage-engine';
 
 // Instantiate the configuration store with memory-only implementation.
-const configurationStore = configurationStorageFactory({ forceMemoryOnly: true });
+const configurationStore = configurationStorageFactory({
+  forceMemoryOnly: true,
+});
 
 /**
  * Client for assigning experiment variations.
@@ -118,14 +142,26 @@ export class EppoJSClient extends EppoClient {
     return super.getStringAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
+  /**
+   * @deprecated Use getBooleanAssignment instead
+   */
   public getBoolAssignment(
     flagKey: string,
     subjectKey: string,
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: boolean,
   ): boolean {
+    return this.getBooleanAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
+
+  public getBooleanAssignment(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, any>,
+    defaultValue: boolean,
+  ): boolean {
     EppoJSClient.getAssignmentInitializationCheck();
-    return super.getBoolAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
+    return super.getBooleanAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
   public getIntegerAssignment(
@@ -179,20 +215,19 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     EppoJSClient.instance.stopPolling();
     // Set up assignment logger and cache
     EppoJSClient.instance.setLogger(config.assignmentLogger);
+    // default behavior is to use a LocalStorage-based assignment cache.
+    // this can be overridden after initialization.
+    EppoJSClient.instance.useCustomAssignmentCache(new LocalStorageAssignmentCache());
 
     // Note that we use the first 8 characters of the API key to create per-API key persistent storages
     const storageKeySuffix = config.apiKey.replace(/\W/g, '').substring(0, 8);
-
-    // default behavior is to use a LocalStorage-based assignment cache.
-    // this can be overridden after initialization.
-    EppoJSClient.instance.useCustomAssignmentCache(
-      new LocalStorageAssignmentCache(storageKeySuffix),
-    );
 
     // Set the configuration store to the desired persistent store, if provided.
     // Otherwise, the factory method will detect the current environment and instantiate the correct store.
     const configurationStore = configurationStorageFactory(
       {
+        maxAgeSeconds: config.maxCacheAgeSeconds,
+        servingStoreUpdateStrategy: config.updateOnFetch,
         persistentStore: config.persistentStore,
         hasChromeStorage: hasChromeStorage(),
         hasWindowLocalStorage: hasWindowLocalStorage(),
@@ -228,11 +263,18 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
 
     const attemptInitFromConfigStore = configurationStore
       .init()
-      .then(() => {
+      .then(async () => {
         if (!configurationStore.getKeys().length) {
           // Consider empty configuration stores invalid
-          console.warn('Empty cached configuration');
+          console.warn('Eppo SDK cached configuration is empty');
           initFromConfigStoreError = new Error('Configuration store was empty');
+          return '';
+        }
+
+        const cacheIsExpired = await configurationStore.isExpired();
+        if (cacheIsExpired && !config.useExpiredCache) {
+          console.warn('Eppo SDK set not to use expired cached configuration');
+          initFromConfigStoreError = new Error('Configuration store was expired');
           return '';
         }
         return 'config store';

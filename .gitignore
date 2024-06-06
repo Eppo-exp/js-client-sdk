@@ -11,4 +11,5 @@ test/data
 
 .eslintcache
 
+# IntelliJ generated files
 .idea/
