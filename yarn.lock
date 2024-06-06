@@ -380,10 +380,10 @@
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz#1d572bfbbe14b7704e0ba0f39b74815b84870d70"
   integrity sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==
 
-"@eppo/js-client-sdk-common@3.0.9":
-  version "3.0.9"
-  resolved "https://registry.yarnpkg.com/@eppo/js-client-sdk-common/-/js-client-sdk-common-3.0.9.tgz#f367b58061e2c4baf2b2a375a37de82eec0ce3e7"
-  integrity sha512-faE1baAJP7DI+nWVVK9jnTDxiV8pn78GXa3td9bzqG2cZpGCxaRMBJvLzFz/oZXR1OMYPdGAfBrzhTiLGKLodQ==
+"@eppo/js-client-sdk-common@3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@eppo/js-client-sdk-common/-/js-client-sdk-common-3.1.0.tgz#3958fa591d8e5b4026b1e58de86eb9865a2751e7"
+  integrity sha512-r/zHyE60QlIBEq91o/0PQud0fbLKqN1s8FDvN9OWjYEJx8XAUyYAx+rivAGycxwqU76TV1y8EUCOMFYvAVR1Jg==
   dependencies:
     md5 "^2.3.0"
     pino "^8.19.0"

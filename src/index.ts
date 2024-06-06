@@ -117,7 +117,9 @@ export {
 export { ChromeStorageEngine } from './chrome-storage-engine';
 
 // Instantiate the configuration store with memory-only implementation.
-const configurationStore = configurationStorageFactory({ forceMemoryOnly: true });
+const configurationStore = configurationStorageFactory({
+  forceMemoryOnly: true,
+});
 
 /**
  * Client for assigning experiment variations.
@@ -140,14 +142,26 @@ export class EppoJSClient extends EppoClient {
     return super.getStringAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
+  /**
+   * @deprecated Use getBooleanAssignment instead
+   */
   public getBoolAssignment(
     flagKey: string,
     subjectKey: string,
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: boolean,
   ): boolean {
+    return this.getBooleanAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
+
+  public getBooleanAssignment(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, any>,
+    defaultValue: boolean,
+  ): boolean {
     EppoJSClient.getAssignmentInitializationCheck();
-    return super.getBoolAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
+    return super.getBooleanAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
   public getIntegerAssignment(
