@@ -259,7 +259,6 @@ describe('EppoJSClient E2E test', () => {
         });
       }) as jest.Mock;
 
-      console.log('UFC Obfuscated global init');
       globalClient = await init({
         apiKey,
         baseUrl,

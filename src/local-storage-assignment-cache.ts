@@ -2,11 +2,17 @@ import { AssignmentCache } from '@eppo/js-client-sdk-common';
 
 import { hasWindowLocalStorage } from './configuration-factory';
 
+export class LocalStorageAssignmentCache extends AssignmentCache<LocalStorageAssignmentShim> {
+  constructor(storageKeySuffix: string) {
+    super(new LocalStorageAssignmentShim(storageKeySuffix));
+  }
+}
+
 // noinspection JSUnusedGlobalSymbols (methods are used by common repository)
 class LocalStorageAssignmentShim {
   private readonly localStorageKey: string;
 
-  public constructor(storageKeySuffix?: string) {
+  public constructor(storageKeySuffix: string) {
     const keySuffix = storageKeySuffix ? '-' + storageKeySuffix : '';
     this.localStorageKey = 'eppo-assignment' + keySuffix;
   }
@@ -44,11 +50,5 @@ class LocalStorageAssignmentShim {
 
   private setCache(cache: Map<string, string>) {
     window.localStorage.setItem(this.localStorageKey, JSON.stringify(Array.from(cache.entries())));
-  }
-}
-
-export class LocalStorageAssignmentCache extends AssignmentCache<LocalStorageAssignmentShim> {
-  constructor(storageKeySuffix?: string) {
-    super(new LocalStorageAssignmentShim(storageKeySuffix));
   }
 }
