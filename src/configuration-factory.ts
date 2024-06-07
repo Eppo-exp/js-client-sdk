@@ -50,7 +50,7 @@ export function configurationStorageFactory(
     );
   } else if (hasChromeStorage && chromeStorage) {
     // Chrome storage is available, use it as a fallback
-    const chromeStorageEngine = new ChromeStorageEngine(chromeStorage);
+    const chromeStorageEngine = new ChromeStorageEngine(chromeStorage, storageKeySuffix ?? '');
     return new IsolatableHybridConfigurationStore(
       new MemoryStore<Flag>(),
       new StringValuedAsyncStore<Flag>(chromeStorageEngine, maxAgeSeconds),
@@ -58,7 +58,7 @@ export function configurationStorageFactory(
     );
   } else if (hasWindowLocalStorage && windowLocalStorage) {
     // window.localStorage is available, use it as a fallback
-    const localStorageEngine = new LocalStorageEngine(windowLocalStorage);
+    const localStorageEngine = new LocalStorageEngine(windowLocalStorage, storageKeySuffix ?? '');
     return new IsolatableHybridConfigurationStore(
       new MemoryStore<Flag>(),
       new StringValuedAsyncStore<Flag>(localStorageEngine, maxAgeSeconds),

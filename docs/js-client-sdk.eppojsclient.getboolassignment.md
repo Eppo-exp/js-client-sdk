@@ -4,6 +4,11 @@
 
 ## EppoJSClient.getBoolAssignment() method
 
+> Warning: This API is now obsolete.
+> 
+> Use getBooleanAssignment instead
+> 
+
 **Signature:**
 
 ```typescript

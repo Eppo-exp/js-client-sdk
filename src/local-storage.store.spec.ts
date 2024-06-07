@@ -7,7 +7,7 @@ import { StringValuedAsyncStore } from './string-valued.store';
 
 describe('LocalStorageStore', () => {
   // Note: window.localStorage is mocked for the node environment via the jsdom jest environment
-  const localStorageEngine = new LocalStorageEngine(window.localStorage);
+  const localStorageEngine = new LocalStorageEngine(window.localStorage, 'test');
   interface ITestEntry {
     items: string[];
   }
