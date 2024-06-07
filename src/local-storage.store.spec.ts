@@ -7,7 +7,7 @@ import { StringValuedAsyncStore } from './string-valued.store';
 
 describe('LocalStorageStore', () => {
   // Note: window.localStorage is mocked for the node environment via the jsdom jest environment
-  const localStorageEngine = new LocalStorageEngine(window.localStorage);
+  const localStorageEngine = new LocalStorageEngine(window.localStorage, 'test');
   interface ITestEntry {
     items: string[];
   }
@@ -20,6 +20,7 @@ describe('LocalStorageStore', () => {
 
   beforeEach(() => {
     window.localStorage.clear();
+    jest.useFakeTimers();
   });
 
   afterEach(() => {
@@ -45,7 +46,6 @@ describe('LocalStorageStore', () => {
   });
 
   it('is not expired after entries are set until cooldown', async () => {
-    jest.useFakeTimers();
     const store = new StringValuedAsyncStore<ITestEntry>(localStorageEngine, 10);
     expect(await store.isExpired()).toBe(true);
     await store.setEntries({ key1: config1, key2: config2 });
@@ -58,5 +58,26 @@ describe('LocalStorageStore', () => {
     // advance time by 6 more seconds (11 total)
     await jest.advanceTimersByTimeAsync(6 * 1000);
     expect(await store.isExpired()).toBe(true);
+  });
+
+  it('stores independently based on key suffix', async () => {
+    const localStorageEngineEngineA = new LocalStorageEngine(window.localStorage, 'A');
+    const storeA = new StringValuedAsyncStore(localStorageEngineEngineA, 1);
+    const localStorageEngineEngineB = new LocalStorageEngine(window.localStorage, 'B');
+    const storeB = new StringValuedAsyncStore(localStorageEngineEngineB, 1);
+
+    await storeA.setEntries({ theKey: 'A' });
+    expect(await storeA.getEntries()).toEqual({ theKey: 'A' });
+    expect(await storeA.isExpired()).toBe(false);
+    expect(await storeB.getEntries()).toEqual({});
+    expect(await storeB.isExpired()).toBe(true);
+
+    await jest.advanceTimersByTimeAsync(2000);
+
+    await storeB.setEntries({ theKey: 'B' });
+    expect(await storeA.getEntries()).toEqual({ theKey: 'A' });
+    expect(await storeA.isExpired()).toBe(true);
+    expect(await storeB.getEntries()).toEqual({ theKey: 'B' });
+    expect(await storeB.isExpired()).toBe(false);
   });
 });

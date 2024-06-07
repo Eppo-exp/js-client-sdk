@@ -646,6 +646,16 @@ describe('initialization options', () => {
     await jest.advanceTimersByTimeAsync(fetchResolveDelayMs);
     expect(fetchResolveCount).toBe(2);
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
+
+    // Different API key uses different cache (will throw because of empty cache and failed fetch)
+    await expect(
+      init({
+        apiKey: 'another api key',
+        baseUrl: 'https://thisisabaddomainforthistest.com',
+        assignmentLogger: mockLogger,
+        useExpiredCache: true,
+      }),
+    ).rejects.toThrow();
   });
 
   it('Ignores cache if fetch finishes first', async () => {

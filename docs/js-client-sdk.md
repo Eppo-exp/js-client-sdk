@@ -8,7 +8,7 @@
 
 |  Class | Description |
 |  --- | --- |
-|  [ChromeStorageAsyncStore](./js-client-sdk.chromestorageasyncstore.md) |  |
+|  [ChromeStorageEngine](./js-client-sdk.chromestorageengine.md) | <p>Chrome storage implementation of a string-valued store for storing a configuration and its metadata.</p><p>This serializes the entire configuration object into a string and then stores it to a single key within the object for another single top-level key. Same with metadata about the store (e.g., when it was last updated).</p> |
 |  [EppoJSClient](./js-client-sdk.eppojsclient.md) | Client for assigning experiment variations. |
 
 ## Functions

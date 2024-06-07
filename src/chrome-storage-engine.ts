@@ -7,31 +7,39 @@ import { IStringStorageEngine } from './string-valued.store';
  * This serializes the entire configuration object into a string and then stores it to a single key
  * within the object for another single top-level key.
  * Same with metadata about the store (e.g., when it was last updated).
+ *
+ * Note: this behaves a bit differently than local storage as the chrome storage API gets and sets
+ * subsets of key-value pairs, so we have to dereference or re-specify the key.
  */
 export class ChromeStorageEngine implements IStringStorageEngine {
-  private chromeStorageKey = 'eppo-sdk';
+  private readonly contentsKey;
+  private readonly metaKey;
 
-  public constructor(private storageArea: chrome.storage.StorageArea) {}
+  public constructor(private storageArea: chrome.storage.StorageArea, storageKeySuffix: string) {
+    const keySuffix = storageKeySuffix ? `-${storageKeySuffix}` : '';
+    this.contentsKey = CONFIGURATION_KEY + keySuffix;
+    this.metaKey = META_KEY + keySuffix;
+  }
 
   public getContentsJsonString = async (): Promise<string | null> => {
-    const storage = await this.storageArea.get(this.chromeStorageKey);
-    return storage?.[CONFIGURATION_KEY] ?? null;
+    const storageSubset = await this.storageArea.get(this.contentsKey);
+    return storageSubset?.[this.contentsKey] ?? null;
   };
 
   public getMetaJsonString = async (): Promise<string | null> => {
-    const storage = await this.storageArea.get(this.chromeStorageKey);
-    return storage?.[META_KEY] ?? null;
+    const storageSubset = await this.storageArea.get(this.metaKey);
+    return storageSubset?.[this.metaKey] ?? null;
   };
 
   public setContentsJsonString = async (configurationJsonString: string): Promise<void> => {
     await this.storageArea.set({
-      [CONFIGURATION_KEY]: configurationJsonString,
+      [this.contentsKey]: configurationJsonString,
     });
   };
 
   public setMetaJsonString = async (metaJsonString: string): Promise<void> => {
     await this.storageArea.set({
-      [META_KEY]: metaJsonString,
+      [this.metaKey]: metaJsonString,
     });
   };
 }

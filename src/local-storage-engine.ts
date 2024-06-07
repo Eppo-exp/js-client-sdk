@@ -8,21 +8,28 @@ import { IStringStorageEngine } from './string-valued.store';
  * storage key. Same with metadata about the store (e.g., when it was last updated).
  */
 export class LocalStorageEngine implements IStringStorageEngine {
-  public constructor(private localStorage: Storage) {}
+  private readonly contentsKey;
+  private readonly metaKey;
+
+  public constructor(private localStorage: Storage, storageKeySuffix: string) {
+    const keySuffix = storageKeySuffix ? `-${storageKeySuffix}` : '';
+    this.contentsKey = CONFIGURATION_KEY + keySuffix;
+    this.metaKey = META_KEY + keySuffix;
+  }
 
   public getContentsJsonString = async (): Promise<string | null> => {
-    return this.localStorage.getItem(CONFIGURATION_KEY);
+    return this.localStorage.getItem(this.contentsKey);
   };
 
   public getMetaJsonString = async (): Promise<string | null> => {
-    return this.localStorage.getItem(META_KEY);
+    return this.localStorage.getItem(this.metaKey);
   };
 
   public setContentsJsonString = async (configurationJsonString: string): Promise<void> => {
-    this.localStorage.setItem(CONFIGURATION_KEY, configurationJsonString);
+    this.localStorage.setItem(this.contentsKey, configurationJsonString);
   };
 
   public setMetaJsonString = async (metaJsonString: string): Promise<void> => {
-    this.localStorage.setItem(META_KEY, metaJsonString);
+    this.localStorage.setItem(this.metaKey, metaJsonString);
   };
 }
