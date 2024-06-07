@@ -6,7 +6,7 @@ import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 
 describe('LocalStorageAssignmentCache', () => {
   it('typical behavior', () => {
-    const cache = new LocalStorageAssignmentCache();
+    const cache = new LocalStorageAssignmentCache('test');
     expect(
       cache.hasLoggedAssignment({
         subjectKey: 'subject-1',
