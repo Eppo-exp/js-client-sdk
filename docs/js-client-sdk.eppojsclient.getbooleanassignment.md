@@ -7,7 +7,7 @@
 **Signature:**
 
 ```typescript
-getBooleanAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: boolean): boolean;
+getBooleanAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: boolean): boolean;
 ```
 
 ## Parameters
@@ -16,7 +16,7 @@ getBooleanAssignment(flagKey: string, subjectKey: string, subjectAttributes: Rec
 |  --- | --- | --- |
 |  flagKey | string |  |
 |  subjectKey | string |  |
-|  subjectAttributes | Record&lt;string, any&gt; |  |
+|  subjectAttributes | Record&lt;string, AttributeType&gt; |  |
 |  defaultValue | boolean |  |
 
 **Returns:**

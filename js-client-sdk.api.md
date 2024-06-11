@@ -18,7 +18,7 @@ import { IEppoClient } from '@eppo/js-client-sdk-common';
 //
 // @public
 export class ChromeStorageEngine implements IStringStorageEngine {
-    constructor(storageArea: chrome.storage.StorageArea);
+    constructor(storageArea: chrome.storage.StorageArea, storageKeySuffix: string);
     // (undocumented)
     getContentsJsonString: () => Promise<string | null>;
     // (undocumented)
@@ -34,7 +34,7 @@ export class EppoJSClient extends EppoClient {
     // @deprecated (undocumented)
     getBoolAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: boolean): boolean;
     // (undocumented)
-    getBooleanAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: boolean): boolean;
+    getBooleanAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: boolean): boolean;
     // (undocumented)
     getIntegerAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: number): number;
     // (undocumented)
