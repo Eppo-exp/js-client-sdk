@@ -9,7 +9,7 @@ Constructs a new instance of the `ChromeStorageEngine` class
 **Signature:**
 
 ```typescript
-constructor(storageArea: chrome.storage.StorageArea);
+constructor(storageArea: chrome.storage.StorageArea, storageKeySuffix: string);
 ```
 
 ## Parameters
@@ -17,4 +17,5 @@ constructor(storageArea: chrome.storage.StorageArea);
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  storageArea | chrome.storage.StorageArea |  |
+|  storageKeySuffix | string |  |
 
