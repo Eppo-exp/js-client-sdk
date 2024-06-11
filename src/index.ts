@@ -157,7 +157,7 @@ export class EppoJSClient extends EppoClient {
   public getBooleanAssignment(
     flagKey: string,
     subjectKey: string,
-    subjectAttributes: Record<string, any>,
+    subjectAttributes: Record<string, AttributeType>,
     defaultValue: boolean,
   ): boolean {
     EppoJSClient.getAssignmentInitializationCheck();
