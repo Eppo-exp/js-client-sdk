@@ -18,7 +18,7 @@ import { IEppoClient } from '@eppo/js-client-sdk-common';
 //
 // @public
 export class ChromeStorageEngine implements IStringStorageEngine {
-    constructor(storageArea: chrome.storage.StorageArea);
+    constructor(storageArea: chrome.storage.StorageArea, storageKeySuffix: string);
     // (undocumented)
     getContentsJsonString: () => Promise<string | null>;
     // (undocumented)

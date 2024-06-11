@@ -8,6 +8,8 @@ Chrome storage implementation of a string-valued store for storing a configurati
 
 This serializes the entire configuration object into a string and then stores it to a single key within the object for another single top-level key. Same with metadata about the store (e.g., when it was last updated).
 
+Note: this behaves a bit differently than local storage as the chrome storage API gets and sets subsets of key-value pairs, so we have to dereference or re-specify the key.
+
 **Signature:**
 
 ```typescript
@@ -19,7 +21,7 @@ export declare class ChromeStorageEngine implements IStringStorageEngine
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(storageArea)](./js-client-sdk.chromestorageengine._constructor_.md) |  | Constructs a new instance of the <code>ChromeStorageEngine</code> class |
+|  [(constructor)(storageArea, storageKeySuffix)](./js-client-sdk.chromestorageengine._constructor_.md) |  | Constructs a new instance of the <code>ChromeStorageEngine</code> class |
 
 ## Properties
 

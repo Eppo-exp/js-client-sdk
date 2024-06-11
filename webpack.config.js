@@ -1,11 +1,17 @@
+/* eslint-disable @typescript-eslint/no-var-requires, no-undef */
 const path = require('path');
 
 const TerserPlugin = require('terser-webpack-plugin');
+const webpack = require('webpack');
+
+const sourceMaps = new webpack.SourceMapDevToolPlugin({
+  filename: '[file].map[query]',
+});
 
 module.exports = {
   entry: './src/index.ts',
   mode: 'production',
-  devtool: 'inline-source-map',
+  devtool: false,
   target: 'web',
   module: {
     rules: [
@@ -31,4 +37,5 @@ module.exports = {
     minimize: true,
     minimizer: [new TerserPlugin()],
   },
+  plugins: [sourceMaps],
 };
