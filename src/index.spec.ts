@@ -12,7 +12,6 @@ import {
   IAsyncStore,
 } from '@eppo/js-client-sdk-common';
 import * as td from 'testdouble';
-import { encode } from 'universal-base64';
 
 const { POLL_INTERVAL_MS, POLL_JITTER_PCT } = constants;
 
@@ -219,7 +218,7 @@ describe('EppoJSClient E2E test', () => {
                   {
                     attribute: md5Hash('appVersion'),
                     operator: md5Hash('GT'),
-                    value: encode('10'),
+                    value: base64Encode('10'),
                   },
                 ],
               },
