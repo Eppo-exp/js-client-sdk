@@ -33,6 +33,10 @@ describe('HybridStorageAssignmentCache', () => {
   const chromeStorageCache = new ChromeStorageAssignmentCache(mockChromeStorage);
   const hybridCache = new HybridAssignmentCache(localStorageCache, chromeStorageCache);
 
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
   it('has should return false if cache is empty', () => {
     const cacheKey = {
       subjectKey: 'subject-1',
