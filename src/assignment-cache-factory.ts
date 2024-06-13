@@ -1,4 +1,4 @@
-import { AssignmentCache } from '../../js-client-sdk-common/src';
+import { AssignmentCache } from '@eppo/js-client-sdk-common';
 
 import ChromeStorageAssignmentCache from './cache/chrome-storage-assignment-cache';
 import HybridAssignmentCache from './cache/hybrid-assignment-cache';
