@@ -9,13 +9,13 @@ import {
   AttributeType,
 } from '@eppo/js-client-sdk-common';
 
+import { LocalStorageAssignmentCache } from './cache/local-storage-assignment-cache';
 import {
   configurationStorageFactory,
   hasChromeStorage,
   hasWindowLocalStorage,
 } from './configuration-factory';
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
-import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 import { sdkName, sdkVersion } from './sdk-data';
 
 /**

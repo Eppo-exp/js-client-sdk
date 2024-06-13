@@ -6,6 +6,7 @@ import {
   MemoryStore,
 } from '@eppo/js-client-sdk-common';
 
+import ChromeStorageAsyncMap from './cache/chrome-storage-async-map';
 import { ChromeStorageEngine } from './chrome-storage-engine';
 import {
   IsolatableHybridConfigurationStore,
@@ -50,7 +51,10 @@ export function configurationStorageFactory(
     );
   } else if (hasChromeStorage && chromeStorage) {
     // Chrome storage is available, use it as a fallback
-    const chromeStorageEngine = new ChromeStorageEngine(chromeStorage, storageKeySuffix ?? '');
+    const chromeStorageEngine = new ChromeStorageEngine(
+      new ChromeStorageAsyncMap(chromeStorage),
+      storageKeySuffix ?? '',
+    );
     return new IsolatableHybridConfigurationStore(
       new MemoryStore<Flag>(),
       new StringValuedAsyncStore<Flag>(chromeStorageEngine, maxAgeSeconds),

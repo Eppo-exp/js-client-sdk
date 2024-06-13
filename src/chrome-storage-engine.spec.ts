@@ -1,5 +1,6 @@
 import { IAsyncStore } from '@eppo/js-client-sdk-common';
 
+import ChromeStorageAsyncMap from './cache/chrome-storage-async-map';
 import { ChromeStorageEngine } from './chrome-storage-engine';
 import { StringValuedAsyncStore } from './string-valued.store';
 
@@ -28,7 +29,10 @@ describe('ChromeStorageStore', () => {
   const dummyKeySuffix = 'test';
   const fakeStoreContentsKey = `eppo-configuration-${dummyKeySuffix}`;
   const fakeStoreMetaKey = `eppo-configuration-meta-${dummyKeySuffix}`;
-  const chromeStorageEngine = new ChromeStorageEngine(mockChromeStorage, dummyKeySuffix);
+  const chromeStorageEngine = new ChromeStorageEngine(
+    new ChromeStorageAsyncMap(mockChromeStorage),
+    dummyKeySuffix,
+  );
   let chromeStore: IAsyncStore<unknown>;
   let now: number;
 
@@ -91,9 +95,15 @@ describe('ChromeStorageStore', () => {
   });
 
   it('stores independently based on key suffix', async () => {
-    const chromeStorageEngineA = new ChromeStorageEngine(mockChromeStorage, 'A');
+    const chromeStorageEngineA = new ChromeStorageEngine(
+      new ChromeStorageAsyncMap(mockChromeStorage),
+      'A',
+    );
     const chromeStoreA = new StringValuedAsyncStore(chromeStorageEngineA, 1);
-    const chromeStorageEngineB = new ChromeStorageEngine(mockChromeStorage, 'B');
+    const chromeStorageEngineB = new ChromeStorageEngine(
+      new ChromeStorageAsyncMap(mockChromeStorage),
+      'B',
+    );
     const chromeStoreB = new StringValuedAsyncStore(chromeStorageEngineB, 1);
 
     await chromeStoreA.setEntries({ theKey: 'A' });
