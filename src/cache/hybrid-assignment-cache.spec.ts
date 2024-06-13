@@ -54,8 +54,11 @@ describe('HybridStorageAssignmentCache', () => {
       variationKey: 'control',
     };
     hybridCache.init();
+    expect(hybridCache.has(cacheKey)).toBeFalsy();
+    expect(localStorageCache.has(cacheKey)).toBeFalsy();
     hybridCache.set(cacheKey);
     expect(hybridCache.has(cacheKey)).toBeTruthy();
+    expect(localStorageCache.has(cacheKey)).toBeTruthy();
   });
 
   it('should populate localStorageCache from chromeStorageCache', async () => {
@@ -66,6 +69,7 @@ describe('HybridStorageAssignmentCache', () => {
       variationKey: 'control',
     };
     chromeStorageCache.set(cacheKey);
+    expect(localStorageCache.has(cacheKey)).toBeFalsy();
     await hybridCache.init();
     expect(localStorageCache.has(cacheKey)).toBeTruthy();
   });
