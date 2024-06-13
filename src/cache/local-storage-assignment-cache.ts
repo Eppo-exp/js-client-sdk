@@ -1,10 +1,24 @@
 import { AbstractAssignmentCache } from '@eppo/js-client-sdk-common';
+import { AssignmentCacheKey } from '@eppo/js-client-sdk-common/dist/cache/assignment-cache';
 
 import { hasWindowLocalStorage } from '../configuration-factory';
 
-export class LocalStorageAssignmentCache extends AbstractAssignmentCache<LocalStorageAssignmentShim> {
+import { WriteableAssignmentCache } from './hybrid-assignment-cache';
+
+export class LocalStorageAssignmentCache
+  extends AbstractAssignmentCache<LocalStorageAssignmentShim>
+  implements WriteableAssignmentCache
+{
   constructor(storageKeySuffix: string) {
     super(new LocalStorageAssignmentShim(storageKeySuffix));
+  }
+
+  setEntries(entries: AssignmentCacheKey[]): void {
+    entries.forEach((entry) => {
+      if (entry) {
+        this.set(entry);
+      }
+    });
   }
 }
 

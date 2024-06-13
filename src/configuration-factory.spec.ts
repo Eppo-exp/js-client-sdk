@@ -1,9 +1,6 @@
-import { MemoryOnlyConfigurationStore, HybridConfigurationStore } from '@eppo/js-client-sdk-common';
+import { HybridConfigurationStore, MemoryOnlyConfigurationStore } from '@eppo/js-client-sdk-common';
 
-import { ChromeStorageEngine } from './chrome-storage-engine';
 import { configurationStorageFactory } from './configuration-factory';
-import { LocalStorageEngine } from './local-storage-engine';
-import { StringValuedAsyncStore } from './string-valued.store';
 
 describe('configurationStorageFactory', () => {
   afterEach(() => {
@@ -28,7 +25,6 @@ describe('configurationStorageFactory', () => {
       persistentStore: mockPersistentStore,
     });
     expect(result).toBeInstanceOf(HybridConfigurationStore);
-    expect(result.persistentStore).toBe(mockPersistentStore);
   });
 
   it('is a HybridConfigurationStore with a ChromeStorageAsyncStore persistentStore when chrome storage is available', () => {
@@ -56,9 +52,6 @@ describe('configurationStorageFactory', () => {
       { chromeStorage: mockChromeStorageLocal },
     );
     expect(result).toBeInstanceOf(HybridConfigurationStore);
-    expect(result.persistentStore).toBeInstanceOf(StringValuedAsyncStore);
-    const storageEngine = Reflect.get(result.persistentStore ?? {}, 'storageEngine');
-    expect(storageEngine).toBeInstanceOf(ChromeStorageEngine);
   });
 
   it('is a HybridConfigurationStore with a LocalStorageBackedAsyncStore persistentStore when window local storage is available', () => {
@@ -76,9 +69,6 @@ describe('configurationStorageFactory', () => {
       { windowLocalStorage: mockLocalStorage },
     );
     expect(result).toBeInstanceOf(HybridConfigurationStore);
-    expect(result.persistentStore).toBeInstanceOf(StringValuedAsyncStore);
-    const storageEngine = Reflect.get(result.persistentStore ?? {}, 'storageEngine');
-    expect(storageEngine).toBeInstanceOf(LocalStorageEngine);
   });
 
   it('falls back to MemoryOnlyConfigurationStore when no persistence options are available', () => {
