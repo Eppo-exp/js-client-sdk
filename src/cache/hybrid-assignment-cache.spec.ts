@@ -8,8 +8,6 @@ import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 
 import StorageArea = chrome.storage.StorageArea;
 
-import { waitForMs } from '@eppo/js-client-sdk-common/dist/util';
-
 describe('HybridStorageAssignmentCache', () => {
   const fakeStore: Record<string, string> = {};
 
@@ -68,8 +66,8 @@ describe('HybridStorageAssignmentCache', () => {
       allocationKey: 'allocation-1',
       variationKey: 'control',
     };
-    chromeStorageCache.set(cacheKey);
     expect(localStorageCache.has(cacheKey)).toBeFalsy();
+    chromeStorageCache.set(cacheKey);
     await hybridCache.init();
     expect(localStorageCache.has(cacheKey)).toBeTruthy();
   });
