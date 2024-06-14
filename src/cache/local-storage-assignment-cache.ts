@@ -3,11 +3,11 @@ import { AssignmentCacheKey } from '@eppo/js-client-sdk-common/dist/cache/assign
 
 import { hasWindowLocalStorage } from '../configuration-factory';
 
-import { WriteableAssignmentCache } from './hybrid-assignment-cache';
+import { BulkReadAssignmentCache, BulkWriteAssignmentCache } from './hybrid-assignment-cache';
 
 export class LocalStorageAssignmentCache
   extends AbstractAssignmentCache<LocalStorageAssignmentShim>
-  implements WriteableAssignmentCache
+  implements BulkReadAssignmentCache, BulkWriteAssignmentCache
 {
   constructor(storageKeySuffix: string) {
     super(new LocalStorageAssignmentShim(storageKeySuffix));
@@ -20,6 +20,12 @@ export class LocalStorageAssignmentCache
       }
     });
   }
+
+  getEntries(): Promise<AssignmentCacheKey[]> {
+    // we can't use this.delegate directly here because AbstractAssignmentCache uses a custom key/value format for
+    // storing AssignmentCacheKey entries in the cache.
+    return Promise.resolve([] /** this.cache.keys() */);
+  }
 }
 
 // noinspection JSUnusedGlobalSymbols (methods are used by common repository)
@@ -27,6 +33,9 @@ class LocalStorageAssignmentShim implements Map<string, string> {
   private readonly localStorageKey: string;
 
   public constructor(storageKeySuffix: string) {
+    if (!hasWindowLocalStorage()) {
+      throw new Error('LocalStorageAssignmentShim requires window.localStorage to be available');
+    }
     const keySuffix = storageKeySuffix ? `-${storageKeySuffix}` : '';
     this.localStorageKey = `eppo-assignment${keySuffix}`;
   }
@@ -50,56 +59,32 @@ class LocalStorageAssignmentShim implements Map<string, string> {
   size: number;
 
   entries(): IterableIterator<[string, string]> {
-    if (!hasWindowLocalStorage()) {
-      return [][Symbol.iterator]();
-    }
     return this.getCache().entries();
   }
 
   keys(): IterableIterator<string> {
-    if (!hasWindowLocalStorage()) {
-      return [][Symbol.iterator]();
-    }
     return this.getCache().keys();
   }
 
   values(): IterableIterator<string> {
-    if (!hasWindowLocalStorage()) {
-      return [][Symbol.iterator]();
-    }
     return this.getCache().values();
   }
 
   [Symbol.iterator](): IterableIterator<[string, string]> {
-    if (!hasWindowLocalStorage()) {
-      return [][Symbol.iterator]();
-    }
     return this.getCache()[Symbol.iterator]();
   }
 
   [Symbol.toStringTag]: string;
 
   public has(key: string): boolean {
-    if (!hasWindowLocalStorage()) {
-      return false;
-    }
-
     return this.getCache().has(key);
   }
 
   public get(key: string): string | undefined {
-    if (!hasWindowLocalStorage()) {
-      return undefined;
-    }
-
     return this.getCache().get(key) ?? undefined;
   }
 
   public set(key: string, value: string): this {
-    if (!hasWindowLocalStorage()) {
-      return this;
-    }
-
     const cache = this.getCache();
     cache.set(key, value);
     this.setCache(cache);

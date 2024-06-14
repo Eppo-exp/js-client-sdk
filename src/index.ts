@@ -201,6 +201,11 @@ export class EppoJSClient extends EppoClient {
   }
 }
 
+export function buildStorageKeySuffix(apiKey: string): string {
+  // Note that we use the first 8 characters of the API key to create per-API key persistent storages and caches
+  return apiKey.replace(/\W/g, '').substring(0, 8);
+}
+
 /**
  * Initializes the Eppo client with configuration parameters.
  * This method should be called once on application startup.
@@ -210,28 +215,26 @@ export class EppoJSClient extends EppoClient {
 export async function init(config: IClientConfig): Promise<IEppoClient> {
   validation.validateNotBlank(config.apiKey, 'API key required');
   let initializationError: Error | undefined;
+  const instance = EppoJSClient.instance;
+  const { apiKey, persistentStore, baseUrl, maxCacheAgeSeconds, updateOnFetch } = config;
   try {
     // If any existing instances; ensure they are not polling
-    EppoJSClient.instance.stopPolling();
+    instance.stopPolling();
     // Set up assignment logger and cache
-    EppoJSClient.instance.setLogger(config.assignmentLogger);
-
-    // Note that we use the first 8 characters of the API key to create per-API key persistent storages and caches
-    const storageKeySuffix = config.apiKey.replace(/\W/g, '').substring(0, 8);
+    instance.setLogger(config.assignmentLogger);
 
     // default behavior is to use a LocalStorage-based assignment cache.
     // this can be overridden after initialization.
-    EppoJSClient.instance.useCustomAssignmentCache(
-      new LocalStorageAssignmentCache(storageKeySuffix),
-    );
+    const storageKeySuffix = buildStorageKeySuffix(apiKey);
+    instance.useCustomAssignmentCache(new LocalStorageAssignmentCache(storageKeySuffix));
 
     // Set the configuration store to the desired persistent store, if provided.
     // Otherwise, the factory method will detect the current environment and instantiate the correct store.
     const configurationStore = configurationStorageFactory(
       {
-        maxAgeSeconds: config.maxCacheAgeSeconds,
-        servingStoreUpdateStrategy: config.updateOnFetch,
-        persistentStore: config.persistentStore,
+        maxAgeSeconds: maxCacheAgeSeconds,
+        servingStoreUpdateStrategy: updateOnFetch,
+        persistentStore,
         hasChromeStorage: hasChromeStorage(),
         hasWindowLocalStorage: hasWindowLocalStorage(),
       },
@@ -241,14 +244,14 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
         storageKeySuffix,
       },
     );
-    EppoJSClient.instance.setConfigurationStore(configurationStore);
+    instance.setConfigurationStore(configurationStore);
 
     // Set up parameters for requesting updated configurations
     const requestConfiguration: FlagConfigurationRequestParameters = {
-      apiKey: config.apiKey,
+      apiKey,
       sdkName,
       sdkVersion,
-      baseUrl: config.baseUrl ?? undefined,
+      baseUrl,
       requestTimeoutMs: config.requestTimeoutMs ?? undefined,
       numInitialRequestRetries: config.numInitialRequestRetries ?? undefined,
       numPollRequestRetries: config.numPollRequestRetries ?? undefined,
@@ -257,7 +260,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
       throwOnFailedInitialization: true, // always use true here as underlying instance fetch is surrounded by try/catch
       skipInitialPoll: config.skipInitialRequest ?? false,
     };
-    EppoJSClient.instance.setConfigurationRequestParameters(requestConfiguration);
+    instance.setConfigurationRequestParameters(requestConfiguration);
 
     // We have two at-bats for initialization: from the configuration store and from fetching
     // We can resolve the initialization promise as soon as either one succeeds
@@ -286,7 +289,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
         console.warn('Eppo SDK encountered an error initializing from the configuration store', e);
         initFromConfigStoreError = e;
       });
-    const attemptInitFromFetch = EppoJSClient.instance
+    const attemptInitFromFetch = instance
       .fetchFlagConfigurations()
       .then(() => {
         return 'fetch';
@@ -332,7 +335,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
   }
 
   EppoJSClient.initialized = true;
-  return EppoJSClient.instance;
+  return instance;
 }
 
 /**

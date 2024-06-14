@@ -78,6 +78,7 @@ export function hasChromeStorage(): boolean {
   return typeof chrome !== 'undefined' && !!chrome.storage;
 }
 
+/** Returns whether `window.localStorage` is available */
 export function hasWindowLocalStorage(): boolean {
   try {
     return typeof window !== 'undefined' && !!window.localStorage;

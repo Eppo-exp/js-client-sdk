@@ -1,22 +1,24 @@
 import { AssignmentCache } from '@eppo/js-client-sdk-common';
 import { AssignmentCacheKey } from '@eppo/js-client-sdk-common/dist/cache/assignment-cache';
 
-export type WriteableAssignmentCache = AssignmentCache & {
+/** An {@link AssignmentCache} that can write (set) multiple entries at once (in bulk). */
+export type BulkWriteAssignmentCache = AssignmentCache & {
   setEntries(entries: AssignmentCacheKey[]): void;
 };
 
-export type ReadableAssignmentCache = AssignmentCache & {
+/** An {@link AssignmentCache} that can read (get) all entries at once. */
+export type BulkReadAssignmentCache = AssignmentCache & {
   getEntries(): Promise<AssignmentCacheKey[]>;
 };
 
 /**
- * An {@link AssignmentCache} implementation that, upon `init`, reads from a persistent and async {@link ReadableAssignmentCache}
- * and writes to a synchronous {@link WriteableAssignmentCache} for serving the cache.
+ * An {@link AssignmentCache} implementation that, upon `init`, reads from a persistent and async {@link BulkReadAssignmentCache}
+ * and writes to a synchronous {@link BulkWriteAssignmentCache} for serving the cache.
  * */
 export default class HybridAssignmentCache implements AssignmentCache {
   constructor(
-    private readonly servingStore: WriteableAssignmentCache,
-    private readonly persistentStore: ReadableAssignmentCache,
+    private readonly servingStore: BulkWriteAssignmentCache,
+    private readonly persistentStore: BulkReadAssignmentCache,
   ) {}
 
   async init(): Promise<void> {

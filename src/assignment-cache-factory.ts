@@ -3,21 +3,27 @@ import { AssignmentCache } from '@eppo/js-client-sdk-common';
 import ChromeStorageAssignmentCache from './cache/chrome-storage-assignment-cache';
 import HybridAssignmentCache from './cache/hybrid-assignment-cache';
 import { LocalStorageAssignmentCache } from './cache/local-storage-assignment-cache';
+import SimpleAssignmentCache from './cache/simple-assignment-cache';
+import { hasWindowLocalStorage } from './configuration-factory';
 
 export function assignmentCacheFactory({
   chromeStorage,
-  apiKey,
+  storageKeySuffix,
 }: {
-  apiKey: string;
+  storageKeySuffix: string;
   chromeStorage?: chrome.storage.StorageArea;
 }): AssignmentCache {
-  // Note that we use the first 8 characters of the API key to create per-API key persistent storages and caches
-  const storageKeySuffix = apiKey.replace(/\W/g, '').substring(0, 8);
-  const localStorageCache = new LocalStorageAssignmentCache(storageKeySuffix);
+  const hasLocalStorage = hasWindowLocalStorage();
+  const simpleCache = new SimpleAssignmentCache();
   if (chromeStorage) {
     const chromeStorageCache = new ChromeStorageAssignmentCache(chromeStorage);
-    return new HybridAssignmentCache(localStorageCache, chromeStorageCache);
+    return new HybridAssignmentCache(simpleCache, chromeStorageCache);
   } else {
-    return localStorageCache;
+    if (hasLocalStorage) {
+      const localStorageCache = new LocalStorageAssignmentCache(storageKeySuffix);
+      return new HybridAssignmentCache(simpleCache, localStorageCache);
+    } else {
+      return simpleCache;
+    }
   }
 }

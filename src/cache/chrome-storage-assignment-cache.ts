@@ -1,9 +1,9 @@
 import { AssignmentCacheKey } from '@eppo/js-client-sdk-common/dist/cache/assignment-cache';
 
 import ChromeStorageAsyncMap from './chrome-storage-async-map';
-import { ReadableAssignmentCache } from './hybrid-assignment-cache';
+import { BulkReadAssignmentCache } from './hybrid-assignment-cache';
 
-export default class ChromeStorageAssignmentCache implements ReadableAssignmentCache {
+export default class ChromeStorageAssignmentCache implements BulkReadAssignmentCache {
   private readonly storage: ChromeStorageAsyncMap<AssignmentCacheKey>;
 
   constructor(chromeStorage: chrome.storage.StorageArea) {
