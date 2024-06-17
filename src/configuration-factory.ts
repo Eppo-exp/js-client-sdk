@@ -78,6 +78,10 @@ export function hasChromeStorage(): boolean {
   return typeof chrome !== 'undefined' && !!chrome.storage;
 }
 
+export function chromeStorageIfAvailable(): chrome.storage.StorageArea | undefined {
+  return hasChromeStorage() ? chrome.storage.local : undefined;
+}
+
 /** Returns whether `window.localStorage` is available */
 export function hasWindowLocalStorage(): boolean {
   try {
@@ -86,4 +90,8 @@ export function hasWindowLocalStorage(): boolean {
     // Chrome throws an error if local storage is disabled, and you try to access it
     return false;
   }
+}
+
+export function localStorageIfAvailable(): Storage | undefined {
+  return hasWindowLocalStorage() ? window.localStorage : undefined;
 }

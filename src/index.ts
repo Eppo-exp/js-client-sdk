@@ -9,11 +9,15 @@ import {
   AttributeType,
 } from '@eppo/js-client-sdk-common';
 
+import { assignmentCacheFactory } from './assignment-cache-factory';
+import HybridAssignmentCache from './cache/hybrid-assignment-cache';
 import { LocalStorageAssignmentCache } from './cache/local-storage-assignment-cache';
 import {
+  chromeStorageIfAvailable,
   configurationStorageFactory,
   hasChromeStorage,
   hasWindowLocalStorage,
+  localStorageIfAvailable,
 } from './configuration-factory';
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 import { sdkName, sdkVersion } from './sdk-data';
@@ -239,12 +243,20 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
         hasWindowLocalStorage: hasWindowLocalStorage(),
       },
       {
-        chromeStorage: hasChromeStorage() ? chrome.storage.local : undefined,
-        windowLocalStorage: hasWindowLocalStorage() ? window.localStorage : undefined,
+        chromeStorage: chromeStorageIfAvailable(),
+        windowLocalStorage: localStorageIfAvailable(),
         storageKeySuffix,
       },
     );
+    // instantiate and init assignment cache if needed
     instance.setConfigurationStore(configurationStore);
+    const assignmentCache = assignmentCacheFactory({
+      chromeStorage: chromeStorageIfAvailable(),
+      storageKeySuffix,
+    });
+    if (assignmentCache instanceof HybridAssignmentCache) {
+      await assignmentCache.init();
+    }
 
     // Set up parameters for requesting updated configurations
     const requestConfiguration: FlagConfigurationRequestParameters = {
