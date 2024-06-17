@@ -248,8 +248,8 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
         storageKeySuffix,
       },
     );
-    // instantiate and init assignment cache if needed
     instance.setConfigurationStore(configurationStore);
+    // instantiate and init assignment cache if needed
     const assignmentCache = assignmentCacheFactory({
       chromeStorage: chromeStorageIfAvailable(),
       storageKeySuffix,
