@@ -37,25 +37,25 @@ describe('HybridStorageAssignmentCache', () => {
     window.localStorage.clear();
   });
 
-  it('has should return false if cache is empty', () => {
+  it('has should return false if cache is empty', async () => {
     const cacheKey = {
       subjectKey: 'subject-1',
       flagKey: 'flag-1',
       allocationKey: 'allocation-1',
       variationKey: 'control',
     };
-    hybridCache.init();
+    await hybridCache.init();
     expect(hybridCache.has(cacheKey)).toBeFalsy();
   });
 
-  it('has should return true if cache key is present', () => {
+  it('has should return true if cache key is present', async () => {
     const cacheKey = {
       subjectKey: 'subject-1',
       flagKey: 'flag-1',
       allocationKey: 'allocation-1',
       variationKey: 'control',
     };
-    hybridCache.init();
+    await hybridCache.init();
     expect(hybridCache.has(cacheKey)).toBeFalsy();
     expect(localStorageCache.has(cacheKey)).toBeFalsy();
     hybridCache.set(cacheKey);
@@ -64,15 +64,24 @@ describe('HybridStorageAssignmentCache', () => {
   });
 
   it('should populate localStorageCache from chromeStorageCache', async () => {
-    const cacheKey = {
+    const key1 = {
       subjectKey: 'subject-1',
       flagKey: 'flag-1',
       allocationKey: 'allocation-1',
       variationKey: 'control',
     };
-    expect(localStorageCache.has(cacheKey)).toBeFalsy();
-    chromeStorageCache.set(cacheKey);
+    const key2 = {
+      subjectKey: 'subject-2',
+      flagKey: 'flag-2',
+      allocationKey: 'allocation-2',
+      variationKey: 'control',
+    };
+    expect(localStorageCache.has(key1)).toBeFalsy();
+    chromeStorageCache.set(key1);
+    chromeStorageCache.set(key2);
     await hybridCache.init();
-    expect(localStorageCache.has(cacheKey)).toBeTruthy();
+    expect(localStorageCache.has(key1)).toBeTruthy();
+    expect(localStorageCache.has(key2)).toBeTruthy();
+    expect(localStorageCache.has({ ...key1, allocationKey: 'foo' })).toBeFalsy();
   });
 });

@@ -1,5 +1,4 @@
 import { AbstractAssignmentCache } from '@eppo/js-client-sdk-common';
-import { AssignmentCacheKey } from '@eppo/js-client-sdk-common/dist/cache/assignment-cache';
 
 import { hasWindowLocalStorage } from '../configuration-factory';
 
@@ -13,18 +12,16 @@ export class LocalStorageAssignmentCache
     super(new LocalStorageAssignmentShim(storageKeySuffix));
   }
 
-  setEntries(entries: AssignmentCacheKey[]): void {
-    entries.forEach((entry) => {
-      if (entry) {
-        this.set(entry);
+  setEntries(entries: [string, string][]): void {
+    entries.forEach(([key, value]) => {
+      if (key && value) {
+        this.delegate.set(key, value);
       }
     });
   }
 
-  getEntries(): Promise<AssignmentCacheKey[]> {
-    // we can't use this.delegate directly here because AbstractAssignmentCache uses a custom key/value format for
-    // storing AssignmentCacheKey entries in the cache.
-    return Promise.resolve([] /** this.cache.keys() */);
+  getEntries(): Promise<[string, string][]> {
+    return Promise.resolve(Array.from(this.entries()));
   }
 }
 
@@ -34,7 +31,7 @@ class LocalStorageAssignmentShim implements Map<string, string> {
 
   public constructor(storageKeySuffix: string) {
     if (!hasWindowLocalStorage()) {
-      throw new Error('LocalStorageAssignmentShim requires window.localStorage to be available');
+      throw new Error('LocalStorage is not available');
     }
     const keySuffix = storageKeySuffix ? `-${storageKeySuffix}` : '';
     this.localStorageKey = `eppo-assignment${keySuffix}`;
@@ -85,10 +82,7 @@ class LocalStorageAssignmentShim implements Map<string, string> {
   }
 
   public set(key: string, value: string): this {
-    const cache = this.getCache();
-    cache.set(key, value);
-    this.setCache(cache);
-    return this;
+    return this.setCache(this.getCache().set(key, value));
   }
 
   private getCache(): Map<string, string> {
@@ -96,7 +90,8 @@ class LocalStorageAssignmentShim implements Map<string, string> {
     return cache ? new Map(JSON.parse(cache)) : new Map();
   }
 
-  private setCache(cache: Map<string, string>) {
+  private setCache(cache: Map<string, string>): this {
     window.localStorage.setItem(this.localStorageKey, JSON.stringify(Array.from(cache.entries())));
+    return this;
   }
 }

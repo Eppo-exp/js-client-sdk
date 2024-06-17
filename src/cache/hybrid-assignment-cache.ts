@@ -3,12 +3,14 @@ import { AssignmentCacheKey } from '@eppo/js-client-sdk-common/dist/cache/assign
 
 /** An {@link AssignmentCache} that can write (set) multiple entries at once (in bulk). */
 export type BulkWriteAssignmentCache = AssignmentCache & {
-  setEntries(entries: AssignmentCacheKey[]): void;
+  /** Sets all entries in the cache to the provided array of [key, value] pairs. */
+  setEntries(entries: [string, string][]): void;
 };
 
 /** An {@link AssignmentCache} that can read (get) all entries at once. */
 export type BulkReadAssignmentCache = AssignmentCache & {
-  getEntries(): Promise<AssignmentCacheKey[]>;
+  /** Returns all entries in the cache as an array of [key, value] pairs. */
+  getEntries(): Promise<[string, string][]>;
 };
 
 /**
