@@ -9,7 +9,7 @@ import {
   AttributeType,
 } from '@eppo/js-client-sdk-common';
 
-import { assignmentCacheFactory } from './assignment-cache-factory';
+import { assignmentCacheFactory } from './cache/assignment-cache-factory';
 import HybridAssignmentCache from './cache/hybrid-assignment-cache';
 import { LocalStorageAssignmentCache } from './cache/local-storage-assignment-cache';
 import {

@@ -1,10 +1,11 @@
 import { AssignmentCache } from '@eppo/js-client-sdk-common';
 
-import ChromeStorageAssignmentCache from './cache/chrome-storage-assignment-cache';
-import HybridAssignmentCache from './cache/hybrid-assignment-cache';
-import { LocalStorageAssignmentCache } from './cache/local-storage-assignment-cache';
-import SimpleAssignmentCache from './cache/simple-assignment-cache';
-import { hasWindowLocalStorage } from './configuration-factory';
+import { hasWindowLocalStorage } from '../configuration-factory';
+
+import ChromeStorageAssignmentCache from './chrome-storage-assignment-cache';
+import HybridAssignmentCache from './hybrid-assignment-cache';
+import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
+import SimpleAssignmentCache from './simple-assignment-cache';
 
 export function assignmentCacheFactory({
   chromeStorage,
