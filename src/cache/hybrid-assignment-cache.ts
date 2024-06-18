@@ -1,5 +1,4 @@
-import { AssignmentCache } from '@eppo/js-client-sdk-common';
-import { AssignmentCacheKey } from '@eppo/js-client-sdk-common/dist/cache/assignment-cache';
+import { AssignmentCache, AssignmentCacheEntry } from '@eppo/js-client-sdk-common';
 
 /** An {@link AssignmentCache} that can write (set) multiple entries at once (in bulk). */
 export type BulkWriteAssignmentCache = AssignmentCache & {
@@ -30,12 +29,12 @@ export default class HybridAssignmentCache implements AssignmentCache {
     }
   }
 
-  set(key: AssignmentCacheKey): void {
+  set(key: AssignmentCacheEntry): void {
     this.servingStore.set(key);
     this.persistentStore.set(key);
   }
 
-  has(key: AssignmentCacheKey): boolean {
+  has(key: AssignmentCacheEntry): boolean {
     return this.servingStore.has(key);
   }
 }

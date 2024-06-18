@@ -1,8 +1,8 @@
 import {
   AbstractAssignmentCache,
   NonExpiringInMemoryAssignmentCache,
+  AssignmentCacheEntry,
 } from '@eppo/js-client-sdk-common';
-import { AssignmentCacheKey } from '@eppo/js-client-sdk-common/dist/cache/assignment-cache';
 
 import { BulkReadAssignmentCache, BulkWriteAssignmentCache } from './hybrid-assignment-cache';
 
@@ -18,11 +18,11 @@ export default class SimpleAssignmentCache
     this.cache = new NonExpiringInMemoryAssignmentCache(this.store);
   }
 
-  set(key: AssignmentCacheKey): void {
+  set(key: AssignmentCacheEntry): void {
     this.cache.set(key);
   }
 
-  has(key: AssignmentCacheKey): boolean {
+  has(key: AssignmentCacheEntry): boolean {
     return this.cache.has(key);
   }
 
