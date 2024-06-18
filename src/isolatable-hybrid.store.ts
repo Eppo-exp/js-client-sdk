@@ -11,23 +11,23 @@ export type ServingStoreUpdateStrategy = 'always' | 'expired' | 'empty';
  */
 export class IsolatableHybridConfigurationStore<T> extends HybridConfigurationStore<T> {
   constructor(
-    private readonly _servingStore: ISyncStore<T>,
-    private readonly _persistentStore: IAsyncStore<T> | null,
+    servingStore: ISyncStore<T>,
+    persistentStore: IAsyncStore<T> | null,
     private servingStoreUpdateStrategy: ServingStoreUpdateStrategy = 'always',
   ) {
-    super(_servingStore, _persistentStore);
+    super(servingStore, persistentStore);
   }
 
   /** @Override */
   public async setEntries(entries: Record<string, T>): Promise<void> {
-    if (this._persistentStore) {
+    if (this.persistentStore) {
       // always update persistent store
-      await this._persistentStore.setEntries(entries);
+      await this.persistentStore.setEntries(entries);
     }
 
     const persistentStoreIsExpired =
-      !this._persistentStore || (await this._persistentStore.isExpired());
-    const servingStoreIsEmpty = !this._servingStore.getKeys()?.length;
+      !this.persistentStore || (await this.persistentStore.isExpired());
+    const servingStoreIsEmpty = !this.servingStore.getKeys()?.length;
 
     // Update the serving store based on the update strategy:
     // "always" - always update the serving store
@@ -39,7 +39,7 @@ export class IsolatableHybridConfigurationStore<T> extends HybridConfigurationSt
       (persistentStoreIsExpired && servingStoreIsEmpty);
 
     if (updateServingStore) {
-      this._servingStore.setEntries(entries);
+      this.servingStore.setEntries(entries);
     }
   }
 }
