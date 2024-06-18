@@ -8,7 +8,7 @@ describe('LocalStorageAssignmentCache', () => {
   it('typical behavior', () => {
     const cache = new LocalStorageAssignmentCache('test');
     expect(
-      cache.hasLoggedAssignment({
+      cache.has({
         subjectKey: 'subject-1',
         flagKey: 'flag-1',
         allocationKey: 'allocation-1',
@@ -16,7 +16,7 @@ describe('LocalStorageAssignmentCache', () => {
       }),
     ).toEqual(false);
 
-    cache.setLastLoggedAssignment({
+    cache.set({
       subjectKey: 'subject-1',
       flagKey: 'flag-1',
       allocationKey: 'allocation-1',
@@ -24,7 +24,7 @@ describe('LocalStorageAssignmentCache', () => {
     });
 
     expect(
-      cache.hasLoggedAssignment({
+      cache.has({
         subjectKey: 'subject-1',
         flagKey: 'flag-1',
         allocationKey: 'allocation-1',
@@ -33,7 +33,7 @@ describe('LocalStorageAssignmentCache', () => {
     ).toEqual(true); // this key has been logged
 
     // change variation
-    cache.setLastLoggedAssignment({
+    cache.set({
       subjectKey: 'subject-1',
       flagKey: 'flag-1',
       allocationKey: 'allocation-1',
@@ -41,7 +41,7 @@ describe('LocalStorageAssignmentCache', () => {
     });
 
     expect(
-      cache.hasLoggedAssignment({
+      cache.has({
         subjectKey: 'subject-1',
         flagKey: 'flag-1',
         allocationKey: 'allocation-1',
@@ -62,53 +62,53 @@ describe('LocalStorageAssignmentCache', () => {
       allocationKey: 'allocation-1',
     };
 
-    cacheA.setLastLoggedAssignment({
+    cacheA.set({
       variationKey: 'variation-A',
       ...constantAssignmentProperties,
     });
 
     expect(
-      cacheA.hasLoggedAssignment({
+      cacheA.has({
         variationKey: 'variation-A',
         ...constantAssignmentProperties,
       }),
     ).toEqual(true);
 
     expect(
-      cacheB.hasLoggedAssignment({
+      cacheB.has({
         variationKey: 'variation-A',
         ...constantAssignmentProperties,
       }),
     ).toEqual(false);
 
-    cacheB.setLastLoggedAssignment({
+    cacheB.set({
       variationKey: 'variation-B',
       ...constantAssignmentProperties,
     });
 
     expect(
-      cacheA.hasLoggedAssignment({
+      cacheA.has({
         variationKey: 'variation-A',
         ...constantAssignmentProperties,
       }),
     ).toEqual(true);
 
     expect(
-      cacheB.hasLoggedAssignment({
+      cacheB.has({
         variationKey: 'variation-A',
         ...constantAssignmentProperties,
       }),
     ).toEqual(false);
 
     expect(
-      cacheA.hasLoggedAssignment({
+      cacheA.has({
         variationKey: 'variation-B',
         ...constantAssignmentProperties,
       }),
     ).toEqual(false);
 
     expect(
-      cacheB.hasLoggedAssignment({
+      cacheB.has({
         variationKey: 'variation-B',
         ...constantAssignmentProperties,
       }),

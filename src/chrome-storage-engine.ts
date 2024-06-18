@@ -1,3 +1,4 @@
+import ChromeStorageAsyncMap from './cache/chrome-storage-async-map';
 import { CONFIGURATION_KEY, META_KEY } from './storage-key-constants';
 import { IStringStorageEngine } from './string-valued.store';
 
@@ -15,31 +16,27 @@ export class ChromeStorageEngine implements IStringStorageEngine {
   private readonly contentsKey;
   private readonly metaKey;
 
-  public constructor(private storageArea: chrome.storage.StorageArea, storageKeySuffix: string) {
+  public constructor(private storageMap: ChromeStorageAsyncMap<string>, storageKeySuffix: string) {
     const keySuffix = storageKeySuffix ? `-${storageKeySuffix}` : '';
     this.contentsKey = CONFIGURATION_KEY + keySuffix;
     this.metaKey = META_KEY + keySuffix;
   }
 
   public getContentsJsonString = async (): Promise<string | null> => {
-    const storageSubset = await this.storageArea.get(this.contentsKey);
-    return storageSubset?.[this.contentsKey] ?? null;
+    const item = await this.storageMap.get(this.contentsKey);
+    return item ?? null;
   };
 
   public getMetaJsonString = async (): Promise<string | null> => {
-    const storageSubset = await this.storageArea.get(this.metaKey);
-    return storageSubset?.[this.metaKey] ?? null;
+    const item = await this.storageMap.get(this.metaKey);
+    return item ?? null;
   };
 
   public setContentsJsonString = async (configurationJsonString: string): Promise<void> => {
-    await this.storageArea.set({
-      [this.contentsKey]: configurationJsonString,
-    });
+    await this.storageMap.set(this.contentsKey, configurationJsonString);
   };
 
   public setMetaJsonString = async (metaJsonString: string): Promise<void> => {
-    await this.storageArea.set({
-      [this.metaKey]: metaJsonString,
-    });
+    await this.storageMap.set(this.metaKey, metaJsonString);
   };
 }

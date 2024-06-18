@@ -6,6 +6,7 @@ import {
   MemoryStore,
 } from '@eppo/js-client-sdk-common';
 
+import ChromeStorageAsyncMap from './cache/chrome-storage-async-map';
 import { ChromeStorageEngine } from './chrome-storage-engine';
 import {
   IsolatableHybridConfigurationStore,
@@ -50,7 +51,10 @@ export function configurationStorageFactory(
     );
   } else if (hasChromeStorage && chromeStorage) {
     // Chrome storage is available, use it as a fallback
-    const chromeStorageEngine = new ChromeStorageEngine(chromeStorage, storageKeySuffix ?? '');
+    const chromeStorageEngine = new ChromeStorageEngine(
+      new ChromeStorageAsyncMap(chromeStorage),
+      storageKeySuffix ?? '',
+    );
     return new IsolatableHybridConfigurationStore(
       new MemoryStore<Flag>(),
       new StringValuedAsyncStore<Flag>(chromeStorageEngine, maxAgeSeconds),
@@ -74,6 +78,11 @@ export function hasChromeStorage(): boolean {
   return typeof chrome !== 'undefined' && !!chrome.storage;
 }
 
+export function chromeStorageIfAvailable(): chrome.storage.StorageArea | undefined {
+  return hasChromeStorage() ? chrome.storage.local : undefined;
+}
+
+/** Returns whether `window.localStorage` is available */
 export function hasWindowLocalStorage(): boolean {
   try {
     return typeof window !== 'undefined' && !!window.localStorage;
@@ -81,4 +90,8 @@ export function hasWindowLocalStorage(): boolean {
     // Chrome throws an error if local storage is disabled, and you try to access it
     return false;
   }
+}
+
+export function localStorageIfAvailable(): Storage | undefined {
+  return hasWindowLocalStorage() ? window.localStorage : undefined;
 }
