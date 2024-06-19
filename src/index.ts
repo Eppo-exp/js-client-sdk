@@ -7,6 +7,7 @@ import {
   Flag,
   IAsyncStore,
   AttributeType,
+  ObfuscatedFlag,
 } from '@eppo/js-client-sdk-common';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
@@ -110,12 +111,24 @@ export interface IClientConfig {
   persistentStore?: IAsyncStore<Flag>;
 }
 
+export interface IClientConfigSync {
+  flagsConfiguration: Record<string, Flag | ObfuscatedFlag>;
+
+  assignmentLogger?: IAssignmentLogger;
+
+  isObfuscated?: boolean;
+
+  throwOnFailedInitialization?: boolean;
+}
+
 // Export the common types and classes from the SDK.
 export {
   IAssignmentLogger,
   IAssignmentEvent,
   IEppoClient,
   IAsyncStore,
+  Flag,
+  ObfuscatedFlag,
 } from '@eppo/js-client-sdk-common';
 export { ChromeStorageEngine } from './chrome-storage-engine';
 
@@ -211,6 +224,60 @@ export function buildStorageKeySuffix(apiKey: string): string {
 
 /**
  * Initializes the Eppo client with configuration parameters.
+ *
+ * The purpose is for use-cases where the configuration is available from an external process
+ * that can bootstrap the SDK.
+ *
+ * This method should be called once on application startup.
+ *
+ * @param config - client configuration
+ * @returns a singleton client instance
+ * @public
+ */
+export function initSync(config: IClientConfigSync): IEppoClient {
+  try {
+    const memoryOnlyConfigurationStore = configurationStorageFactory({
+      forceMemoryOnly: true,
+    });
+    memoryOnlyConfigurationStore.setEntries(config.flagsConfiguration);
+    EppoJSClient.instance.setConfigurationStore(memoryOnlyConfigurationStore);
+
+    // Allow the caller to override the default obfuscated mode, which is false
+    // since the purpose of this method is to bootstrap the SDK from an external source,
+    // which is likely a server that has not-obfuscated flag values.
+    EppoJSClient.instance.setIsObfuscated(config.isObfuscated ?? false);
+
+    if (config.assignmentLogger) {
+      EppoJSClient.instance.setLogger(config.assignmentLogger);
+    }
+
+    // There is no SDK key in the offline context.
+    const storageKeySuffix = buildStorageKeySuffix('no_api_key');
+
+    // As this is a synchronous initialization,
+    // we are unable to call the async `init` method on the assignment cache
+    // which loads the assignment cache from the browser's storage.
+    // Therefore there is no purpose trying to use a persistent assignment cache.
+    const assignmentCache = assignmentCacheFactory({
+      storageKeySuffix,
+      forceMemoryOnly: true,
+    });
+    EppoJSClient.instance.useCustomAssignmentCache(assignmentCache);
+  } catch (error) {
+    console.warn(
+      'Eppo SDK encountered an error initializing, assignment calls will return the default value and not be logged',
+    );
+    if (config.throwOnFailedInitialization ?? true) {
+      throw error;
+    }
+  }
+
+  EppoJSClient.initialized = true;
+  return EppoJSClient.instance;
+}
+
+/**
+ * Initializes the Eppo client with configuration parameters.
  * This method should be called once on application startup.
  * @param config - client configuration
  * @public
@@ -225,6 +292,8 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     instance.stopPolling();
     // Set up assignment logger and cache
     instance.setLogger(config.assignmentLogger);
+    // Default to obfuscated mode when requesting configuration from the server.
+    instance.setIsObfuscated(true);
 
     const storageKeySuffix = buildStorageKeySuffix(apiKey);
 

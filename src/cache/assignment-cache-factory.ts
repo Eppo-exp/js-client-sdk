@@ -8,14 +8,21 @@ import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 import SimpleAssignmentCache from './simple-assignment-cache';
 
 export function assignmentCacheFactory({
+  forceMemoryOnly = false,
   chromeStorage,
   storageKeySuffix,
 }: {
+  forceMemoryOnly?: boolean;
   storageKeySuffix: string;
   chromeStorage?: chrome.storage.StorageArea;
 }): AssignmentCache {
-  const hasLocalStorage = hasWindowLocalStorage();
   const simpleCache = new SimpleAssignmentCache();
+  if (forceMemoryOnly) {
+    return simpleCache;
+  }
+
+  const hasLocalStorage = hasWindowLocalStorage();
+
   if (chromeStorage) {
     const chromeStorageCache = new ChromeStorageAssignmentCache(chromeStorage);
     return new HybridAssignmentCache(simpleCache, chromeStorageCache);

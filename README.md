@@ -33,7 +33,6 @@ import { init } from "@eppo/js-client-sdk";
 await init({ apiKey: "<SDK-KEY-FROM-DASHBOARD>" });
 ```
 
-
 #### Assign anywhere
 
 ```javascript
@@ -85,7 +84,26 @@ The `init` function accepts the following optional configuration arguments.
 | **`throwOnFailedInitialization`** | boolean | Throw an error (reject the promise) if unable to fetch initial configurations during initialization. | `true` |
 | **`numPollRequestRetries`** | number | If polling for updated configurations after initialization, the number of additional times a request will be attempted before giving up. Subsequent attempts are done using an exponential backoff. | `7` |
 
+## Syncronous initialization
 
+The SDK supports synchronous initialization. This is useful if you want to initialize the SDK with a configuration from your server SDK. In this mode the SDK will not attempt to fetch a configuration from Eppo's CDN, but will instead use the one you provide.
+
+When this function returns the SDK is ready for assignments.
+
+```javascript
+import { initSync } from "@eppo/js-client-sdk";
+
+// configuration from your server SDK
+const configurationJsonString: string = getConfigurationFromServer();
+// The configuration will be not-obfuscated from your server SDK. If you have obfuscated flag values, you can use the `ObfuscatedFlag` type.
+const flagsConfiguration: Record<string, Flag | ObfuscatedFlag> = JSON.parse(configurationJsonString);
+
+initSync({ 
+  flagsConfiguration,
+  // If you have obfuscated flag values, you can use the `ObfuscatedFlag` type.
+  isObfuscated: true,
+ });
+```
 
 ## Assignment logger 
 
@@ -119,6 +137,3 @@ Eppo's SDKs are built for simplicity, speed and reliability. Flag configurations
 ## React
 
 Visit the [Eppo docs](https://docs.geteppo.com/sdks/client-sdks/javascript#usage-in-react) for best practices when using this SDK within a React context.
-
-
-
