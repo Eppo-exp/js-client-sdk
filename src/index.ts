@@ -11,7 +11,6 @@ import {
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
 import HybridAssignmentCache from './cache/hybrid-assignment-cache';
-import { LocalStorageAssignmentCache } from './cache/local-storage-assignment-cache';
 import {
   chromeStorageIfAvailable,
   configurationStorageFactory,
@@ -227,10 +226,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     // Set up assignment logger and cache
     instance.setLogger(config.assignmentLogger);
 
-    // default behavior is to use a LocalStorage-based assignment cache.
-    // this can be overridden after initialization.
     const storageKeySuffix = buildStorageKeySuffix(apiKey);
-    instance.useCustomAssignmentCache(new LocalStorageAssignmentCache(storageKeySuffix));
 
     // Set the configuration store to the desired persistent store, if provided.
     // Otherwise, the factory method will detect the current environment and instantiate the correct store.
@@ -249,7 +245,8 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
       },
     );
     instance.setConfigurationStore(configurationStore);
-    // instantiate and init assignment cache if needed
+
+    // instantiate and init assignment cache
     const assignmentCache = assignmentCacheFactory({
       chromeStorage: chromeStorageIfAvailable(),
       storageKeySuffix,
@@ -257,6 +254,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     if (assignmentCache instanceof HybridAssignmentCache) {
       await assignmentCache.init();
     }
+    instance.useCustomAssignmentCache(assignmentCache);
 
     // Set up parameters for requesting updated configurations
     const requestConfiguration: FlagConfigurationRequestParameters = {
