@@ -1,7 +1,6 @@
 import {
   IAssignmentLogger,
   validation,
-  IEppoClient,
   EppoClient,
   FlagConfigurationRequestParameters,
   Flag,
@@ -114,7 +113,7 @@ export interface IClientConfig {
 export {
   IAssignmentLogger,
   IAssignmentEvent,
-  IEppoClient,
+  EppoClient,
   IAsyncStore,
 } from '@eppo/js-client-sdk-common';
 export { ChromeStorageEngine } from './chrome-storage-engine';
@@ -215,7 +214,7 @@ export function buildStorageKeySuffix(apiKey: string): string {
  * @param config - client configuration
  * @public
  */
-export async function init(config: IClientConfig): Promise<IEppoClient> {
+export async function init(config: IClientConfig): Promise<EppoClient> {
   validation.validateNotBlank(config.apiKey, 'API key required');
   let initializationError: Error | undefined;
   const instance = EppoJSClient.instance;
@@ -354,6 +353,6 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
  * @returns a singleton client instance
  * @public
  */
-export function getInstance(): IEppoClient {
+export function getInstance(): EppoClient {
   return EppoJSClient.instance;
 }

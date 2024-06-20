@@ -27,7 +27,7 @@ import {
 
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 
-import { IAssignmentLogger, IEppoClient, getInstance, init, IClientConfig } from './index';
+import { IAssignmentLogger, EppoClient, getInstance, init, IClientConfig } from './index';
 
 function md5Hash(input: string): string {
   return createHash('md5').update(input).digest('hex');
@@ -105,7 +105,7 @@ const mockUfcFlagConfig: Flag = {
 };
 
 describe('EppoJSClient E2E test', () => {
-  let globalClient: IEppoClient;
+  let globalClient: EppoClient;
   let mockLogger: IAssignmentLogger;
 
   beforeAll(async () => {
@@ -311,9 +311,9 @@ describe('initialization options', () => {
   } as unknown as Record<'flags', Record<string, Flag>>;
 
   // eslint-disable-next-line @typescript-eslint/ban-types
-  let init: (config: IClientConfig) => Promise<IEppoClient>;
+  let init: (config: IClientConfig) => Promise<EppoClient>;
   // eslint-disable-next-line @typescript-eslint/ban-types
-  let getInstance: () => IEppoClient;
+  let getInstance: () => EppoClient;
 
   beforeEach(async () => {
     jest.isolateModules(() => {
@@ -525,7 +525,7 @@ describe('initialization options', () => {
   test.each([false, true])(
     'Wait or not for fetch when cache is expired - %s',
     async (useExpiredCache) => {
-      let updatedStoreEntries = null;
+      let updatedStoreEntries: Record<string, Flag> | null = null;
       const mockStore: IAsyncStore<Flag> = {
         isInitialized() {
           return true;
@@ -715,7 +715,7 @@ describe('initialization options', () => {
     expect(mockStoreEntries).toEqual(mockConfigResponse.flags);
   });
 
-  test.each(['always', 'expired', 'empty'])(
+  test.each(['always', 'expired', 'empty'] as Array<ServingStoreUpdateStrategy>)(
     'Fetch updates cache according to the "%s" update strategy',
     async (updateOnFetch: ServingStoreUpdateStrategy) => {
       // Mock fetch so first call works immediately, and all others takes time

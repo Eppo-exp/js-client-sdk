@@ -6,19 +6,23 @@
 
 /// <reference types="chrome" />
 
+import { AsyncMap } from '@eppo/js-client-sdk-common';
 import { AttributeType } from '@eppo/js-client-sdk-common';
 import { EppoClient } from '@eppo/js-client-sdk-common';
 import { Flag } from '@eppo/js-client-sdk-common';
 import { IAssignmentEvent } from '@eppo/js-client-sdk-common';
 import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
 import { IAsyncStore } from '@eppo/js-client-sdk-common';
-import { IEppoClient } from '@eppo/js-client-sdk-common';
+
+// @public (undocumented)
+export function buildStorageKeySuffix(apiKey: string): string;
 
 // Warning: (ae-forgotten-export) The symbol "IStringStorageEngine" needs to be exported by the entry point index.d.ts
 //
 // @public
 export class ChromeStorageEngine implements IStringStorageEngine {
-    constructor(storageArea: chrome.storage.StorageArea, storageKeySuffix: string);
+    // Warning: (ae-forgotten-export) The symbol "ChromeStorageAsyncMap" needs to be exported by the entry point index.d.ts
+    constructor(storageMap: ChromeStorageAsyncMap<string>, storageKeySuffix: string);
     // (undocumented)
     getContentsJsonString: () => Promise<string | null>;
     // (undocumented)
@@ -28,6 +32,8 @@ export class ChromeStorageEngine implements IStringStorageEngine {
     // (undocumented)
     setMetaJsonString: (metaJsonString: string) => Promise<void>;
 }
+
+export { EppoClient }
 
 // @public
 export class EppoJSClient extends EppoClient {
@@ -50,7 +56,7 @@ export class EppoJSClient extends EppoClient {
 }
 
 // @public
-export function getInstance(): IEppoClient;
+export function getInstance(): EppoClient;
 
 export { IAssignmentEvent }
 
@@ -77,10 +83,8 @@ export interface IClientConfig {
     useExpiredCache?: boolean;
 }
 
-export { IEppoClient }
-
 // @public
-export function init(config: IClientConfig): Promise<IEppoClient>;
+export function init(config: IClientConfig): Promise<EppoClient>;
 
 // (No @packageDocumentation comment for this package)
 
