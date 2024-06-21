@@ -44,4 +44,3 @@ prepare: test-data
 	 rm -rf dist/
 	 yarn tsc
 	 yarn webpack
-	 yarn api-extractor run --local
