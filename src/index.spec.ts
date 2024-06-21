@@ -11,17 +11,6 @@ import {
   HybridConfigurationStore,
   IAsyncStore,
 } from '@eppo/js-client-sdk-common';
-
-import {
-  initSync,
-  IAssignmentLogger,
-  IEppoClient,
-  getInstance,
-  init,
-  IClientConfig,
-  getConfigUrl,
-} from './index';
-
 import * as td from 'testdouble';
 
 const { POLL_INTERVAL_MS, POLL_JITTER_PCT } = constants;
@@ -37,6 +26,16 @@ import {
 } from '../test/testHelpers';
 
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
+
+import {
+  initSync,
+  IAssignmentLogger,
+  IEppoClient,
+  getInstance,
+  init,
+  IClientConfig,
+  getConfigUrl,
+} from './index';
 
 function md5Hash(input: string): string {
   return createHash('md5').update(input).digest('hex');
