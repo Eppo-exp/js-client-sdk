@@ -7,7 +7,7 @@
 **Signature:**
 
 ```typescript
-getJSONAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: object): object;
+getJSONAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: object): object;
 ```
 
 ## Parameters
@@ -16,7 +16,7 @@ getJSONAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record
 |  --- | --- | --- |
 |  flagKey | string |  |
 |  subjectKey | string |  |
-|  subjectAttributes | Record&lt;string, any&gt; |  |
+|  subjectAttributes | Record&lt;string, AttributeType&gt; |  |
 |  defaultValue | object |  |
 
 **Returns:**
