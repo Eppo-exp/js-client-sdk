@@ -86,7 +86,7 @@ The `init` function accepts the following optional configuration arguments.
 
 ## Off-line initialization
 
-The SDK supports off-line initialization if you want to initialize the SDK with a configuration from your server SDK or other external process. In this mode the SDK will not attempt to fetch a configuration from Eppo's CDN, but will instead use the provided values.
+The SDK supports off-line initialization if you want to initialize the SDK with a configuration from your server SDK or other external process. In this mode the SDK will not attempt to fetch a configuration from Eppo's CDN, instead only using the provided values.
 
 This function is synchronous and ready to handle assignments after it returns.
 
@@ -104,6 +104,15 @@ offlineInit({
   isObfuscated: true,
  });
 ```
+
+The `offlineInit` function accepts the following optional configuration arguments.
+
+| Option | Type | Description | Default |
+| ------ | ----- | ----- | ----- | 
+| **`assignmentLogger`**  | [IAssignmentLogger](https://github.com/Eppo-exp/js-client-sdk-common/blob/75c2ea1d91101d579138d07d46fca4c6ea4aafaf/src/assignment-logger.ts#L55-L62) | A callback that sends each assignment to your data warehouse. Required only for experiment analysis. See [example](#assignment-logger) below. | `null` |
+| **`flagsConfiguration`** | Record<string, Flag \| ObfuscatedFlag> | The flags configuration to use for the SDK. | `null` |
+| **`isObfuscated`** | boolean | Whether the flag values are obfuscated. | `false` |
+| **`throwOnFailedInitialization`** | boolean | Throw an error if an error occurs during initialization. | `true` |
 
 ## Assignment logger 
 
