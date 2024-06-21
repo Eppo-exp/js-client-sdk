@@ -235,7 +235,7 @@ export function buildStorageKeySuffix(apiKey: string): string {
  * @returns a singleton client instance
  * @public
  */
-export function offlineSync(config: IClientConfigSync): IEppoClient {
+export function offlineInit(config: IClientConfigSync): IEppoClient {
   const isObfuscated = config.isObfuscated ?? false;
   const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
 
