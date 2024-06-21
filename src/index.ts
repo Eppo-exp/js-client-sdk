@@ -236,6 +236,9 @@ export function buildStorageKeySuffix(apiKey: string): string {
  * @public
  */
 export function offlineSync(config: IClientConfigSync): IEppoClient {
+  const isObfuscated = config.isObfuscated ?? false;
+  const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
+
   try {
     const memoryOnlyConfigurationStore = configurationStorageFactory({
       forceMemoryOnly: true,
@@ -246,14 +249,14 @@ export function offlineSync(config: IClientConfigSync): IEppoClient {
     // Allow the caller to override the default obfuscated mode, which is false
     // since the purpose of this method is to bootstrap the SDK from an external source,
     // which is likely a server that has not-obfuscated flag values.
-    EppoJSClient.instance.setIsObfuscated(config.isObfuscated ?? false);
+    EppoJSClient.instance.setIsObfuscated(isObfuscated);
 
     if (config.assignmentLogger) {
       EppoJSClient.instance.setLogger(config.assignmentLogger);
     }
 
     // There is no SDK key in the offline context.
-    const storageKeySuffix = buildStorageKeySuffix('no_api_key');
+    const storageKeySuffix = 'offline';
 
     // As this is a synchronous initialization,
     // we are unable to call the async `init` method on the assignment cache
@@ -268,7 +271,7 @@ export function offlineSync(config: IClientConfigSync): IEppoClient {
     console.warn(
       'Eppo SDK encountered an error initializing, assignment calls will return the default value and not be logged',
     );
-    if (config.throwOnFailedInitialization ?? true) {
+    if (throwOnFailedInitialization) {
       throw error;
     }
   }

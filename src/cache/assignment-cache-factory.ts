@@ -17,17 +17,16 @@ export function assignmentCacheFactory({
   chromeStorage?: chrome.storage.StorageArea;
 }): AssignmentCache {
   const simpleCache = new SimpleAssignmentCache();
+
   if (forceMemoryOnly) {
     return simpleCache;
   }
-
-  const hasLocalStorage = hasWindowLocalStorage();
 
   if (chromeStorage) {
     const chromeStorageCache = new ChromeStorageAssignmentCache(chromeStorage);
     return new HybridAssignmentCache(simpleCache, chromeStorageCache);
   } else {
-    if (hasLocalStorage) {
+    if (hasWindowLocalStorage()) {
       const localStorageCache = new LocalStorageAssignmentCache(storageKeySuffix);
       return new HybridAssignmentCache(simpleCache, localStorageCache);
     } else {
