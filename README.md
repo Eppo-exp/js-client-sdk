@@ -91,7 +91,7 @@ The SDK supports synchronous initialization. This is useful if you want to initi
 When this function returns the SDK is ready for assignments.
 
 ```javascript
-import { initSync } from "@eppo/js-client-sdk";
+import { initSync, Flag, ObfuscatedFlag } from "@eppo/js-client-sdk";
 
 // configuration from your server SDK
 const configurationJsonString: string = getConfigurationFromServer();
