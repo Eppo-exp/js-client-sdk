@@ -14,6 +14,7 @@ import { IAssignmentEvent } from '@eppo/js-client-sdk-common';
 import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
 import { IAsyncStore } from '@eppo/js-client-sdk-common';
 import { IEppoClient } from '@eppo/js-client-sdk-common';
+import { ObfuscatedFlag } from '@eppo/js-client-sdk-common';
 
 // @public (undocumented)
 export function buildStorageKeySuffix(apiKey: string): string;
@@ -54,6 +55,11 @@ export class EppoJSClient extends EppoClient {
     static instance: EppoJSClient;
 }
 
+export { Flag }
+
+// @public
+export function getConfigUrl(apiKey: string, baseUrl?: string): URL;
+
 // @public
 export function getInstance(): IEppoClient;
 
@@ -87,7 +93,9 @@ export interface IClientConfigSync {
     // (undocumented)
     assignmentLogger?: IAssignmentLogger;
     // (undocumented)
-    flagsConfiguration: Record<string, Flag>;
+    flagsConfiguration: Record<string, Flag | ObfuscatedFlag>;
+    // (undocumented)
+    isObfuscated?: boolean;
     // (undocumented)
     throwOnFailedInitialization?: boolean;
 }
@@ -99,6 +107,8 @@ export function init(config: IClientConfig): Promise<IEppoClient>;
 
 // @public
 export function initSync(config: IClientConfigSync): IEppoClient;
+
+export { ObfuscatedFlag }
 
 // (No @packageDocumentation comment for this package)
 
