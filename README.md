@@ -84,11 +84,11 @@ The `init` function accepts the following optional configuration arguments.
 | **`throwOnFailedInitialization`** | boolean | Throw an error (reject the promise) if unable to fetch initial configurations during initialization. | `true` |
 | **`numPollRequestRetries`** | number | If polling for updated configurations after initialization, the number of additional times a request will be attempted before giving up. Subsequent attempts are done using an exponential backoff. | `7` |
 
-## Syncronous initialization
+## Off-line initialization
 
-The SDK supports synchronous initialization. This is useful if you want to initialize the SDK with a configuration from your server SDK. In this mode the SDK will not attempt to fetch a configuration from Eppo's CDN, but will instead use the one you provide.
+The SDK supports off-line initialization if you want to initialize the SDK with a configuration from your server SDK or other external process. In this mode the SDK will not attempt to fetch a configuration from Eppo's CDN, but will instead use the provided values.
 
-When this function returns the SDK is ready for assignments.
+This function is synchronous and ready to handle assignments after it returns.
 
 ```javascript
 import { offlineInit, Flag, ObfuscatedFlag } from "@eppo/js-client-sdk";
