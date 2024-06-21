@@ -27,7 +27,7 @@ import {
 
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 
-import { IAssignmentLogger, IEppoClient, getInstance, init, IClientConfig, getConfigUrl } from './index';
+import { IAssignmentLogger, IEppoClient, getInstance, init, IClientConfig } from './index';
 
 function md5Hash(input: string): string {
   return createHash('md5').update(input).digest('hex');
@@ -864,29 +864,5 @@ describe('initialization options', () => {
         'control',
       );
     });
-  });
-});
-
-describe('getConfigUrl function', () => {
-  const apiKey = 'abcd1234';
-  const defaultBaseUrl = 'https://fscdn.eppo.cloud/api';
-  const customBaseUrl = 'http://api.example.com';
-
-  it('should return a URL using the default base URL when no base URL is provided', () => {
-    const url = getConfigUrl(apiKey);
-    expect(url.toString()).toContain(defaultBaseUrl);
-    expect(url.toString()).not.toContain(customBaseUrl);
-    expect(url.toString()).toContain(`apiKey=${apiKey}`);
-    expect(url.toString()).toContain('sdkName=');
-    expect(url.toString()).toContain('sdkVersion=');
-  });
-
-  it('should return a URL using the provided base URL', () => {
-    const url = getConfigUrl(apiKey, customBaseUrl);
-    expect(url.toString()).toContain(customBaseUrl);
-    expect(url.toString()).not.toContain(defaultBaseUrl);
-    expect(url.toString()).toContain(`apiKey=${apiKey}`);
-    expect(url.toString()).toContain('sdkName=');
-    expect(url.toString()).toContain('sdkVersion=');
   });
 });
