@@ -6,7 +6,6 @@
 
 /// <reference types="chrome" />
 
-import { AsyncMap } from '@eppo/js-client-sdk-common';
 import { AttributeType } from '@eppo/js-client-sdk-common';
 import { EppoClient } from '@eppo/js-client-sdk-common';
 import { Flag } from '@eppo/js-client-sdk-common';
@@ -15,15 +14,11 @@ import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
 import { IAsyncStore } from '@eppo/js-client-sdk-common';
 import { IEppoClient } from '@eppo/js-client-sdk-common';
 
-// @public (undocumented)
-export function buildStorageKeySuffix(apiKey: string): string;
-
 // Warning: (ae-forgotten-export) The symbol "IStringStorageEngine" needs to be exported by the entry point index.d.ts
 //
 // @public
 export class ChromeStorageEngine implements IStringStorageEngine {
-    // Warning: (ae-forgotten-export) The symbol "ChromeStorageAsyncMap" needs to be exported by the entry point index.d.ts
-    constructor(storageMap: ChromeStorageAsyncMap<string>, storageKeySuffix: string);
+    constructor(storageArea: chrome.storage.StorageArea, storageKeySuffix: string);
     // (undocumented)
     getContentsJsonString: () => Promise<string | null>;
     // (undocumented)
