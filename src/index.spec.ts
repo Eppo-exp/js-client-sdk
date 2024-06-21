@@ -28,6 +28,7 @@ import {
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 
 import {
+  offlineInit,
   IAssignmentLogger,
   IEppoClient,
   getInstance,
@@ -54,7 +55,64 @@ const obfuscatedFlagKey = md5Hash(flagKey);
 const allocationKey = 'traffic-split';
 const obfuscatedAllocationKey = base64Encode(allocationKey);
 
-const mockUfcFlagConfig: Flag = {
+const mockNotObfuscatedFlagConfig: Flag = {
+  key: flagKey,
+  enabled: true,
+  variationType: VariationType.STRING,
+  variations: {
+    ['control']: {
+      key: 'control',
+      value: 'control',
+    },
+    ['variant-1']: {
+      key: 'variant-1',
+      value: 'variant-1',
+    },
+    ['variant-2']: {
+      key: 'variant-2',
+      value: 'variant-2',
+    },
+  },
+  allocations: [
+    {
+      key: obfuscatedAllocationKey,
+      rules: [],
+      splits: [
+        {
+          variationKey: 'control',
+          shards: [
+            {
+              salt: 'some-salt',
+              ranges: [{ start: 0, end: 3400 }],
+            },
+          ],
+        },
+        {
+          variationKey: 'variant-1',
+          shards: [
+            {
+              salt: 'some-salt',
+              ranges: [{ start: 3400, end: 6700 }],
+            },
+          ],
+        },
+        {
+          variationKey: 'variant-2',
+          shards: [
+            {
+              salt: 'some-salt',
+              ranges: [{ start: 6700, end: 10000 }],
+            },
+          ],
+        },
+      ],
+      doLog: true,
+    },
+  ],
+  totalShards: 10000,
+};
+
+const mockObfuscatedUfcFlagConfig: Flag = {
   key: obfuscatedFlagKey,
   enabled: true,
   variationType: VariationType.STRING,
@@ -163,7 +221,7 @@ describe('EppoJSClient E2E test', () => {
         throw new Error('Unexpected key ' + key);
       }
 
-      return mockUfcFlagConfig;
+      return mockObfuscatedUfcFlagConfig;
     });
 
     const subjectAttributes = { foo: 3 };
@@ -194,7 +252,7 @@ describe('EppoJSClient E2E test', () => {
       if (key !== obfuscatedFlagKey) {
         throw new Error('Unexpected key ' + key);
       }
-      return mockUfcFlagConfig;
+      return mockObfuscatedUfcFlagConfig;
     });
     const subjectAttributes = { foo: 3 };
     globalClient.setLogger(mockLogger);
@@ -215,10 +273,10 @@ describe('EppoJSClient E2E test', () => {
 
       // Modified flag with a single rule.
       return {
-        ...mockUfcFlagConfig,
+        ...mockObfuscatedUfcFlagConfig,
         allocations: [
           {
-            ...mockUfcFlagConfig.allocations[0],
+            ...mockObfuscatedUfcFlagConfig.allocations[0],
             rules: [
               {
                 conditions: [
@@ -306,6 +364,34 @@ describe('EppoJSClient E2E test', () => {
   });
 });
 
+describe('sync init', () => {
+  it('initializes with flags in obfuscated mode', () => {
+    const client = offlineInit({
+      isObfuscated: true,
+      flagsConfiguration: {
+        [obfuscatedFlagKey]: mockObfuscatedUfcFlagConfig,
+      },
+    });
+
+    expect(client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
+      'variant-1',
+    );
+  });
+
+  it('initializes with flags in not-obfuscated mode', () => {
+    const client = offlineInit({
+      isObfuscated: false,
+      flagsConfiguration: {
+        [flagKey]: mockNotObfuscatedFlagConfig,
+      },
+    });
+
+    expect(client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
+      'variant-1',
+    );
+  });
+});
+
 describe('initialization options', () => {
   let mockLogger: IAssignmentLogger;
   let returnUfc = readMockUfcResponse; // function so it can be overridden per-test
@@ -313,7 +399,7 @@ describe('initialization options', () => {
   const maxRetryDelay = POLL_INTERVAL_MS * POLL_JITTER_PCT;
   const mockConfigResponse = {
     flags: {
-      [obfuscatedFlagKey]: mockUfcFlagConfig,
+      [obfuscatedFlagKey]: mockObfuscatedUfcFlagConfig,
     },
   } as unknown as Record<'flags', Record<string, Flag>>;
 
@@ -542,7 +628,7 @@ describe('initialization options', () => {
         },
         async getEntries() {
           return {
-            'old-key': mockUfcFlagConfig,
+            'old-key': mockObfuscatedUfcFlagConfig,
           };
         },
         async setEntries(entries) {
@@ -746,7 +832,7 @@ describe('initialization options', () => {
               json: () =>
                 Promise.resolve({
                   flags: {
-                    [md5Hash(flagKey)]: mockUfcFlagConfig,
+                    [md5Hash(flagKey)]: mockObfuscatedUfcFlagConfig,
                   },
                 }),
             });
