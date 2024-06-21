@@ -4,10 +4,15 @@
 
 ## EppoJSClient.getBoolAssignment() method
 
+> Warning: This API is now obsolete.
+> 
+> Use getBooleanAssignment instead
+> 
+
 **Signature:**
 
 ```typescript
-getBoolAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, any>, defaultValue: boolean): boolean;
+getBoolAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: boolean): boolean;
 ```
 
 ## Parameters
@@ -16,7 +21,7 @@ getBoolAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record
 |  --- | --- | --- |
 |  flagKey | string |  |
 |  subjectKey | string |  |
-|  subjectAttributes | Record&lt;string, any&gt; |  |
+|  subjectAttributes | Record&lt;string, AttributeType&gt; |  |
 |  defaultValue | boolean |  |
 
 **Returns:**
