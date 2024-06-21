@@ -15,6 +15,7 @@ export interface IClientConfigSync
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [assignmentLogger?](./js-client-sdk.iclientconfigsync.assignmentlogger.md) |  | IAssignmentLogger | _(Optional)_ |
-|  [flagsConfiguration](./js-client-sdk.iclientconfigsync.flagsconfiguration.md) |  | Record&lt;string, Flag&gt; |  |
+|  [flagsConfiguration](./js-client-sdk.iclientconfigsync.flagsconfiguration.md) |  | Record&lt;string, Flag \| ObfuscatedFlag&gt; |  |
+|  [isObfuscated?](./js-client-sdk.iclientconfigsync.isobfuscated.md) |  | boolean | _(Optional)_ |
 |  [throwOnFailedInitialization?](./js-client-sdk.iclientconfigsync.throwonfailedinitialization.md) |  | boolean | _(Optional)_ |
 

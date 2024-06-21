@@ -7,5 +7,5 @@
 **Signature:**
 
 ```typescript
-flagsConfiguration: Record<string, Flag>;
+flagsConfiguration: Record<string, Flag | ObfuscatedFlag>;
 ```

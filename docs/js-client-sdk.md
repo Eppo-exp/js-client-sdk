@@ -16,9 +16,10 @@
 |  Function | Description |
 |  --- | --- |
 |  [buildStorageKeySuffix(apiKey)](./js-client-sdk.buildstoragekeysuffix.md) |  |
+|  [getConfigUrl(apiKey, baseUrl)](./js-client-sdk.getconfigurl.md) | Used to build the URL for fetching the flag configuration. |
 |  [getInstance()](./js-client-sdk.getinstance.md) | Used to access a singleton SDK client instance. Use the method after calling init() to initialize the client. |
 |  [init(config)](./js-client-sdk.init.md) | Initializes the Eppo client with configuration parameters. This method should be called once on application startup. |
-|  [initSync(config)](./js-client-sdk.initsync.md) | <p>Initializes the Eppo client with configuration parameters.</p><p>The purpose is for use-cases where the configuration is available and can bootstrap the SDK.</p><p>This method should be called once on application startup.</p> |
+|  [initSync(config)](./js-client-sdk.initsync.md) | <p>Initializes the Eppo client with configuration parameters.</p><p>The purpose is for use-cases where the configuration is available from an external process that can bootstrap the SDK.</p><p>This method should be called once on application startup.</p> |
 
 ## Interfaces
 

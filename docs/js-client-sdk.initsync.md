@@ -6,7 +6,7 @@
 
 Initializes the Eppo client with configuration parameters.
 
-The purpose is for use-cases where the configuration is available and can bootstrap the SDK.
+The purpose is for use-cases where the configuration is available from an external process that can bootstrap the SDK.
 
 This method should be called once on application startup.
 
