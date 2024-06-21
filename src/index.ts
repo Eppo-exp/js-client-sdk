@@ -235,7 +235,7 @@ export function buildStorageKeySuffix(apiKey: string): string {
  * @returns a singleton client instance
  * @public
  */
-export function initSync(config: IClientConfigSync): IEppoClient {
+export function offlineSync(config: IClientConfigSync): IEppoClient {
   try {
     const memoryOnlyConfigurationStore = configurationStorageFactory({
       forceMemoryOnly: true,

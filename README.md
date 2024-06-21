@@ -91,14 +91,14 @@ The SDK supports synchronous initialization. This is useful if you want to initi
 When this function returns the SDK is ready for assignments.
 
 ```javascript
-import { initSync, Flag, ObfuscatedFlag } from "@eppo/js-client-sdk";
+import { offlineSync, Flag, ObfuscatedFlag } from "@eppo/js-client-sdk";
 
 // configuration from your server SDK
 const configurationJsonString: string = getConfigurationFromServer();
 // The configuration will be not-obfuscated from your server SDK. If you have obfuscated flag values, you can use the `ObfuscatedFlag` type.
 const flagsConfiguration: Record<string, Flag | ObfuscatedFlag> = JSON.parse(configurationJsonString);
 
-initSync({ 
+offlineSync({ 
   flagsConfiguration,
   // If you have obfuscated flag values, you can use the `ObfuscatedFlag` type.
   isObfuscated: true,

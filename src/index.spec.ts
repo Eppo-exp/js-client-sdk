@@ -28,7 +28,7 @@ import {
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 
 import {
-  initSync,
+  offlineSync,
   IAssignmentLogger,
   IEppoClient,
   getInstance,
@@ -366,7 +366,7 @@ describe('EppoJSClient E2E test', () => {
 
 describe('sync init', () => {
   it('initializes with flags in obfuscated mode', () => {
-    const client = initSync({
+    const client = offlineSync({
       isObfuscated: true,
       flagsConfiguration: {
         [obfuscatedFlagKey]: mockObfuscatedUfcFlagConfig,
@@ -379,7 +379,7 @@ describe('sync init', () => {
   });
 
   it('initializes with flags in not-obfuscated mode', () => {
-    const client = initSync({
+    const client = offlineSync({
       isObfuscated: false,
       flagsConfiguration: {
         [flagKey]: mockNotObfuscatedFlagConfig,
