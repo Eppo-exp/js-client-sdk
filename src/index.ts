@@ -7,6 +7,7 @@ import {
   Flag,
   IAsyncStore,
   AttributeType,
+  ApiEndpoints,
 } from '@eppo/js-client-sdk-common';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
@@ -356,4 +357,14 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
  */
 export function getInstance(): IEppoClient {
   return EppoJSClient.instance;
+}
+
+/**
+ * Used to build the URL for fetching the flag configuration.
+ * @returns a URL string
+ * @public
+ */
+export function getConfigUrl(apiKey: string, baseUrl?: string): URL {
+  const queryParams = { sdkName, sdkVersion, apiKey };
+  return new ApiEndpoints({ baseUrl, queryParams }).ufcEndpoint();
 }
