@@ -10,6 +10,7 @@ import {
   constants,
   HybridConfigurationStore,
   IAsyncStore,
+  AssignmentCache,
 } from '@eppo/js-client-sdk-common';
 import * as td from 'testdouble';
 
@@ -200,7 +201,7 @@ describe('EppoJSClient E2E test', () => {
   });
 
   afterEach(() => {
-    globalClient.setLogger(mockLogger);
+    globalClient.setAssignmentLogger(mockLogger);
     td.reset();
   });
 
@@ -224,8 +225,15 @@ describe('EppoJSClient E2E test', () => {
       return mockObfuscatedUfcFlagConfig;
     });
 
+    const mockAssignmentCache = td.object<AssignmentCache>();
+    td.when(mockAssignmentCache.has(td.matchers.anything())).thenReturn(false);
+    td.when(mockAssignmentCache.set(td.matchers.anything())).thenReturn();
+    globalClient.useCustomAssignmentCache(mockAssignmentCache);
+
+    const mockLogger = td.object<IAssignmentLogger>();
+    globalClient.setAssignmentLogger(mockLogger);
+
     const subjectAttributes = { foo: 3 };
-    globalClient.setLogger(mockLogger);
     const assignment = globalClient.getStringAssignment(
       flagKey,
       'subject-10',
@@ -235,12 +243,12 @@ describe('EppoJSClient E2E test', () => {
 
     expect(assignment).toEqual('variant-1');
     expect(td.explain(mockLogger.logAssignment).callCount).toEqual(1);
-    expect(td.explain(mockLogger?.logAssignment).calls[0]?.args[0].subject).toEqual('subject-10');
-    expect(td.explain(mockLogger?.logAssignment).calls[0]?.args[0].featureFlag).toEqual(flagKey);
-    expect(td.explain(mockLogger?.logAssignment).calls[0]?.args[0].experiment).toEqual(
+    expect(td.explain(mockLogger.logAssignment).calls[0]?.args[0].subject).toEqual('subject-10');
+    expect(td.explain(mockLogger.logAssignment).calls[0]?.args[0].featureFlag).toEqual(flagKey);
+    expect(td.explain(mockLogger.logAssignment).calls[0]?.args[0].experiment).toEqual(
       `${flagKey}-${allocationKey}`,
     );
-    expect(td.explain(mockLogger?.logAssignment).calls[0]?.args[0].allocation).toEqual(
+    expect(td.explain(mockLogger.logAssignment).calls[0]?.args[0].allocation).toEqual(
       `${allocationKey}`,
     );
   });
@@ -255,7 +263,7 @@ describe('EppoJSClient E2E test', () => {
       return mockObfuscatedUfcFlagConfig;
     });
     const subjectAttributes = { foo: 3 };
-    globalClient.setLogger(mockLogger);
+    globalClient.setAssignmentLogger(mockLogger);
     const assignment = globalClient.getStringAssignment(
       flagKey,
       'subject-10',

@@ -135,7 +135,7 @@ export {
 export { ChromeStorageEngine } from './chrome-storage-engine';
 
 // Instantiate the configuration store with memory-only implementation.
-const configurationStore = configurationStorageFactory({
+const flagConfigurationStore = configurationStorageFactory({
   forceMemoryOnly: true,
 });
 
@@ -147,7 +147,13 @@ export class EppoJSClient extends EppoClient {
   // Ensure that the client is instantiated during class loading.
   // Use an empty memory-only configuration store until the `init` method is called,
   // to avoid serving stale data to the user.
-  public static instance: EppoJSClient = new EppoJSClient(configurationStore, undefined, true);
+  public static instance: EppoJSClient = new EppoJSClient(
+    flagConfigurationStore,
+    undefined,
+    undefined,
+    undefined,
+    true,
+  );
   public static initialized = false;
 
   public getStringAssignment(
@@ -244,8 +250,8 @@ export function offlineInit(config: IClientConfigSync): IEppoClient {
     const memoryOnlyConfigurationStore = configurationStorageFactory({
       forceMemoryOnly: true,
     });
-    memoryOnlyConfigurationStore.setEntries(config.flagsConfiguration);
-    EppoJSClient.instance.setConfigurationStore(memoryOnlyConfigurationStore);
+    memoryOnlyConfigurationStore.setEntries(config.flagsConfiguration).catch();
+    EppoJSClient.instance.setFlagConfigurationStore(memoryOnlyConfigurationStore);
 
     // Allow the caller to override the default obfuscated mode, which is false
     // since the purpose of this method is to bootstrap the SDK from an external source,
@@ -253,7 +259,7 @@ export function offlineInit(config: IClientConfigSync): IEppoClient {
     EppoJSClient.instance.setIsObfuscated(isObfuscated);
 
     if (config.assignmentLogger) {
-      EppoJSClient.instance.setLogger(config.assignmentLogger);
+      EppoJSClient.instance.setAssignmentLogger(config.assignmentLogger);
     }
 
     // There is no SDK key in the offline context.
@@ -262,7 +268,7 @@ export function offlineInit(config: IClientConfigSync): IEppoClient {
     // As this is a synchronous initialization,
     // we are unable to call the async `init` method on the assignment cache
     // which loads the assignment cache from the browser's storage.
-    // Therefore there is no purpose trying to use a persistent assignment cache.
+    // Therefore, there is no purpose trying to use a persistent assignment cache.
     const assignmentCache = assignmentCacheFactory({
       storageKeySuffix,
       forceMemoryOnly: true,
@@ -296,7 +302,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
     // If any existing instances; ensure they are not polling
     instance.stopPolling();
     // Set up assignment logger and cache
-    instance.setLogger(config.assignmentLogger);
+    instance.setAssignmentLogger(config.assignmentLogger);
     // Default to obfuscated mode when requesting configuration from the server.
     instance.setIsObfuscated(true);
 
@@ -318,7 +324,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
         storageKeySuffix,
       },
     );
-    instance.setConfigurationStore(configurationStore);
+    instance.setFlagConfigurationStore(configurationStore);
 
     // instantiate and init assignment cache
     const assignmentCache = assignmentCacheFactory({
