@@ -9,6 +9,7 @@ import {
   AttributeType,
   ObfuscatedFlag,
   ApiEndpoints,
+  applicationLogger,
 } from '@eppo/js-client-sdk-common';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
@@ -213,7 +214,7 @@ export class EppoJSClient extends EppoClient {
 
   private static getAssignmentInitializationCheck() {
     if (!EppoJSClient.initialized) {
-      console.warn('Eppo SDK assignment requested before init() completed');
+      applicationLogger.warn('Eppo SDK assignment requested before init() completed');
     }
   }
 }
@@ -268,7 +269,7 @@ export function offlineInit(config: IClientConfigSync): IEppoClient {
     });
     EppoJSClient.instance.useCustomAssignmentCache(assignmentCache);
   } catch (error) {
-    console.warn(
+    applicationLogger.warn(
       'Eppo SDK encountered an error initializing, assignment calls will return the default value and not be logged',
     );
     if (throwOnFailedInitialization) {
@@ -355,21 +356,24 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
       .then(async () => {
         if (!configurationStore.getKeys().length) {
           // Consider empty configuration stores invalid
-          console.warn('Eppo SDK cached configuration is empty');
+          applicationLogger.warn('Eppo SDK cached configuration is empty');
           initFromConfigStoreError = new Error('Configuration store was empty');
           return '';
         }
 
         const cacheIsExpired = await configurationStore.isExpired();
         if (cacheIsExpired && !config.useExpiredCache) {
-          console.warn('Eppo SDK set not to use expired cached configuration');
+          applicationLogger.warn('Eppo SDK set not to use expired cached configuration');
           initFromConfigStoreError = new Error('Configuration store was expired');
           return '';
         }
         return 'config store';
       })
       .catch((e) => {
-        console.warn('Eppo SDK encountered an error initializing from the configuration store', e);
+        applicationLogger.warn(
+          'Eppo SDK encountered an error initializing from the configuration store',
+          e,
+        );
         initFromConfigStoreError = e;
       });
     const attemptInitFromFetch = instance
@@ -378,7 +382,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
         return 'fetch';
       })
       .catch((e) => {
-        console.warn('Eppo SDK encountered an error initializing from fetching', e);
+        applicationLogger.warn('Eppo SDK encountered an error initializing from fetching', e);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         initFromFetchError = e;
       });
@@ -406,7 +410,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
   }
 
   if (initializationError) {
-    console.warn(
+    applicationLogger.warn(
       'Eppo SDK was unable to initialize with a configuration, assignment calls will return the default value and not be logged' +
         (config.pollAfterFailedInitialization
           ? ' until an experiment configuration is successfully retrieved'
