@@ -41,7 +41,7 @@ export class StringValuedAsyncStore<T> implements IAsyncStore<T> {
     return isExpired;
   }
 
-  public async getEntries(): Promise<Record<string, T>> {
+  public async entries(): Promise<Record<string, T>> {
     const contentsJsonString = await this.storageEngine.getContentsJsonString();
     return contentsJsonString ? JSON.parse(contentsJsonString) : {};
   }

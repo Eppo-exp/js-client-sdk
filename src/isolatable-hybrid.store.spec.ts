@@ -8,13 +8,14 @@ describe('IsolatableHybridConfigurationStore', () => {
     get: jest.fn(),
     getKeys: jest.fn(),
     isInitialized: jest.fn(),
+    entries: jest.fn(),
     setEntries: jest.fn(),
   };
 
   const asyncStoreMock = {
-    getEntries: jest.fn(),
     isInitialized: jest.fn(),
     isExpired: jest.fn(),
+    entries: jest.fn(),
     setEntries: jest.fn(),
   };
 
@@ -36,7 +37,7 @@ describe('IsolatableHybridConfigurationStore', () => {
       it('should initialize the serving store with entries from the persistent store', async () => {
         const entries = { key1: 'value1', key2: 'value2' };
         asyncStoreMock.isInitialized.mockReturnValue(true);
-        asyncStoreMock.getEntries.mockResolvedValue(entries);
+        asyncStoreMock.entries.mockResolvedValue(entries);
 
         await store.init();
 
@@ -86,7 +87,7 @@ describe('IsolatableHybridConfigurationStore', () => {
         asyncStoreMock.isInitialized.mockReturnValue(true);
         asyncStoreMock.isExpired.mockReturnValue(false);
         const initialEntries = { key1: 'init1', key2: 'init2' };
-        asyncStoreMock.getEntries.mockResolvedValue(initialEntries);
+        asyncStoreMock.entries.mockResolvedValue(initialEntries);
 
         await store.init();
         // Expect sync store to be initialized with the empty async store

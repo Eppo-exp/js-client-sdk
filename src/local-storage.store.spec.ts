@@ -29,13 +29,13 @@ describe('LocalStorageStore', () => {
 
   it('returns empty object if entry is not present', async () => {
     const store = new StringValuedAsyncStore<ITestEntry>(localStorageEngine);
-    expect(await store.getEntries()).toEqual({});
+    expect(await store.entries()).toEqual({});
   });
 
   it('returns stored entries', async () => {
     const store = new StringValuedAsyncStore<ITestEntry>(localStorageEngine);
     await store.setEntries({ key1: config1, key2: config2 });
-    expect(await store.getEntries()).toEqual({ key1: config1, key2: config2 });
+    expect(await store.entries()).toEqual({ key1: config1, key2: config2 });
   });
 
   it('is always expired without cooldown', async () => {
@@ -67,17 +67,17 @@ describe('LocalStorageStore', () => {
     const storeB = new StringValuedAsyncStore(localStorageEngineEngineB, 1);
 
     await storeA.setEntries({ theKey: 'A' });
-    expect(await storeA.getEntries()).toEqual({ theKey: 'A' });
+    expect(await storeA.entries()).toEqual({ theKey: 'A' });
     expect(await storeA.isExpired()).toBe(false);
-    expect(await storeB.getEntries()).toEqual({});
+    expect(await storeB.entries()).toEqual({});
     expect(await storeB.isExpired()).toBe(true);
 
     await jest.advanceTimersByTimeAsync(2000);
 
     await storeB.setEntries({ theKey: 'B' });
-    expect(await storeA.getEntries()).toEqual({ theKey: 'A' });
+    expect(await storeA.entries()).toEqual({ theKey: 'A' });
     expect(await storeA.isExpired()).toBe(true);
-    expect(await storeB.getEntries()).toEqual({ theKey: 'B' });
+    expect(await storeB.entries()).toEqual({ theKey: 'B' });
     expect(await storeB.isExpired()).toBe(false);
   });
 });

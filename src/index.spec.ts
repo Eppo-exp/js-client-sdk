@@ -634,7 +634,7 @@ describe('initialization options', () => {
         async isExpired() {
           return true;
         },
-        async getEntries() {
+        async entries() {
           return {
             'old-key': mockObfuscatedUfcFlagConfig,
           };
@@ -781,7 +781,7 @@ describe('initialization options', () => {
       async isExpired() {
         return true; // triggers a fetch
       },
-      async getEntries() {
+      async entries() {
         return new Promise((resolve) => {
           setTimeout(() => {
             storeLoaded = true;

@@ -90,7 +90,7 @@ describe('ChromeStorageStore', () => {
   it('should get entries', async () => {
     fakeStore[fakeStoreContentsKey] = JSON.stringify(mockEntries);
 
-    const entries = await chromeStore.getEntries();
+    const entries = await chromeStore.entries();
     expect(entries).toEqual(mockEntries);
   });
 
@@ -107,17 +107,17 @@ describe('ChromeStorageStore', () => {
     const chromeStoreB = new StringValuedAsyncStore(chromeStorageEngineB, 1);
 
     await chromeStoreA.setEntries({ theKey: 'A' });
-    expect(await chromeStoreA.getEntries()).toEqual({ theKey: 'A' });
+    expect(await chromeStoreA.entries()).toEqual({ theKey: 'A' });
     expect(await chromeStoreA.isExpired()).toBe(false);
-    expect(await chromeStoreB.getEntries()).toEqual({});
+    expect(await chromeStoreB.entries()).toEqual({});
     expect(await chromeStoreB.isExpired()).toBe(true);
 
     await jest.advanceTimersByTimeAsync(2000);
 
     await chromeStoreB.setEntries({ theKey: 'B' });
-    expect(await chromeStoreA.getEntries()).toEqual({ theKey: 'A' });
+    expect(await chromeStoreA.entries()).toEqual({ theKey: 'A' });
     expect(await chromeStoreA.isExpired()).toBe(true);
-    expect(await chromeStoreB.getEntries()).toEqual({ theKey: 'B' });
+    expect(await chromeStoreB.entries()).toEqual({ theKey: 'B' });
     expect(await chromeStoreB.isExpired()).toBe(false);
   });
 });
