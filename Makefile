@@ -30,7 +30,7 @@ gitDataDir := ${tempDir}sdk-test-data/
 branchName := main
 githubRepoLink := https://github.com/Eppo-exp/sdk-test-data.git
 .PHONY: test-data
-test-data: 
+test-data:
 	rm -rf $(testDataDir)
 	mkdir -p $(tempDir)
 	git clone -b ${branchName} --depth 1 --single-branch ${githubRepoLink} ${gitDataDir}
@@ -39,7 +39,7 @@ test-data:
 
 ## prepare
 .PHONY: prepare
-prepare: test-data
+prepare:
 	 yarn husky install
 	 rm -rf dist/
 	 yarn tsc
