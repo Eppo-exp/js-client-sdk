@@ -20,7 +20,8 @@ export default class ChromeStorageAssignmentCache implements BulkReadAssignmentC
     this.storage.set(assignmentCacheKeyToString(entry), assignmentCacheValueToString(entry));
   }
 
-  has(_: AssignmentCacheEntry): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  has(_entry: AssignmentCacheEntry): boolean {
     throw new Error(
       'This should never be called for ChromeStorageAssignmentCache, use getEntries() instead.',
     );

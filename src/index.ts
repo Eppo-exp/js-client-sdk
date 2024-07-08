@@ -250,7 +250,11 @@ export function offlineInit(config: IClientConfigSync): IEppoClient {
     const memoryOnlyConfigurationStore = configurationStorageFactory({
       forceMemoryOnly: true,
     });
-    memoryOnlyConfigurationStore.setEntries(config.flagsConfiguration).catch();
+    memoryOnlyConfigurationStore
+      .setEntries(config.flagsConfiguration)
+      .catch((err) =>
+        applicationLogger.warn('Error setting flags for memory-only configuration store', err),
+      );
     EppoJSClient.instance.setFlagConfigurationStore(memoryOnlyConfigurationStore);
 
     // Allow the caller to override the default obfuscated mode, which is false
