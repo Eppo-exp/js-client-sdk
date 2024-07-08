@@ -18,7 +18,7 @@ describe('configurationStorageFactory', () => {
       set: jest.fn(),
       isInitialized: jest.fn().mockReturnValue(true),
       isExpired: jest.fn().mockReturnValue(false),
-      getEntries: jest.fn().mockReturnValue({}),
+      entries: jest.fn().mockReturnValue({}),
       setEntries: jest.fn(),
     };
     const result = configurationStorageFactory({
