@@ -380,10 +380,10 @@
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz#1d572bfbbe14b7704e0ba0f39b74815b84870d70"
   integrity sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==
 
-"@eppo/js-client-sdk-common@3.5.0":
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/@eppo/js-client-sdk-common/-/js-client-sdk-common-3.5.0.tgz#456616067a7044707828eea596cf6915d9c21c71"
-  integrity sha512-uCzPXRq7Z7Ir8a9XDz0YU3TP5F1vKYtKqXSjRjqViDSBBfbdTkHBNh1zeA3hEdpppjQKZHExbV1Stl0rmNWznw==
+"@eppo/js-client-sdk-common@4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@eppo/js-client-sdk-common/-/js-client-sdk-common-4.0.0.tgz#39dea02745b641915fa4e925d75a12ca5b1e9503"
+  integrity sha512-aMru8KESyNJDU/fm5jVENUhpa1jB88FUncT/xnjgiWPuTLLrpi10Qshoj7Lloi8IjlwFSFMjDjtpuQoLKPpQXA==
   dependencies:
     js-base64 "^3.7.7"
     md5 "^2.3.0"

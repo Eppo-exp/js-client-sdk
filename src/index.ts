@@ -1,7 +1,6 @@
 import {
   IAssignmentLogger,
   validation,
-  IEppoClient,
   EppoClient,
   FlagConfigurationRequestParameters,
   Flag,
@@ -10,6 +9,9 @@ import {
   ObfuscatedFlag,
   ApiEndpoints,
   applicationLogger,
+  IAssignmentDetails,
+  BanditActions,
+  BanditSubjectAttributes,
 } from '@eppo/js-client-sdk-common';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
@@ -125,9 +127,9 @@ export interface IClientConfigSync {
 
 // Export the common types and classes from the SDK.
 export {
-  IAssignmentLogger,
+  IAssignmentDetails,
   IAssignmentEvent,
-  IEppoClient,
+  IAssignmentLogger,
   IAsyncStore,
   Flag,
   ObfuscatedFlag,
@@ -166,6 +168,16 @@ export class EppoJSClient extends EppoClient {
     return super.getStringAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
+  public getStringAssignmentDetails(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, AttributeType>,
+    defaultValue: string,
+  ): IAssignmentDetails<string> {
+    EppoJSClient.getAssignmentInitializationCheck();
+    return super.getStringAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
+
   /**
    * @deprecated Use getBooleanAssignment instead
    */
@@ -188,6 +200,16 @@ export class EppoJSClient extends EppoClient {
     return super.getBooleanAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
+  public getBooleanAssignmentDetails(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, AttributeType>,
+    defaultValue: boolean,
+  ): IAssignmentDetails<boolean> {
+    EppoJSClient.getAssignmentInitializationCheck();
+    return super.getBooleanAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
+
   public getIntegerAssignment(
     flagKey: string,
     subjectKey: string,
@@ -196,6 +218,16 @@ export class EppoJSClient extends EppoClient {
   ): number {
     EppoJSClient.getAssignmentInitializationCheck();
     return super.getIntegerAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
+
+  public getIntegerAssignmentDetails(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, AttributeType>,
+    defaultValue: number,
+  ): IAssignmentDetails<number> {
+    EppoJSClient.getAssignmentInitializationCheck();
+    return super.getIntegerAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
   public getNumericAssignment(
@@ -208,6 +240,16 @@ export class EppoJSClient extends EppoClient {
     return super.getNumericAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
+  public getNumericAssignmentDetails(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, AttributeType>,
+    defaultValue: number,
+  ): IAssignmentDetails<number> {
+    EppoJSClient.getAssignmentInitializationCheck();
+    return super.getNumericAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
+
   public getJSONAssignment(
     flagKey: string,
     subjectKey: string,
@@ -216,6 +258,44 @@ export class EppoJSClient extends EppoClient {
   ): object {
     EppoJSClient.getAssignmentInitializationCheck();
     return super.getJSONAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
+
+  public getJSONAssignmentDetails(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, AttributeType>,
+    defaultValue: object,
+  ): IAssignmentDetails<object> {
+    EppoJSClient.getAssignmentInitializationCheck();
+    return super.getJSONAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
+
+  public getBanditAction(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: BanditSubjectAttributes,
+    actions: BanditActions,
+    defaultValue: string,
+  ): Omit<IAssignmentDetails<string>, 'evaluationDetails'> {
+    EppoJSClient.getAssignmentInitializationCheck();
+    return super.getBanditAction(flagKey, subjectKey, subjectAttributes, actions, defaultValue);
+  }
+
+  public getBanditActionDetails(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: BanditSubjectAttributes,
+    actions: BanditActions,
+    defaultValue: string,
+  ): IAssignmentDetails<string> {
+    EppoJSClient.getAssignmentInitializationCheck();
+    return super.getBanditActionDetails(
+      flagKey,
+      subjectKey,
+      subjectAttributes,
+      actions,
+      defaultValue,
+    );
   }
 
   private static getAssignmentInitializationCheck() {
@@ -242,7 +322,7 @@ export function buildStorageKeySuffix(apiKey: string): string {
  * @returns a singleton client instance
  * @public
  */
-export function offlineInit(config: IClientConfigSync): IEppoClient {
+export function offlineInit(config: IClientConfigSync): EppoClient {
   const isObfuscated = config.isObfuscated ?? false;
   const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
 
@@ -297,7 +377,7 @@ export function offlineInit(config: IClientConfigSync): IEppoClient {
  * @param config - client configuration
  * @public
  */
-export async function init(config: IClientConfig): Promise<IEppoClient> {
+export async function init(config: IClientConfig): Promise<EppoClient> {
   validation.validateNotBlank(config.apiKey, 'API key required');
   let initializationError: Error | undefined;
   const instance = EppoJSClient.instance;
@@ -441,7 +521,7 @@ export async function init(config: IClientConfig): Promise<IEppoClient> {
  * @returns a singleton client instance
  * @public
  */
-export function getInstance(): IEppoClient {
+export function getInstance(): EppoClient {
   return EppoJSClient.instance;
 }
 
