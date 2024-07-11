@@ -6,19 +6,27 @@
 
 /// <reference types="chrome" />
 
+import { AsyncMap } from '@eppo/js-client-sdk-common';
 import { AttributeType } from '@eppo/js-client-sdk-common';
+import { BanditActions } from '@eppo/js-client-sdk-common';
+import { BanditSubjectAttributes } from '@eppo/js-client-sdk-common';
 import { EppoClient } from '@eppo/js-client-sdk-common';
 import { Flag } from '@eppo/js-client-sdk-common';
+import { IAssignmentDetails } from '@eppo/js-client-sdk-common';
 import { IAssignmentEvent } from '@eppo/js-client-sdk-common';
 import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
 import { IAsyncStore } from '@eppo/js-client-sdk-common';
-import { IEppoClient } from '@eppo/js-client-sdk-common';
+import { ObfuscatedFlag } from '@eppo/js-client-sdk-common';
+
+// @public (undocumented)
+export function buildStorageKeySuffix(apiKey: string): string;
 
 // Warning: (ae-forgotten-export) The symbol "IStringStorageEngine" needs to be exported by the entry point index.d.ts
 //
 // @public
 export class ChromeStorageEngine implements IStringStorageEngine {
-    constructor(storageArea: chrome.storage.StorageArea, storageKeySuffix: string);
+    // Warning: (ae-forgotten-export) The symbol "ChromeStorageAsyncMap" needs to be exported by the entry point index.d.ts
+    constructor(storageMap: ChromeStorageAsyncMap<string>, storageKeySuffix: string);
     // (undocumented)
     getContentsJsonString: () => Promise<string | null>;
     // (undocumented)
@@ -31,26 +39,47 @@ export class ChromeStorageEngine implements IStringStorageEngine {
 
 // @public
 export class EppoJSClient extends EppoClient {
+    // (undocumented)
+    getBanditAction(flagKey: string, subjectKey: string, subjectAttributes: BanditSubjectAttributes, actions: BanditActions, defaultValue: string): Omit<IAssignmentDetails<string>, 'evaluationDetails'>;
+    // (undocumented)
+    getBanditActionDetails(flagKey: string, subjectKey: string, subjectAttributes: BanditSubjectAttributes, actions: BanditActions, defaultValue: string): IAssignmentDetails<string>;
     // @deprecated (undocumented)
     getBoolAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: boolean): boolean;
     // (undocumented)
     getBooleanAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: boolean): boolean;
     // (undocumented)
+    getBooleanAssignmentDetails(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: boolean): IAssignmentDetails<boolean>;
+    // (undocumented)
     getIntegerAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: number): number;
+    // (undocumented)
+    getIntegerAssignmentDetails(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: number): IAssignmentDetails<number>;
     // (undocumented)
     getJSONAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: object): object;
     // (undocumented)
+    getJSONAssignmentDetails(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: object): IAssignmentDetails<object>;
+    // (undocumented)
     getNumericAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: number): number;
     // (undocumented)
+    getNumericAssignmentDetails(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: number): IAssignmentDetails<number>;
+    // (undocumented)
     getStringAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: string): string;
+    // (undocumented)
+    getStringAssignmentDetails(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: string): IAssignmentDetails<string>;
     // (undocumented)
     static initialized: boolean;
     // (undocumented)
     static instance: EppoJSClient;
 }
 
+export { Flag }
+
 // @public
-export function getInstance(): IEppoClient;
+export function getConfigUrl(apiKey: string, baseUrl?: string): URL;
+
+// @public
+export function getInstance(): EppoClient;
+
+export { IAssignmentDetails }
 
 export { IAssignmentEvent }
 
@@ -77,10 +106,25 @@ export interface IClientConfig {
     useExpiredCache?: boolean;
 }
 
-export { IEppoClient }
+// @public (undocumented)
+export interface IClientConfigSync {
+    // (undocumented)
+    assignmentLogger?: IAssignmentLogger;
+    // (undocumented)
+    flagsConfiguration: Record<string, Flag | ObfuscatedFlag>;
+    // (undocumented)
+    isObfuscated?: boolean;
+    // (undocumented)
+    throwOnFailedInitialization?: boolean;
+}
 
 // @public
-export function init(config: IClientConfig): Promise<IEppoClient>;
+export function init(config: IClientConfig): Promise<EppoClient>;
+
+export { ObfuscatedFlag }
+
+// @public
+export function offlineInit(config: IClientConfigSync): EppoClient;
 
 // (No @packageDocumentation comment for this package)
 

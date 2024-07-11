@@ -24,10 +24,17 @@ export declare class EppoJSClient extends EppoClient
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
+|  [getBanditAction(flagKey, subjectKey, subjectAttributes, actions, defaultValue)](./js-client-sdk.eppojsclient.getbanditaction.md) |  |  |
+|  [getBanditActionDetails(flagKey, subjectKey, subjectAttributes, actions, defaultValue)](./js-client-sdk.eppojsclient.getbanditactiondetails.md) |  |  |
 |  [getBoolAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getboolassignment.md) |  |  |
 |  [getBooleanAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getbooleanassignment.md) |  |  |
+|  [getBooleanAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getbooleanassignmentdetails.md) |  |  |
 |  [getIntegerAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getintegerassignment.md) |  |  |
+|  [getIntegerAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getintegerassignmentdetails.md) |  |  |
 |  [getJSONAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getjsonassignment.md) |  |  |
+|  [getJSONAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getjsonassignmentdetails.md) |  |  |
 |  [getNumericAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getnumericassignment.md) |  |  |
+|  [getNumericAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getnumericassignmentdetails.md) |  |  |
 |  [getStringAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getstringassignment.md) |  |  |
+|  [getStringAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getstringassignmentdetails.md) |  |  |
 
