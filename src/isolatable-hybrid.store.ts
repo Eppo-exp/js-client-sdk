@@ -19,7 +19,7 @@ export class IsolatableHybridConfigurationStore<T> extends HybridConfigurationSt
   }
 
   /** @Override */
-  public async setEntries(entries: Record<string, T>): Promise<void> {
+  public async setEntries(entries: Record<string, T>): Promise<boolean> {
     if (this.persistentStore) {
       // always update persistent store
       await this.persistentStore.setEntries(entries);
@@ -41,5 +41,6 @@ export class IsolatableHybridConfigurationStore<T> extends HybridConfigurationSt
     if (updateServingStore) {
       this.servingStore.setEntries(entries);
     }
+    return updateServingStore;
   }
 }
