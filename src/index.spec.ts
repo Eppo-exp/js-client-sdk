@@ -494,6 +494,61 @@ describe('initialization options', () => {
     expect(callCount).toBe(2);
   });
 
+  it('do not reinitialize if already initialized', async () => {
+    let callCount = 0;
+
+    global.fetch = jest.fn(() => {
+      callCount += 1;
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(mockConfigResponse),
+      });
+    }) as jest.Mock;
+
+    await init({
+      apiKey,
+      baseUrl,
+      assignmentLogger: mockLogger,
+    });
+
+    await init({
+      apiKey,
+      baseUrl,
+      assignmentLogger: mockLogger,
+    });
+
+    expect(callCount).toBe(1);
+  });
+
+  it('force reinitialize', async () => {
+    let callCount = 0;
+
+    global.fetch = jest.fn(() => {
+      callCount += 1;
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(mockConfigResponse),
+      });
+    }) as jest.Mock;
+
+    await init({
+      apiKey,
+      baseUrl,
+      assignmentLogger: mockLogger,
+    });
+
+    await init({
+      apiKey,
+      baseUrl,
+      assignmentLogger: mockLogger,
+      forceReinitialize: true,
+    });
+
+    expect(callCount).toBe(2);
+  });
+
   it('polls after successful init if configured to do so', async () => {
     let callCount = 0;
 

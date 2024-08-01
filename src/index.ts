@@ -113,6 +113,11 @@ export interface IClientConfig {
    * than the default storage provided by the SDK.
    */
   persistentStore?: IAsyncStore<Flag>;
+
+  /**
+   * Force reinitialize the SDK if it is already initialized.
+   */
+  forceReinitialize?: boolean;
 }
 
 export interface IClientConfigSync {
@@ -381,8 +386,23 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
   validation.validateNotBlank(config.apiKey, 'API key required');
   let initializationError: Error | undefined;
   const instance = EppoJSClient.instance;
-  const { apiKey, persistentStore, baseUrl, maxCacheAgeSeconds, updateOnFetch } = config;
+  const { apiKey, persistentStore, baseUrl, maxCacheAgeSeconds, updateOnFetch, forceReinitialize } =
+    config;
   try {
+    if (EppoJSClient.initialized) {
+      if (forceReinitialize) {
+        applicationLogger.warn(
+          'Eppo SDK is already initialized. Since forceReinitialize is true, reinitializing.',
+        );
+        EppoJSClient.initialized = false;
+      } else {
+        applicationLogger.warn(
+          'Eppo SDK is already initialized. Since forceReinitialize is false, returning existing instance.',
+        );
+        return instance;
+      }
+    }
+
     // If any existing instances; ensure they are not polling
     instance.stopPolling();
     // Set up assignment logger and cache
