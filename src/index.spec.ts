@@ -191,6 +191,7 @@ describe('EppoJSClient E2E test', () => {
       apiKey,
       baseUrl,
       assignmentLogger: mockLogger,
+      forceReinitialize: true,
     });
   });
 
@@ -335,6 +336,7 @@ describe('EppoJSClient E2E test', () => {
         apiKey,
         baseUrl,
         assignmentLogger: mockLogger,
+        forceReinitialize: true,
       });
     });
 
@@ -778,6 +780,7 @@ describe('initialization options', () => {
       apiKey,
       baseUrl,
       assignmentLogger: mockLogger,
+      forceReinitialize: true,
     });
 
     expect(fetchCallCount).toBe(1);
@@ -790,6 +793,7 @@ describe('initialization options', () => {
       baseUrl: 'https://thisisabaddomainforthistest.com',
       assignmentLogger: mockLogger,
       useExpiredCache: true,
+      forceReinitialize: true,
     });
 
     // Should serve assignment from cache before fetch even fails
@@ -809,6 +813,7 @@ describe('initialization options', () => {
         baseUrl: 'https://thisisabaddomainforthistest.com',
         assignmentLogger: mockLogger,
         useExpiredCache: true,
+        forceReinitialize: true,
       }),
     ).rejects.toThrow();
   });
@@ -909,6 +914,7 @@ describe('initialization options', () => {
         baseUrl,
         assignmentLogger: mockLogger,
         updateOnFetch,
+        forceReinitialize: true,
       });
 
       expect(fetchCallCount).toBe(1);
@@ -926,6 +932,7 @@ describe('initialization options', () => {
         assignmentLogger: mockLogger,
         updateOnFetch,
         useExpiredCache: true,
+        forceReinitialize: true,
       });
 
       // Should serve assignment from cache before fetch completes
@@ -955,6 +962,7 @@ describe('initialization options', () => {
         assignmentLogger: mockLogger,
         updateOnFetch,
         maxCacheAgeSeconds: fetchResolveDelayMs * 10,
+        forceReinitialize: true,
       });
 
       // No fetch will have been kicked off because of valid cache; previously fetched values will be served
@@ -997,6 +1005,7 @@ describe('initialization options', () => {
         apiKey,
         baseUrl,
         assignmentLogger: mockLogger,
+        forceReinitialize: true,
       });
     });
 
@@ -1010,6 +1019,7 @@ describe('initialization options', () => {
         apiKey,
         baseUrl,
         assignmentLogger: mockLogger,
+        forceReinitialize: true,
       });
       expect(getInstance().getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe(
         'default-value',
