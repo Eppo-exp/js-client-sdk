@@ -392,12 +392,12 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
     if (EppoJSClient.initialized) {
       if (forceReinitialize) {
         applicationLogger.warn(
-          'Eppo SDK is already initialized. Since forceReinitialize is true, reinitializing.',
+          'Eppo SDK is already initialized, reinitializing since forceReinitialize is true.',
         );
         EppoJSClient.initialized = false;
       } else {
         applicationLogger.warn(
-          'Eppo SDK is already initialized. Since forceReinitialize is false, returning existing instance.',
+          'Eppo SDK is already initialized, skipping reinitialization since forceReinitialize is false.',
         );
         return instance;
       }
