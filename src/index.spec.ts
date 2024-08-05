@@ -191,6 +191,7 @@ describe('EppoJSClient E2E test', () => {
       apiKey,
       baseUrl,
       assignmentLogger: mockLogger,
+      forceReinitialize: true,
     });
   });
 
@@ -335,6 +336,7 @@ describe('EppoJSClient E2E test', () => {
         apiKey,
         baseUrl,
         assignmentLogger: mockLogger,
+        forceReinitialize: true,
       });
     });
 
@@ -491,6 +493,61 @@ describe('initialization options', () => {
 
     // By default, no more calls
     await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS * 10);
+    expect(callCount).toBe(2);
+  });
+
+  it('do not reinitialize if already initialized', async () => {
+    let callCount = 0;
+
+    global.fetch = jest.fn(() => {
+      callCount += 1;
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(mockConfigResponse),
+      });
+    }) as jest.Mock;
+
+    await init({
+      apiKey,
+      baseUrl,
+      assignmentLogger: mockLogger,
+    });
+
+    await init({
+      apiKey,
+      baseUrl,
+      assignmentLogger: mockLogger,
+    });
+
+    expect(callCount).toBe(1);
+  });
+
+  it('force reinitialize', async () => {
+    let callCount = 0;
+
+    global.fetch = jest.fn(() => {
+      callCount += 1;
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(mockConfigResponse),
+      });
+    }) as jest.Mock;
+
+    await init({
+      apiKey,
+      baseUrl,
+      assignmentLogger: mockLogger,
+    });
+
+    await init({
+      apiKey,
+      baseUrl,
+      assignmentLogger: mockLogger,
+      forceReinitialize: true,
+    });
+
     expect(callCount).toBe(2);
   });
 
@@ -723,6 +780,7 @@ describe('initialization options', () => {
       apiKey,
       baseUrl,
       assignmentLogger: mockLogger,
+      forceReinitialize: true,
     });
 
     expect(fetchCallCount).toBe(1);
@@ -735,6 +793,7 @@ describe('initialization options', () => {
       baseUrl: 'https://thisisabaddomainforthistest.com',
       assignmentLogger: mockLogger,
       useExpiredCache: true,
+      forceReinitialize: true,
     });
 
     // Should serve assignment from cache before fetch even fails
@@ -754,6 +813,7 @@ describe('initialization options', () => {
         baseUrl: 'https://thisisabaddomainforthistest.com',
         assignmentLogger: mockLogger,
         useExpiredCache: true,
+        forceReinitialize: true,
       }),
     ).rejects.toThrow();
   });
@@ -854,6 +914,7 @@ describe('initialization options', () => {
         baseUrl,
         assignmentLogger: mockLogger,
         updateOnFetch,
+        forceReinitialize: true,
       });
 
       expect(fetchCallCount).toBe(1);
@@ -871,6 +932,7 @@ describe('initialization options', () => {
         assignmentLogger: mockLogger,
         updateOnFetch,
         useExpiredCache: true,
+        forceReinitialize: true,
       });
 
       // Should serve assignment from cache before fetch completes
@@ -900,6 +962,7 @@ describe('initialization options', () => {
         assignmentLogger: mockLogger,
         updateOnFetch,
         maxCacheAgeSeconds: fetchResolveDelayMs * 10,
+        forceReinitialize: true,
       });
 
       // No fetch will have been kicked off because of valid cache; previously fetched values will be served
@@ -942,6 +1005,7 @@ describe('initialization options', () => {
         apiKey,
         baseUrl,
         assignmentLogger: mockLogger,
+        forceReinitialize: true,
       });
     });
 
@@ -955,6 +1019,7 @@ describe('initialization options', () => {
         apiKey,
         baseUrl,
         assignmentLogger: mockLogger,
+        forceReinitialize: true,
       });
       expect(getInstance().getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe(
         'default-value',
