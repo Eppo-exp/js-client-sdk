@@ -45,3 +45,8 @@ prepare: test-data
 	 yarn tsc
 	 yarn webpack
 	 yarn api-extractor run --local
+
+## test
+.PHONY: test
+test: test test-data
+	yarn test:unit
