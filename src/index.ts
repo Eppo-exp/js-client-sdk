@@ -12,6 +12,7 @@ import {
   IAssignmentDetails,
   BanditActions,
   BanditSubjectAttributes,
+  IContainerExperiment,
 } from '@eppo/js-client-sdk-common';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
@@ -301,6 +302,15 @@ export class EppoJSClient extends EppoClient {
       actions,
       defaultValue,
     );
+  }
+
+  public getExperimentContainerEntry<T>(
+    flagExperiment: IContainerExperiment<T>,
+    subjectKey: string,
+    subjectAttributes: Record<string, AttributeType>,
+  ): T {
+    EppoJSClient.getAssignmentInitializationCheck();
+    return super.getExperimentContainerEntry(flagExperiment, subjectKey, subjectAttributes);
   }
 
   private static getAssignmentInitializationCheck() {
