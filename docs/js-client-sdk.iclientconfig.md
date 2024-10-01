@@ -19,6 +19,7 @@ export interface IClientConfig
 |  [apiKey](./js-client-sdk.iclientconfig.apikey.md) |  | string | Eppo API key |
 |  [assignmentLogger](./js-client-sdk.iclientconfig.assignmentlogger.md) |  | IAssignmentLogger | Pass a logging implementation to send variation assignments to your data warehouse. |
 |  [baseUrl?](./js-client-sdk.iclientconfig.baseurl.md) |  | string | _(Optional)_ Base URL of the Eppo API. Clients should use the default setting in most cases. |
+|  [forceReinitialize?](./js-client-sdk.iclientconfig.forcereinitialize.md) |  | boolean | _(Optional)_ Force reinitialize the SDK if it is already initialized. |
 |  [maxCacheAgeSeconds?](./js-client-sdk.iclientconfig.maxcacheageseconds.md) |  | number | _(Optional)_ Maximum age, in seconds, previously cached values are considered valid until new values will be fetched (default: 0) |
 |  [numInitialRequestRetries?](./js-client-sdk.iclientconfig.numinitialrequestretries.md) |  | number | _(Optional)_ Number of additional times the initial configuration request will be attempted if it fails. This is the request typically synchronously waited (via await) for completion. A small wait will be done between requests. (Default: 1) |
 |  [numPollRequestRetries?](./js-client-sdk.iclientconfig.numpollrequestretries.md) |  | number | _(Optional)_ Number of additional times polling for updated configurations will be attempted before giving up. Polling is done after a successful initial request. Subsequent attempts are done using an exponential backoff. (Default: 7) |

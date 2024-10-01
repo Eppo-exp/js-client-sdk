@@ -92,6 +92,7 @@ export interface IClientConfig {
     apiKey: string;
     assignmentLogger: IAssignmentLogger;
     baseUrl?: string;
+    forceReinitialize?: boolean;
     maxCacheAgeSeconds?: number;
     numInitialRequestRetries?: number;
     numPollRequestRetries?: number;
