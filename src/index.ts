@@ -14,6 +14,7 @@ import {
   BanditSubjectAttributes,
   IContainerExperiment,
 } from '@eppo/js-client-sdk-common';
+import { DEFAULT_POLL_INTERVAL_MS } from '@eppo/js-client-sdk-common/dist/constants';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
 import HybridAssignmentCache from './cache/hybrid-assignment-cache';
@@ -71,9 +72,14 @@ export interface IClientConfig {
   pollAfterFailedInitialization?: boolean;
 
   /**
-   * Poll for new configurations (every 30 seconds) after successfully requesting the initial configuration. (default: false)
+   * Poll for new configurations (every `polingIntervalMs`) after successfully requesting the initial configuration. (default: false)
    */
   pollAfterSuccessfulInitialization?: boolean;
+
+  /**
+   * Amount of time to wait between API calls to refresh configuration data. Default of 30_000 (30 seconds).
+   */
+  pollingIntervalMs?: number;
 
   /**
    * Number of additional times polling for updated configurations will be attempted before giving up.
@@ -461,6 +467,7 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
       numPollRequestRetries: config.numPollRequestRetries ?? undefined,
       pollAfterSuccessfulInitialization: config.pollAfterSuccessfulInitialization ?? false,
       pollAfterFailedInitialization: config.pollAfterFailedInitialization ?? false,
+      pollingIntervalMs: config.pollingIntervalMs ?? DEFAULT_POLL_INTERVAL_MS,
       throwOnFailedInitialization: true, // always use true here as underlying instance fetch is surrounded by try/catch
       skipInitialPoll: config.skipInitialRequest ?? false,
     };
