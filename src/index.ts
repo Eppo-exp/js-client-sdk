@@ -72,7 +72,7 @@ export interface IClientConfig {
   pollAfterFailedInitialization?: boolean;
 
   /**
-   * Poll for new configurations (every `polingIntervalMs`) after successfully requesting the initial configuration. (default: false)
+   * Poll for new configurations (every `pollingIntervalMs`) after successfully requesting the initial configuration. (default: false)
    */
   pollAfterSuccessfulInitialization?: boolean;
 
