@@ -4,7 +4,7 @@
 
 ## IClientConfig.pollAfterSuccessfulInitialization property
 
-Poll for new configurations (every `pollingIntervalMs`) after successfully requesting the initial configuration. (default: false)
+Poll for new configurations (every `pollingIntervalMs`<!-- -->) after successfully requesting the initial configuration. (default: false)
 
 **Signature:**
 
