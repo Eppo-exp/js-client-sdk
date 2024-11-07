@@ -15,7 +15,7 @@ import {
 } from '@eppo/js-client-sdk-common';
 import * as td from 'testdouble';
 
-const { POLL_INTERVAL_MS, POLL_JITTER_PCT } = constants;
+const { DEFAULT_POLL_INTERVAL_MS, POLL_JITTER_PCT } = constants;
 
 import {
   IAssignmentTestCase,
@@ -406,7 +406,7 @@ describe('initialization options', () => {
   let mockLogger: IAssignmentLogger;
   let returnUfc = readMockUfcResponse; // function so it can be overridden per-test
 
-  const maxRetryDelay = POLL_INTERVAL_MS * POLL_JITTER_PCT;
+  const maxRetryDelay = DEFAULT_POLL_INTERVAL_MS * POLL_JITTER_PCT;
   const mockConfigResponse = {
     flags: {
       [obfuscatedFlagKey]: mockObfuscatedUfcFlagConfig,
@@ -492,7 +492,7 @@ describe('initialization options', () => {
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
 
     // By default, no more calls
-    await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS * 10);
+    await jest.advanceTimersByTimeAsync(DEFAULT_POLL_INTERVAL_MS * 10);
     expect(callCount).toBe(2);
   });
 
@@ -577,7 +577,7 @@ describe('initialization options', () => {
     await jest.advanceTimersByTimeAsync(maxRetryDelay);
 
     // Should be polling
-    await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS * 10);
+    await jest.advanceTimersByTimeAsync(DEFAULT_POLL_INTERVAL_MS * 10);
     expect(callCount).toBe(11);
   });
 
@@ -609,7 +609,7 @@ describe('initialization options', () => {
     );
 
     // Expect no further configuration requests
-    await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
+    await jest.advanceTimersByTimeAsync(DEFAULT_POLL_INTERVAL_MS);
     expect(callCount).toBe(1);
   });
 
@@ -649,7 +649,7 @@ describe('initialization options', () => {
       'default-value',
     );
 
-    await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
+    await jest.advanceTimersByTimeAsync(DEFAULT_POLL_INTERVAL_MS);
 
     // Expect a new call from poller
     expect(callCount).toBe(3);
@@ -1025,7 +1025,7 @@ describe('initialization options', () => {
         'default-value',
       );
       // Advance time so a poll happened and check again
-      await jest.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
+      await jest.advanceTimersByTimeAsync(DEFAULT_POLL_INTERVAL_MS);
       expect(getInstance().getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe(
         'control',
       );
