@@ -14,7 +14,6 @@ import {
   BanditSubjectAttributes,
   IContainerExperiment,
 } from '@eppo/js-client-sdk-common';
-import { DEFAULT_POLL_INTERVAL_MS } from '@eppo/js-client-sdk-common/dist/constants';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
 import HybridAssignmentCache from './cache/hybrid-assignment-cache';
@@ -467,7 +466,7 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
       numPollRequestRetries: config.numPollRequestRetries ?? undefined,
       pollAfterSuccessfulInitialization: config.pollAfterSuccessfulInitialization ?? false,
       pollAfterFailedInitialization: config.pollAfterFailedInitialization ?? false,
-      pollingIntervalMs: config.pollingIntervalMs ?? DEFAULT_POLL_INTERVAL_MS,
+      pollingIntervalMs: config.pollingIntervalMs ?? undefined,
       throwOnFailedInitialization: true, // always use true here as underlying instance fetch is surrounded by try/catch
       skipInitialPoll: config.skipInitialRequest ?? false,
     };
