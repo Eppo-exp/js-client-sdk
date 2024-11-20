@@ -29,6 +29,7 @@ export declare class EppoJSClient extends EppoClient
 |  [getBoolAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getboolassignment.md) |  |  |
 |  [getBooleanAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getbooleanassignment.md) |  |  |
 |  [getBooleanAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getbooleanassignmentdetails.md) |  |  |
+|  [getExperimentContainerEntry(flagExperiment, subjectKey, subjectAttributes)](./js-client-sdk.eppojsclient.getexperimentcontainerentry.md) |  |  |
 |  [getIntegerAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getintegerassignment.md) |  |  |
 |  [getIntegerAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getintegerassignmentdetails.md) |  |  |
 |  [getJSONAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getjsonassignment.md) |  |  |

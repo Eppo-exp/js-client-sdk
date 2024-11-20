@@ -16,6 +16,7 @@ import { IAssignmentDetails } from '@eppo/js-client-sdk-common';
 import { IAssignmentEvent } from '@eppo/js-client-sdk-common';
 import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
 import { IAsyncStore } from '@eppo/js-client-sdk-common';
+import { IContainerExperiment } from '@eppo/js-client-sdk-common';
 import { ObfuscatedFlag } from '@eppo/js-client-sdk-common';
 
 // @public (undocumented)
@@ -49,6 +50,8 @@ export class EppoJSClient extends EppoClient {
     getBooleanAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: boolean): boolean;
     // (undocumented)
     getBooleanAssignmentDetails(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: boolean): IAssignmentDetails<boolean>;
+    // (undocumented)
+    getExperimentContainerEntry<T>(flagExperiment: IContainerExperiment<T>, subjectKey: string, subjectAttributes: Record<string, AttributeType>): T;
     // (undocumented)
     getIntegerAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: number): number;
     // (undocumented)
@@ -92,12 +95,14 @@ export interface IClientConfig {
     apiKey: string;
     assignmentLogger: IAssignmentLogger;
     baseUrl?: string;
+    forceReinitialize?: boolean;
     maxCacheAgeSeconds?: number;
     numInitialRequestRetries?: number;
     numPollRequestRetries?: number;
     persistentStore?: IAsyncStore<Flag>;
     pollAfterFailedInitialization?: boolean;
     pollAfterSuccessfulInitialization?: boolean;
+    pollingIntervalMs?: number;
     requestTimeoutMs?: number;
     skipInitialRequest?: boolean;
     throwOnFailedInitialization?: boolean;
