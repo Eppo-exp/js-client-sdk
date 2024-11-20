@@ -517,9 +517,7 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
       });
     const attemptInitFromFetch = instance
       .fetchFlagConfigurations()
-      .then(() => {
-        return 'fetch';
-      })
+      .then(() => 'fetch')
       .catch((e) => {
         applicationLogger.warn('Eppo SDK encountered an error initializing from fetching', e);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
