@@ -401,8 +401,21 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
   validation.validateNotBlank(config.apiKey, 'API key required');
   let initializationError: Error | undefined;
   const instance = EppoJSClient.instance;
-  const { apiKey, persistentStore, baseUrl, maxCacheAgeSeconds, updateOnFetch, forceReinitialize } =
-    config;
+  const {
+    apiKey,
+    persistentStore,
+    baseUrl,
+    maxCacheAgeSeconds,
+    updateOnFetch,
+    forceReinitialize,
+    requestTimeoutMs,
+    numInitialRequestRetries,
+    numPollRequestRetries,
+    pollingIntervalMs,
+    pollAfterSuccessfulInitialization = false,
+    pollAfterFailedInitialization = false,
+    skipInitialRequest = false,
+  } = config;
   try {
     if (EppoJSClient.initialized) {
       if (forceReinitialize) {
@@ -461,14 +474,14 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
       sdkName,
       sdkVersion,
       baseUrl,
-      requestTimeoutMs: config.requestTimeoutMs ?? undefined,
-      numInitialRequestRetries: config.numInitialRequestRetries ?? undefined,
-      numPollRequestRetries: config.numPollRequestRetries ?? undefined,
-      pollAfterSuccessfulInitialization: config.pollAfterSuccessfulInitialization ?? false,
-      pollAfterFailedInitialization: config.pollAfterFailedInitialization ?? false,
-      pollingIntervalMs: config.pollingIntervalMs ?? undefined,
+      requestTimeoutMs,
+      numInitialRequestRetries,
+      numPollRequestRetries,
+      pollAfterSuccessfulInitialization,
+      pollAfterFailedInitialization,
+      pollingIntervalMs,
       throwOnFailedInitialization: true, // always use true here as underlying instance fetch is surrounded by try/catch
-      skipInitialPoll: config.skipInitialRequest ?? false,
+      skipInitialPoll: skipInitialRequest,
     };
     instance.setConfigurationRequestParameters(requestConfiguration);
 
@@ -504,9 +517,7 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
       });
     const attemptInitFromFetch = instance
       .fetchFlagConfigurations()
-      .then(() => {
-        return 'fetch';
-      })
+      .then(() => 'fetch')
       .catch((e) => {
         applicationLogger.warn('Eppo SDK encountered an error initializing from fetching', e);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -531,7 +542,7 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
       // both failed, make the "fatal" error the fetch one
       initializationError = initFromFetchError;
     }
-  } catch (error) {
+  } catch (error: any) {
     initializationError = error;
   }
 
