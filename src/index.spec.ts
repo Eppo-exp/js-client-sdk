@@ -36,6 +36,8 @@ import {
   init,
   IClientConfig,
   getConfigUrl,
+  EppoPrecomputedJSClient,
+  precomputedInit,
 } from './index';
 
 function md5Hash(input: string): string {
@@ -1054,5 +1056,94 @@ describe('getConfigUrl function', () => {
     expect(url.toString()).toContain(`apiKey=${apiKey}`);
     expect(url.toString()).toContain('sdkName=');
     expect(url.toString()).toContain('sdkVersion=');
+  });
+});
+
+describe('EppoPrecomputedJSClient E2E test', () => {
+  let globalClient: EppoPrecomputedJSClient;
+  let mockLogger: IAssignmentLogger;
+
+  beforeAll(async () => {
+    global.fetch = jest.fn(() => {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({
+            createdAt: '2024-11-18T14:23:39.456Z',
+            format: 'PRECOMPUTED',
+            environment: {
+              name: 'Test',
+            },
+            flags: {
+              'string-flag': {
+                allocationKey: 'allocation-123',
+                variationKey: 'variation-123',
+                variationType: 'STRING',
+                variationValue: 'red',
+                extraLogging: {},
+                doLog: true,
+              },
+              'boolean-flag': {
+                allocationKey: 'allocation-124',
+                variationKey: 'variation-124',
+                variationType: 'BOOLEAN',
+                variationValue: true,
+                extraLogging: {},
+                doLog: true,
+              },
+              'numeric-flag': {
+                allocationKey: 'allocation-126',
+                variationKey: 'variation-126',
+                variationType: 'NUMERIC',
+                variationValue: 3.14,
+                extraLogging: {},
+                doLog: true,
+              },
+              'integer-flag': {
+                allocationKey: 'allocation-125',
+                variationKey: 'variation-125',
+                variationType: 'INTEGER',
+                variationValue: 42,
+                extraLogging: {},
+                doLog: true,
+              },
+              'json-flag': {
+                allocationKey: 'allocation-127',
+                variationKey: 'variation-127',
+                variationType: 'JSON',
+                variationValue: '{"key": "value", "number": 123}',
+                extraLogging: {},
+                doLog: true,
+              },
+            },
+          }),
+      });
+    }) as jest.Mock;
+
+    mockLogger = td.object<IAssignmentLogger>();
+
+    globalClient = await precomputedInit({
+      apiKey: 'dummy',
+      baseUrl: 'http://127.0.0.1:4000',
+      assignmentLogger: mockLogger,
+      subjectKey: 'test-subject',
+      subjectAttributes: { attr1: 'value1' },
+    });
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('returns correct assignments for different value types', () => {
+    expect(globalClient.getStringAssignment('string-flag', 'default')).toBe('red');
+    expect(globalClient.getBooleanAssignment('boolean-flag', false)).toBe(true);
+    expect(globalClient.getNumericAssignment('numeric-flag', 0)).toBe(3.14);
+    expect(globalClient.getIntegerAssignment('integer-flag', 0)).toBe(42);
+    expect(globalClient.getJSONAssignment('json-flag', {})).toEqual({
+      key: 'value',
+      number: 123,
+    });
   });
 });
