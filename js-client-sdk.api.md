@@ -75,7 +75,7 @@ export class EppoJSClient extends EppoClient {
     static instance: EppoJSClient;
 }
 
-// @public (undocumented)
+// @public
 export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
     // (undocumented)
     getBooleanAssignment(flagKey: string, defaultValue: boolean): boolean;
@@ -100,6 +100,9 @@ export function getConfigUrl(apiKey: string, baseUrl?: string): URL;
 
 // @public
 export function getInstance(): EppoClient;
+
+// @public
+export function getPrecomputedInstance(): EppoPrecomputedClient;
 
 export { IAssignmentDetails }
 

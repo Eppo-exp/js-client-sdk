@@ -609,6 +609,10 @@ export function getConfigUrl(apiKey: string, baseUrl?: string): URL {
   return new ApiEndpoints({ baseUrl, queryParams }).ufcEndpoint();
 }
 
+/**
+ * Client for assigning precomputed experiment variations.
+ * @public
+ */
 export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
   // Use an empty memory-only configuration store
   public static instance: EppoPrecomputedJSClient = new EppoPrecomputedJSClient(
@@ -649,7 +653,7 @@ export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
 }
 
 /**
- * Initializes the Eppo client with configuration parameters.
+ * Initializes the Eppo precomputed client with configuration parameters.
  * This method should be called once on application startup.
  * @param config - client configuration
  * @public
@@ -702,5 +706,15 @@ export async function precomputedInit(
   await instance.fetchPrecomputedFlags();
 
   EppoPrecomputedJSClient.initialized = true;
+  return EppoPrecomputedJSClient.instance;
+}
+
+/**
+ * Used to access a singleton SDK precomputed client instance.
+ * Use the method after calling precomputedInit() to initialize the client.
+ * @returns a singleton precomputed client instance
+ * @public
+ */
+export function getPrecomputedInstance(): EppoPrecomputedClient {
   return EppoPrecomputedJSClient.instance;
 }
