@@ -4,7 +4,7 @@
 
 ## precomputedInit() function
 
-Initializes the Eppo client with configuration parameters. This method should be called once on application startup.
+Initializes the Eppo precomputed client with configuration parameters. This method should be called once on application startup.
 
 **Signature:**
 

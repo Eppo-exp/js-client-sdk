@@ -4,6 +4,8 @@
 
 ## EppoPrecomputedJSClient class
 
+Client for assigning precomputed experiment variations.
+
 **Signature:**
 
 ```typescript
