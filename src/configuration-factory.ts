@@ -4,8 +4,8 @@ import {
   IConfigurationStore,
   MemoryOnlyConfigurationStore,
   MemoryStore,
+  PrecomputedFlag,
 } from '@eppo/js-client-sdk-common';
-import { PrecomputedFlag } from '@eppo/js-client-sdk-common/dist/interfaces';
 
 import ChromeStorageAsyncMap from './cache/chrome-storage-async-map';
 import { ChromeStorageEngine } from './chrome-storage-engine';
