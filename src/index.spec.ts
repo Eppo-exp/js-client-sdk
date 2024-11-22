@@ -1146,4 +1146,34 @@ describe('EppoPrecomputedJSClient E2E test', () => {
       number: 123,
     });
   });
+
+  it('logs assignments correctly', () => {
+    // Reset the mock logger before this test
+    mockLogger = td.object<IAssignmentLogger>();
+    globalClient.setAssignmentLogger(mockLogger);
+    globalClient.getStringAssignment('string-flag', 'default');
+
+    expect(td.explain(mockLogger.logAssignment).callCount).toEqual(1);
+    expect(td.explain(mockLogger.logAssignment).calls[0]?.args[0]).toMatchObject({
+      subject: 'test-subject',
+      featureFlag: 'string-flag',
+      allocation: 'allocation-123',
+      variation: 'variation-123',
+      subjectAttributes: { attr1: 'value1' },
+      format: 'PRECOMPUTED',
+    });
+
+    // Test that multiple assignments are logged
+    globalClient.getBooleanAssignment('boolean-flag', false);
+
+    expect(td.explain(mockLogger.logAssignment).callCount).toEqual(2);
+    expect(td.explain(mockLogger.logAssignment).calls[1]?.args[0]).toMatchObject({
+      subject: 'test-subject',
+      featureFlag: 'boolean-flag',
+      allocation: 'allocation-124',
+      variation: 'variation-124',
+      subjectAttributes: { attr1: 'value1' },
+      format: 'PRECOMPUTED',
+    });
+  });
 });

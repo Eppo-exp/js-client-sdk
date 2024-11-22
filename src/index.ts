@@ -675,6 +675,9 @@ export async function precomputedInit(
     skipInitialRequest = false,
   } = config;
 
+  // Set up assignment logger and cache
+  instance.setAssignmentLogger(config.assignmentLogger);
+
   // Set up parameters for requesting updated configurations
   const precomputedFlagsRequestParameters: PrecomputedFlagsRequestParameters = {
     apiKey,
