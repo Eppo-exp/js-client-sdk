@@ -29,14 +29,9 @@ import {
 
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 
-import {
-  offlineInit,
-  IAssignmentLogger,
-  getInstance,
-  init,
-  IClientConfig,
-  getConfigUrl,
-} from './index';
+import { offlineInit, IAssignmentLogger, getInstance, init, getConfigUrl } from './index';
+
+import { IClientConfig } from 'src/IClientConfig';
 
 function md5Hash(input: string): string {
   return createHash('md5').update(input).digest('hex');
