@@ -11,14 +11,11 @@ import {
   IAssignmentDetails,
   IAssignmentLogger,
   IContainerExperiment,
-  NetworkStatusListener,
   newDefaultEventDispatcher,
   ObfuscatedFlag,
+  BoundedEventQueue,
   validation,
 } from '@eppo/js-client-sdk-common';
-import ArrayBackedNamedEventQueue from '@eppo/js-client-sdk-common/dist/events/array-backed-named-event-queue';
-import { BoundedEventQueue } from '@eppo/js-client-sdk-common/dist/events/bounded-event-queue';
-import NamedEventQueue from '@eppo/js-client-sdk-common/src/events/named-event-queue';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
 import HybridAssignmentCache from './cache/hybrid-assignment-cache';
