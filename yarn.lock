@@ -380,15 +380,16 @@
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz#1d572bfbbe14b7704e0ba0f39b74815b84870d70"
   integrity sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==
 
-"@eppo/js-client-sdk-common@4.3.1-alpha.2":
-  version "4.3.1-alpha.2"
-  resolved "https://registry.yarnpkg.com/@eppo/js-client-sdk-common/-/js-client-sdk-common-4.3.1-alpha.2.tgz#1d06d9c64f658bdb9509ce8873ba431f587f844c"
-  integrity sha512-jAZVeKi3EgxfaMErqru2YyFShw1pOD28e9soEe5ULn8jynFymWyB1mrV43Wc+JP699yHEwo/SHMTLaZV6hO1qA==
+"@eppo/js-client-sdk-common@^4.5.0":
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/@eppo/js-client-sdk-common/-/js-client-sdk-common-4.5.0.tgz#8a1745c3d162b882fc57b4bb3428ce3f9c6755fc"
+  integrity sha512-G9WBt+fz8SIwhIQ8fz4fPL6d1UMCCC0uPR99TQGG9NEREEcyfML+Di1/5cCIeNvTSlxsMLtSa1C+I0tMQAg21g==
   dependencies:
     js-base64 "^3.7.7"
     md5 "^2.3.0"
     pino "^8.19.0"
     semver "^7.5.4"
+    uuid "^8.3.2"
 
 "@eslint/eslintrc@^1.3.0":
   version "1.3.0"
@@ -4709,6 +4710,11 @@ url-parse@^1.5.3:
   dependencies:
     querystringify "^2.1.1"
     requires-port "^1.0.0"
+
+uuid@^8.3.2:
+  version "8.3.2"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
+  integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
 
 v8-compile-cache-lib@^3.0.1:
   version "3.0.1"

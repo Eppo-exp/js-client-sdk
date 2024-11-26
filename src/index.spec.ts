@@ -5,40 +5,40 @@
 import { createHash } from 'crypto';
 
 import {
-  Flag,
-  VariationType,
+  AssignmentCache,
   constants,
+  EppoClient,
+  Flag,
   HybridConfigurationStore,
   IAsyncStore,
-  AssignmentCache,
-  EppoClient,
+  VariationType,
 } from '@eppo/js-client-sdk-common';
 import * as td from 'testdouble';
 
-const { DEFAULT_POLL_INTERVAL_MS, POLL_JITTER_PCT } = constants;
-
 import {
+  getTestAssignments,
   IAssignmentTestCase,
-  readAssignmentTestData,
-  readMockUfcResponse,
   MOCK_UFC_RESPONSE_FILE,
   OBFUSCATED_MOCK_UFC_RESPONSE_FILE,
-  getTestAssignments,
+  readAssignmentTestData,
+  readMockUfcResponse,
   validateTestAssignments,
 } from '../test/testHelpers';
 
+import { IClientConfig } from './i-client-config';
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 
 import {
-  offlineInit,
-  IAssignmentLogger,
-  getInstance,
-  init,
-  IClientConfig,
-  getConfigUrl,
   EppoPrecomputedJSClient,
+  getConfigUrl,
+  getInstance,
+  IAssignmentLogger,
+  init,
+  offlineInit,
   precomputedInit,
 } from './index';
+
+const { DEFAULT_POLL_INTERVAL_MS, POLL_JITTER_PCT } = constants;
 
 function md5Hash(input: string): string {
   return createHash('md5').update(input).digest('hex');
@@ -49,7 +49,7 @@ function base64Encode(input: string): string {
 }
 
 // Configuration for a single flag within the UFC.
-const apiKey = 'dummy';
+const apiKey = 'zCsQuoHJxVPp895.ZWg9MTIzNDU2LmUudGVzdGluZy5lcHBvLmNsb3Vk';
 const baseUrl = 'http://127.0.0.1:4000';
 
 const flagKey = 'mock-experiment';

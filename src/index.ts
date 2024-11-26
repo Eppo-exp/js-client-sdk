@@ -1,20 +1,22 @@
 import {
-  IAssignmentLogger,
-  validation,
-  EppoClient,
-  FlagConfigurationRequestParameters,
-  Flag,
-  IAsyncStore,
-  AttributeType,
-  ObfuscatedFlag,
   ApiEndpoints,
   applicationLogger,
-  IAssignmentDetails,
+  AttributeType,
   BanditActions,
   BanditSubjectAttributes,
+  EppoClient,
+  EventDispatcher,
+  Flag,
+  FlagConfigurationRequestParameters,
+  IAssignmentDetails,
+  IAssignmentLogger,
   IContainerExperiment,
   EppoPrecomputedClient,
   PrecomputedFlagsRequestParameters,
+  newDefaultEventDispatcher,
+  ObfuscatedFlag,
+  BoundedEventQueue,
+  validation,
 } from '@eppo/js-client-sdk-common';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
@@ -27,128 +29,10 @@ import {
   hasWindowLocalStorage,
   localStorageIfAvailable,
 } from './configuration-factory';
-import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
+import BrowserNetworkStatusListener from './events/browser-network-status-listener';
+import LocalStorageBackedNamedEventQueue from './events/local-storage-backed-named-event-queue';
+import { IClientConfig, IPrecomputedClientConfig } from './i-client-config';
 import { sdkName, sdkVersion } from './sdk-data';
-
-/**
- * Base configuration for API requests and polling behavior
- */
-interface IBaseRequestConfig {
-  /**
-   * Eppo API key
-   */
-  apiKey: string;
-
-  /**
-   * Base URL of the Eppo API.
-   * Clients should use the default setting in most cases.
-   */
-  baseUrl?: string;
-
-  /**
-   * Pass a logging implementation to send variation assignments to your data warehouse.
-   */
-  assignmentLogger: IAssignmentLogger;
-
-  /***
-   * Timeout in milliseconds for the HTTPS request for the experiment configuration. (Default: 5000)
-   */
-  requestTimeoutMs?: number;
-
-  /**
-   * Number of additional times the initial configuration request will be attempted if it fails.
-   * This is the request typically synchronously waited (via await) for completion. A small wait will be
-   * done between requests. (Default: 1)
-   */
-  numInitialRequestRetries?: number;
-
-  /**
-   * Poll for new configurations even if the initial configuration request failed. (default: false)
-   */
-  pollAfterFailedInitialization?: boolean;
-
-  /**
-   * Poll for new configurations (every `pollingIntervalMs`) after successfully requesting the initial configuration. (default: false)
-   */
-  pollAfterSuccessfulInitialization?: boolean;
-
-  /**
-   * Amount of time to wait between API calls to refresh configuration data. Default of 30_000 (30 seconds).
-   */
-  pollingIntervalMs?: number;
-
-  /**
-   * Number of additional times polling for updated configurations will be attempted before giving up.
-   * Polling is done after a successful initial request. Subsequent attempts are done using an exponential
-   * backoff. (Default: 7)
-   */
-  numPollRequestRetries?: number;
-
-  /**
-   * Skip the request for new configurations during initialization. (default: false)
-   */
-  skipInitialRequest?: boolean;
-}
-
-/**
- * Configuration for Eppo precomputed client initialization
- * @public
- */
-export interface IPrecomputedClientConfig extends IBaseRequestConfig {
-  /**
-   * Subject key to use for precomputed flag assignments.
-   */
-  subjectKey: string;
-
-  /**
-   * Subject attributes to use for precomputed flag assignments.
-   */
-  subjectAttributes?: Record<string, AttributeType>;
-}
-
-/**
- * Configuration for regular client initialization
- * @public
- */
-export interface IClientConfig extends IBaseRequestConfig {
-  /**
-   * Throw an error if unable to fetch an initial configuration during initialization. (default: true)
-   */
-  throwOnFailedInitialization?: boolean;
-
-  /**
-   * Maximum age, in seconds, previously cached values are considered valid until new values will be
-   * fetched (default: 0)
-   */
-  maxCacheAgeSeconds?: number;
-
-  /**
-   * Whether initialization will be considered successfully complete if expired cache values are
-   * loaded. If false, initialization will always wait for a fetch if cached values are expired.
-   * (default: false)
-   */
-  useExpiredCache?: boolean;
-
-  /**
-   * Sets how the configuration is updated after a successful fetch
-   * - always: immediately start using the new configuration
-   * - expired: immediately start using the new configuration only if the current one has expired
-   * - empty: only use the new configuration if the current one is both expired and uninitialized/empty
-   */
-  updateOnFetch?: ServingStoreUpdateStrategy;
-
-  /**
-   * A custom class to use for storing flag configurations.
-   * This is useful for cases where you want to use a different storage mechanism
-   * than the default storage provided by the SDK.
-   */
-  persistentStore?: IAsyncStore<Flag>;
-
-  /**
-   * Force reinitialize the SDK if it is already initialized.
-   */
-  forceReinitialize?: boolean;
-}
 
 export interface IClientConfigSync {
   flagsConfiguration: Record<string, Flag | ObfuscatedFlag>;
@@ -159,6 +43,8 @@ export interface IClientConfigSync {
 
   throwOnFailedInitialization?: boolean;
 }
+
+export { IClientConfig, IPrecomputedClientConfig };
 
 // Export the common types and classes from the SDK.
 export {
@@ -187,13 +73,10 @@ export class EppoJSClient extends EppoClient {
   // Ensure that the client is instantiated during class loading.
   // Use an empty memory-only configuration store until the `init` method is called,
   // to avoid serving stale data to the user.
-  public static instance: EppoJSClient = new EppoJSClient(
+  public static instance = new EppoJSClient({
     flagConfigurationStore,
-    undefined,
-    undefined,
-    undefined,
-    true,
-  );
+    isObfuscated: true,
+  });
   public static initialized = false;
 
   public getStringAssignment(
@@ -202,7 +85,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: string,
   ): string {
-    EppoJSClient.getAssignmentInitializationCheck();
+    EppoJSClient.ensureInitialized();
     return super.getStringAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
@@ -212,7 +95,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: string,
   ): IAssignmentDetails<string> {
-    EppoJSClient.getAssignmentInitializationCheck();
+    EppoJSClient.ensureInitialized();
     return super.getStringAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
@@ -234,7 +117,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: boolean,
   ): boolean {
-    EppoJSClient.getAssignmentInitializationCheck();
+    EppoJSClient.ensureInitialized();
     return super.getBooleanAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
@@ -244,7 +127,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: boolean,
   ): IAssignmentDetails<boolean> {
-    EppoJSClient.getAssignmentInitializationCheck();
+    EppoJSClient.ensureInitialized();
     return super.getBooleanAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
@@ -254,7 +137,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: number,
   ): number {
-    EppoJSClient.getAssignmentInitializationCheck();
+    EppoJSClient.ensureInitialized();
     return super.getIntegerAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
@@ -264,7 +147,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: number,
   ): IAssignmentDetails<number> {
-    EppoJSClient.getAssignmentInitializationCheck();
+    EppoJSClient.ensureInitialized();
     return super.getIntegerAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
@@ -274,7 +157,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: number,
   ): number {
-    EppoJSClient.getAssignmentInitializationCheck();
+    EppoJSClient.ensureInitialized();
     return super.getNumericAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
@@ -284,7 +167,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: number,
   ): IAssignmentDetails<number> {
-    EppoJSClient.getAssignmentInitializationCheck();
+    EppoJSClient.ensureInitialized();
     return super.getNumericAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
@@ -294,7 +177,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: object,
   ): object {
-    EppoJSClient.getAssignmentInitializationCheck();
+    EppoJSClient.ensureInitialized();
     return super.getJSONAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
@@ -304,7 +187,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: object,
   ): IAssignmentDetails<object> {
-    EppoJSClient.getAssignmentInitializationCheck();
+    EppoJSClient.ensureInitialized();
     return super.getJSONAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
@@ -315,7 +198,7 @@ export class EppoJSClient extends EppoClient {
     actions: BanditActions,
     defaultValue: string,
   ): Omit<IAssignmentDetails<string>, 'evaluationDetails'> {
-    EppoJSClient.getAssignmentInitializationCheck();
+    EppoJSClient.ensureInitialized();
     return super.getBanditAction(flagKey, subjectKey, subjectAttributes, actions, defaultValue);
   }
 
@@ -326,7 +209,7 @@ export class EppoJSClient extends EppoClient {
     actions: BanditActions,
     defaultValue: string,
   ): IAssignmentDetails<string> {
-    EppoJSClient.getAssignmentInitializationCheck();
+    EppoJSClient.ensureInitialized();
     return super.getBanditActionDetails(
       flagKey,
       subjectKey,
@@ -341,11 +224,11 @@ export class EppoJSClient extends EppoClient {
     subjectKey: string,
     subjectAttributes: Record<string, AttributeType>,
   ): T {
-    EppoJSClient.getAssignmentInitializationCheck();
+    EppoJSClient.ensureInitialized();
     return super.getExperimentContainerEntry(flagExperiment, subjectKey, subjectAttributes);
   }
 
-  private static getAssignmentInitializationCheck() {
+  private static ensureInitialized() {
     if (!EppoJSClient.initialized) {
       applicationLogger.warn('Eppo SDK assignment requested before init() completed');
     }
@@ -511,6 +394,7 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
       skipInitialPoll: skipInitialRequest,
     };
     instance.setConfigurationRequestParameters(requestConfiguration);
+    instance.setEventDispatcher(newEventDispatcher(apiKey));
 
     // We have two at-bats for initialization: from the configuration store and from fetching
     // We can resolve the initialization promise as soon as either one succeeds
@@ -717,4 +601,16 @@ export async function precomputedInit(
  */
 export function getPrecomputedInstance(): EppoPrecomputedClient {
   return EppoPrecomputedJSClient.instance;
+}
+
+function newEventDispatcher(sdkKey: string): EventDispatcher {
+  const eventQueue = hasWindowLocalStorage()
+    ? new LocalStorageBackedNamedEventQueue('events')
+    : new BoundedEventQueue('events');
+  const emptyNetworkStatusListener =
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    { isOffline: () => false, onNetworkStatusChange: () => {} };
+  const networkStatusListener =
+    typeof window !== 'undefined' ? new BrowserNetworkStatusListener() : emptyNetworkStatusListener;
+  return newDefaultEventDispatcher(eventQueue, networkStatusListener, sdkKey);
 }
