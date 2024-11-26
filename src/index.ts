@@ -388,7 +388,15 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
       skipInitialPoll: skipInitialRequest,
     };
     instance.setConfigurationRequestParameters(requestConfiguration);
-    instance.setEventDispatcher(newEventDispatcher(apiKey));
+
+    try {
+      instance.setEventDispatcher(newEventDispatcher(apiKey));
+    } catch (eventDispatcherError) {
+      applicationLogger.warn(
+        'Eppo SDK encountered an error initializing the event dispatcher, continuing initialization',
+        eventDispatcherError,
+      );
+    }
 
     // We have two at-bats for initialization: from the configuration store and from fetching
     // We can resolve the initialization promise as soon as either one succeeds
