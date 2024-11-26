@@ -389,6 +389,7 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
     };
     instance.setConfigurationRequestParameters(requestConfiguration);
 
+    // e.g. newDefaultEventDispatcher throws an error if it cannot parse a valid event ingestion URL from the SDK key
     try {
       instance.setEventDispatcher(newEventDispatcher(apiKey));
     } catch (eventDispatcherError) {
