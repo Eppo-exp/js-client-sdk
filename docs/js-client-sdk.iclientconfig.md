@@ -4,31 +4,22 @@
 
 ## IClientConfig interface
 
-Configuration used for initializing the Eppo client
+Configuration for regular client initialization
 
 **Signature:**
 
 ```typescript
-export interface IClientConfig 
+export interface IClientConfig extends IBaseRequestConfig 
 ```
+**Extends:** IBaseRequestConfig
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [apiKey](./js-client-sdk.iclientconfig.apikey.md) |  | string | Eppo API key |
-|  [assignmentLogger](./js-client-sdk.iclientconfig.assignmentlogger.md) |  | IAssignmentLogger | Pass a logging implementation to send variation assignments to your data warehouse. |
-|  [baseUrl?](./js-client-sdk.iclientconfig.baseurl.md) |  | string | _(Optional)_ Base URL of the Eppo API. Clients should use the default setting in most cases. |
 |  [forceReinitialize?](./js-client-sdk.iclientconfig.forcereinitialize.md) |  | boolean | _(Optional)_ Force reinitialize the SDK if it is already initialized. |
 |  [maxCacheAgeSeconds?](./js-client-sdk.iclientconfig.maxcacheageseconds.md) |  | number | _(Optional)_ Maximum age, in seconds, previously cached values are considered valid until new values will be fetched (default: 0) |
-|  [numInitialRequestRetries?](./js-client-sdk.iclientconfig.numinitialrequestretries.md) |  | number | _(Optional)_ Number of additional times the initial configuration request will be attempted if it fails. This is the request typically synchronously waited (via await) for completion. A small wait will be done between requests. (Default: 1) |
-|  [numPollRequestRetries?](./js-client-sdk.iclientconfig.numpollrequestretries.md) |  | number | _(Optional)_ Number of additional times polling for updated configurations will be attempted before giving up. Polling is done after a successful initial request. Subsequent attempts are done using an exponential backoff. (Default: 7) |
 |  [persistentStore?](./js-client-sdk.iclientconfig.persistentstore.md) |  | IAsyncStore&lt;Flag&gt; | _(Optional)_ A custom class to use for storing flag configurations. This is useful for cases where you want to use a different storage mechanism than the default storage provided by the SDK. |
-|  [pollAfterFailedInitialization?](./js-client-sdk.iclientconfig.pollafterfailedinitialization.md) |  | boolean | _(Optional)_ Poll for new configurations even if the initial configuration request failed. (default: false) |
-|  [pollAfterSuccessfulInitialization?](./js-client-sdk.iclientconfig.pollaftersuccessfulinitialization.md) |  | boolean | _(Optional)_ Poll for new configurations (every <code>pollingIntervalMs</code>) after successfully requesting the initial configuration. (default: false) |
-|  [pollingIntervalMs?](./js-client-sdk.iclientconfig.pollingintervalms.md) |  | number | _(Optional)_ Amount of time to wait between API calls to refresh configuration data. Default of 30\_000 (30 seconds). |
-|  [requestTimeoutMs?](./js-client-sdk.iclientconfig.requesttimeoutms.md) |  | number | _(Optional)_ \* Timeout in milliseconds for the HTTPS request for the experiment configuration. (Default: 5000) |
-|  [skipInitialRequest?](./js-client-sdk.iclientconfig.skipinitialrequest.md) |  | boolean | _(Optional)_ Skip the request for new configurations during initialization. (default: false) |
 |  [throwOnFailedInitialization?](./js-client-sdk.iclientconfig.throwonfailedinitialization.md) |  | boolean | _(Optional)_ Throw an error if unable to fetch an initial configuration during initialization. (default: true) |
 |  [updateOnFetch?](./js-client-sdk.iclientconfig.updateonfetch.md) |  | ServingStoreUpdateStrategy | _(Optional)_ Sets how the configuration is updated after a successful fetch - always: immediately start using the new configuration - expired: immediately start using the new configuration only if the current one has expired - empty: only use the new configuration if the current one is both expired and uninitialized/empty |
 |  [useExpiredCache?](./js-client-sdk.iclientconfig.useexpiredcache.md) |  | boolean | _(Optional)_ Whether initialization will be considered successfully complete if expired cache values are loaded. If false, initialization will always wait for a fetch if cached values are expired. (default: false) |

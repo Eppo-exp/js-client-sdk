@@ -1,12 +1,11 @@
-import { Flag, IAssignmentLogger, IAsyncStore } from '@eppo/js-client-sdk-common';
+import { AttributeType, Flag, IAssignmentLogger, IAsyncStore } from '@eppo/js-client-sdk-common';
 
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 
 /**
- * Configuration used for initializing the Eppo client
- * @public
+ * Base configuration for API requests and polling behavior
  */
-export interface IClientConfig {
+interface IBaseRequestConfig {
   /**
    * Eppo API key
    */
@@ -36,11 +35,6 @@ export interface IClientConfig {
   numInitialRequestRetries?: number;
 
   /**
-   * Throw an error if unable to fetch an initial configuration during initialization. (default: true)
-   */
-  throwOnFailedInitialization?: boolean;
-
-  /**
    * Poll for new configurations even if the initial configuration request failed. (default: false)
    */
   pollAfterFailedInitialization?: boolean;
@@ -66,6 +60,33 @@ export interface IClientConfig {
    * Skip the request for new configurations during initialization. (default: false)
    */
   skipInitialRequest?: boolean;
+}
+
+/**
+ * Configuration for Eppo precomputed client initialization
+ * @public
+ */
+export interface IPrecomputedClientConfig extends IBaseRequestConfig {
+  /**
+   * Subject key to use for precomputed flag assignments.
+   */
+  subjectKey: string;
+
+  /**
+   * Subject attributes to use for precomputed flag assignments.
+   */
+  subjectAttributes?: Record<string, AttributeType>;
+}
+
+/**
+ * Configuration for regular client initialization
+ * @public
+ */
+export interface IClientConfig extends IBaseRequestConfig {
+  /**
+   * Throw an error if unable to fetch an initial configuration during initialization. (default: true)
+   */
+  throwOnFailedInitialization?: boolean;
 
   /**
    * Maximum age, in seconds, previously cached values are considered valid until new values will be

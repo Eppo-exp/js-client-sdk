@@ -11,6 +11,8 @@ import {
   IAssignmentDetails,
   IAssignmentLogger,
   IContainerExperiment,
+  EppoPrecomputedClient,
+  PrecomputedFlagsRequestParameters,
   newDefaultEventDispatcher,
   ObfuscatedFlag,
   BoundedEventQueue,
@@ -22,13 +24,14 @@ import HybridAssignmentCache from './cache/hybrid-assignment-cache';
 import {
   chromeStorageIfAvailable,
   configurationStorageFactory,
+  precomputedFlagsStorageFactory,
   hasChromeStorage,
   hasWindowLocalStorage,
   localStorageIfAvailable,
 } from './configuration-factory';
 import BrowserNetworkStatusListener from './events/browser-network-status-listener';
 import LocalStorageBackedNamedEventQueue from './events/local-storage-backed-named-event-queue';
-import { IClientConfig } from './i-client-config';
+import { IClientConfig, IPrecomputedClientConfig } from './i-client-config';
 import { sdkName, sdkVersion } from './sdk-data';
 
 export interface IClientConfigSync {
@@ -41,7 +44,7 @@ export interface IClientConfigSync {
   throwOnFailedInitialization?: boolean;
 }
 
-export { IClientConfig };
+export { IClientConfig, IPrecomputedClientConfig };
 
 // Export the common types and classes from the SDK.
 export {
@@ -58,6 +61,9 @@ export { ChromeStorageEngine } from './chrome-storage-engine';
 const flagConfigurationStore = configurationStorageFactory({
   forceMemoryOnly: true,
 });
+
+// Instantiate the precomputed flgas store with memory-only implementation.
+const memoryOnlyPrecomputedFlagsStore = precomputedFlagsStorageFactory();
 
 /**
  * Client for assigning experiment variations.
@@ -485,6 +491,116 @@ export function getInstance(): EppoClient {
 export function getConfigUrl(apiKey: string, baseUrl?: string): URL {
   const queryParams = { sdkName, sdkVersion, apiKey };
   return new ApiEndpoints({ baseUrl, queryParams }).ufcEndpoint();
+}
+
+/**
+ * Client for assigning precomputed experiment variations.
+ * @public
+ */
+export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
+  // Use an empty memory-only configuration store
+  public static instance: EppoPrecomputedJSClient = new EppoPrecomputedJSClient(
+    memoryOnlyPrecomputedFlagsStore,
+  );
+  public static initialized = false;
+
+  public getStringAssignment(flagKey: string, defaultValue: string): string {
+    EppoPrecomputedJSClient.getAssignmentInitializationCheck();
+    return super.getStringAssignment(flagKey, defaultValue);
+  }
+
+  public getBooleanAssignment(flagKey: string, defaultValue: boolean): boolean {
+    EppoPrecomputedJSClient.getAssignmentInitializationCheck();
+    return super.getBooleanAssignment(flagKey, defaultValue);
+  }
+
+  public getIntegerAssignment(flagKey: string, defaultValue: number): number {
+    EppoPrecomputedJSClient.getAssignmentInitializationCheck();
+    return super.getIntegerAssignment(flagKey, defaultValue);
+  }
+
+  public getNumericAssignment(flagKey: string, defaultValue: number): number {
+    EppoPrecomputedJSClient.getAssignmentInitializationCheck();
+    return super.getNumericAssignment(flagKey, defaultValue);
+  }
+
+  public getJSONAssignment(flagKey: string, defaultValue: object): object {
+    EppoPrecomputedJSClient.getAssignmentInitializationCheck();
+    return super.getJSONAssignment(flagKey, defaultValue);
+  }
+
+  private static getAssignmentInitializationCheck() {
+    if (!EppoJSClient.initialized) {
+      applicationLogger.warn('Eppo SDK assignment requested before init() completed');
+    }
+  }
+}
+
+/**
+ * Initializes the Eppo precomputed client with configuration parameters.
+ * This method should be called once on application startup.
+ * @param config - client configuration
+ * @public
+ */
+export async function precomputedInit(
+  config: IPrecomputedClientConfig,
+): Promise<EppoPrecomputedClient> {
+  validation.validateNotBlank(config.apiKey, 'API key required');
+  validation.validateNotBlank(config.subjectKey, 'Subject key required');
+
+  const instance = EppoPrecomputedJSClient.instance;
+  const {
+    apiKey,
+    subjectKey,
+    subjectAttributes = {},
+    baseUrl,
+    requestTimeoutMs,
+    numInitialRequestRetries,
+    numPollRequestRetries,
+    pollingIntervalMs,
+    pollAfterSuccessfulInitialization = false,
+    pollAfterFailedInitialization = false,
+    skipInitialRequest = false,
+  } = config;
+
+  // Set up assignment logger and cache
+  instance.setAssignmentLogger(config.assignmentLogger);
+
+  // Set up parameters for requesting updated configurations
+  const precomputedFlagsRequestParameters: PrecomputedFlagsRequestParameters = {
+    apiKey,
+    sdkName,
+    sdkVersion,
+    baseUrl,
+    precompute: {
+      subjectKey,
+      subjectAttributes,
+    },
+    requestTimeoutMs,
+    numInitialRequestRetries,
+    numPollRequestRetries,
+    pollAfterSuccessfulInitialization,
+    pollAfterFailedInitialization,
+    pollingIntervalMs,
+    throwOnFailedInitialization: true, // always use true here as underlying instance fetch is surrounded by try/catch
+    skipInitialPoll: skipInitialRequest,
+  };
+  instance.setPrecomputedFlagsRequestParameters(precomputedFlagsRequestParameters);
+
+  await instance.fetchPrecomputedFlags();
+
+  EppoPrecomputedJSClient.initialized = true;
+  return EppoPrecomputedJSClient.instance;
+}
+
+/**
+ * Used to access a singleton SDK precomputed client instance.
+ * Use the method after calling precomputedInit() to initialize the client.
+ * @returns a singleton precomputed client instance
+ * @public
+ */
+export function getPrecomputedInstance(): EppoPrecomputedClient {
+  return EppoPrecomputedJSClient.instance;
 }
 
 function newEventDispatcher(sdkKey: string): EventDispatcher {

@@ -4,6 +4,7 @@ import {
   IConfigurationStore,
   MemoryOnlyConfigurationStore,
   MemoryStore,
+  PrecomputedFlag,
 } from '@eppo/js-client-sdk-common';
 
 import ChromeStorageAsyncMap from './cache/chrome-storage-async-map';
@@ -14,6 +15,10 @@ import {
 } from './isolatable-hybrid.store';
 import { LocalStorageEngine } from './local-storage-engine';
 import { StringValuedAsyncStore } from './string-valued.store';
+
+export function precomputedFlagsStorageFactory(): IConfigurationStore<PrecomputedFlag> {
+  return new MemoryOnlyConfigurationStore();
+}
 
 export function configurationStorageFactory(
   {
