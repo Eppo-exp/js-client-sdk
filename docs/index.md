@@ -6,7 +6,24 @@
 
 ## Packages
 
-|  Package | Description |
-|  --- | --- |
-|  [@eppo/js-client-sdk](./js-client-sdk.md) |  |
+<table><thead><tr><th>
 
+Package
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[@eppo/js-client-sdk](./js-client-sdk.md)
+
+
+</td><td>
+
+
+</td></tr>
+</tbody></table>

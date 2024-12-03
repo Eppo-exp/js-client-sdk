@@ -12,14 +12,93 @@ getBanditAction(flagKey: string, subjectKey: string, subjectAttributes: BanditSu
 
 ## Parameters
 
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  flagKey | string |  |
-|  subjectKey | string |  |
-|  subjectAttributes | BanditSubjectAttributes |  |
-|  actions | BanditActions |  |
-|  defaultValue | string |  |
+<table><thead><tr><th>
 
+Parameter
+
+
+</th><th>
+
+Type
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+flagKey
+
+
+</td><td>
+
+string
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+subjectKey
+
+
+</td><td>
+
+string
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+subjectAttributes
+
+
+</td><td>
+
+BanditSubjectAttributes
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+actions
+
+
+</td><td>
+
+BanditActions
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+defaultValue
+
+
+</td><td>
+
+string
+
+
+</td><td>
+
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 Omit&lt;IAssignmentDetails&lt;string&gt;, 'evaluationDetails'&gt;

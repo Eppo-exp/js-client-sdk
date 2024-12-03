@@ -15,18 +15,143 @@ export declare class EppoPrecomputedJSClient extends EppoPrecomputedClient
 
 ## Properties
 
-|  Property | Modifiers | Type | Description |
-|  --- | --- | --- | --- |
-|  [initialized](./js-client-sdk.eppoprecomputedjsclient.initialized.md) | <code>static</code> | boolean |  |
-|  [instance](./js-client-sdk.eppoprecomputedjsclient.instance.md) | <code>static</code> | [EppoPrecomputedJSClient](./js-client-sdk.eppoprecomputedjsclient.md) |  |
+<table><thead><tr><th>
+
+Property
+
+
+</th><th>
+
+Modifiers
+
+
+</th><th>
+
+Type
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[initialized](./js-client-sdk.eppoprecomputedjsclient.initialized.md)
+
+
+</td><td>
+
+`static`
+
+
+</td><td>
+
+boolean
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[instance](./js-client-sdk.eppoprecomputedjsclient.instance.md)
+
+
+</td><td>
+
+`static`
+
+
+</td><td>
+
+[EppoPrecomputedJSClient](./js-client-sdk.eppoprecomputedjsclient.md)
+
+
+</td><td>
+
+
+</td></tr>
+</tbody></table>
 
 ## Methods
 
-|  Method | Modifiers | Description |
-|  --- | --- | --- |
-|  [getBooleanAssignment(flagKey, defaultValue)](./js-client-sdk.eppoprecomputedjsclient.getbooleanassignment.md) |  |  |
-|  [getIntegerAssignment(flagKey, defaultValue)](./js-client-sdk.eppoprecomputedjsclient.getintegerassignment.md) |  |  |
-|  [getJSONAssignment(flagKey, defaultValue)](./js-client-sdk.eppoprecomputedjsclient.getjsonassignment.md) |  |  |
-|  [getNumericAssignment(flagKey, defaultValue)](./js-client-sdk.eppoprecomputedjsclient.getnumericassignment.md) |  |  |
-|  [getStringAssignment(flagKey, defaultValue)](./js-client-sdk.eppoprecomputedjsclient.getstringassignment.md) |  |  |
+<table><thead><tr><th>
 
+Method
+
+
+</th><th>
+
+Modifiers
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[getBooleanAssignment(flagKey, defaultValue)](./js-client-sdk.eppoprecomputedjsclient.getbooleanassignment.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[getIntegerAssignment(flagKey, defaultValue)](./js-client-sdk.eppoprecomputedjsclient.getintegerassignment.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[getJSONAssignment(flagKey, defaultValue)](./js-client-sdk.eppoprecomputedjsclient.getjsonassignment.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[getNumericAssignment(flagKey, defaultValue)](./js-client-sdk.eppoprecomputedjsclient.getnumericassignment.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[getStringAssignment(flagKey, defaultValue)](./js-client-sdk.eppoprecomputedjsclient.getstringassignment.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+</tbody></table>

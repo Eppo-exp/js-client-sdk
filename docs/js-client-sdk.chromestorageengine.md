@@ -19,16 +19,127 @@ export declare class ChromeStorageEngine implements IStringStorageEngine
 
 ## Constructors
 
-|  Constructor | Modifiers | Description |
-|  --- | --- | --- |
-|  [(constructor)(storageMap, storageKeySuffix)](./js-client-sdk.chromestorageengine._constructor_.md) |  | Constructs a new instance of the <code>ChromeStorageEngine</code> class |
+<table><thead><tr><th>
+
+Constructor
+
+
+</th><th>
+
+Modifiers
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[(constructor)(storageMap, storageKeySuffix)](./js-client-sdk.chromestorageengine._constructor_.md)
+
+
+</td><td>
+
+
+</td><td>
+
+Constructs a new instance of the `ChromeStorageEngine` class
+
+
+</td></tr>
+</tbody></table>
 
 ## Properties
 
-|  Property | Modifiers | Type | Description |
-|  --- | --- | --- | --- |
-|  [getContentsJsonString](./js-client-sdk.chromestorageengine.getcontentsjsonstring.md) |  | () =&gt; Promise&lt;string \| null&gt; |  |
-|  [getMetaJsonString](./js-client-sdk.chromestorageengine.getmetajsonstring.md) |  | () =&gt; Promise&lt;string \| null&gt; |  |
-|  [setContentsJsonString](./js-client-sdk.chromestorageengine.setcontentsjsonstring.md) |  | (configurationJsonString: string) =&gt; Promise&lt;void&gt; |  |
-|  [setMetaJsonString](./js-client-sdk.chromestorageengine.setmetajsonstring.md) |  | (metaJsonString: string) =&gt; Promise&lt;void&gt; |  |
+<table><thead><tr><th>
 
+Property
+
+
+</th><th>
+
+Modifiers
+
+
+</th><th>
+
+Type
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[getContentsJsonString](./js-client-sdk.chromestorageengine.getcontentsjsonstring.md)
+
+
+</td><td>
+
+
+</td><td>
+
+() =&gt; Promise&lt;string \| null&gt;
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[getMetaJsonString](./js-client-sdk.chromestorageengine.getmetajsonstring.md)
+
+
+</td><td>
+
+
+</td><td>
+
+() =&gt; Promise&lt;string \| null&gt;
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[setContentsJsonString](./js-client-sdk.chromestorageengine.setcontentsjsonstring.md)
+
+
+</td><td>
+
+
+</td><td>
+
+(configurationJsonString: string) =&gt; Promise&lt;void&gt;
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[setMetaJsonString](./js-client-sdk.chromestorageengine.setmetajsonstring.md)
+
+
+</td><td>
+
+
+</td><td>
+
+(metaJsonString: string) =&gt; Promise&lt;void&gt;
+
+
+</td><td>
+
+
+</td></tr>
+</tbody></table>

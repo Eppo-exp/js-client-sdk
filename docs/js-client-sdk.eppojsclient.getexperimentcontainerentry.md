@@ -12,12 +12,65 @@ getExperimentContainerEntry<T>(flagExperiment: IContainerExperiment<T>, subjectK
 
 ## Parameters
 
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  flagExperiment | IContainerExperiment&lt;T&gt; |  |
-|  subjectKey | string |  |
-|  subjectAttributes | Record&lt;string, AttributeType&gt; |  |
+<table><thead><tr><th>
 
+Parameter
+
+
+</th><th>
+
+Type
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+flagExperiment
+
+
+</td><td>
+
+IContainerExperiment&lt;T&gt;
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+subjectKey
+
+
+</td><td>
+
+string
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+subjectAttributes
+
+
+</td><td>
+
+Record&lt;string, AttributeType&gt;
+
+
+</td><td>
+
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 T

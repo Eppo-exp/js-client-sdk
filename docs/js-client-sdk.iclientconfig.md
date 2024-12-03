@@ -15,12 +15,139 @@ export interface IClientConfig extends IBaseRequestConfig
 
 ## Properties
 
-|  Property | Modifiers | Type | Description |
-|  --- | --- | --- | --- |
-|  [forceReinitialize?](./js-client-sdk.iclientconfig.forcereinitialize.md) |  | boolean | _(Optional)_ Force reinitialize the SDK if it is already initialized. |
-|  [maxCacheAgeSeconds?](./js-client-sdk.iclientconfig.maxcacheageseconds.md) |  | number | _(Optional)_ Maximum age, in seconds, previously cached values are considered valid until new values will be fetched (default: 0) |
-|  [persistentStore?](./js-client-sdk.iclientconfig.persistentstore.md) |  | IAsyncStore&lt;Flag&gt; | _(Optional)_ A custom class to use for storing flag configurations. This is useful for cases where you want to use a different storage mechanism than the default storage provided by the SDK. |
-|  [throwOnFailedInitialization?](./js-client-sdk.iclientconfig.throwonfailedinitialization.md) |  | boolean | _(Optional)_ Throw an error if unable to fetch an initial configuration during initialization. (default: true) |
-|  [updateOnFetch?](./js-client-sdk.iclientconfig.updateonfetch.md) |  | ServingStoreUpdateStrategy | _(Optional)_ Sets how the configuration is updated after a successful fetch - always: immediately start using the new configuration - expired: immediately start using the new configuration only if the current one has expired - empty: only use the new configuration if the current one is both expired and uninitialized/empty |
-|  [useExpiredCache?](./js-client-sdk.iclientconfig.useexpiredcache.md) |  | boolean | _(Optional)_ Whether initialization will be considered successfully complete if expired cache values are loaded. If false, initialization will always wait for a fetch if cached values are expired. (default: false) |
+<table><thead><tr><th>
 
+Property
+
+
+</th><th>
+
+Modifiers
+
+
+</th><th>
+
+Type
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[forceReinitialize?](./js-client-sdk.iclientconfig.forcereinitialize.md)
+
+
+</td><td>
+
+
+</td><td>
+
+boolean
+
+
+</td><td>
+
+_(Optional)_ Force reinitialize the SDK if it is already initialized.
+
+
+</td></tr>
+<tr><td>
+
+[maxCacheAgeSeconds?](./js-client-sdk.iclientconfig.maxcacheageseconds.md)
+
+
+</td><td>
+
+
+</td><td>
+
+number
+
+
+</td><td>
+
+_(Optional)_ Maximum age, in seconds, previously cached values are considered valid until new values will be fetched (default: 0)
+
+
+</td></tr>
+<tr><td>
+
+[persistentStore?](./js-client-sdk.iclientconfig.persistentstore.md)
+
+
+</td><td>
+
+
+</td><td>
+
+IAsyncStore&lt;Flag&gt;
+
+
+</td><td>
+
+_(Optional)_ A custom class to use for storing flag configurations. This is useful for cases where you want to use a different storage mechanism than the default storage provided by the SDK.
+
+
+</td></tr>
+<tr><td>
+
+[throwOnFailedInitialization?](./js-client-sdk.iclientconfig.throwonfailedinitialization.md)
+
+
+</td><td>
+
+
+</td><td>
+
+boolean
+
+
+</td><td>
+
+_(Optional)_ Throw an error if unable to fetch an initial configuration during initialization. (default: true)
+
+
+</td></tr>
+<tr><td>
+
+[updateOnFetch?](./js-client-sdk.iclientconfig.updateonfetch.md)
+
+
+</td><td>
+
+
+</td><td>
+
+ServingStoreUpdateStrategy
+
+
+</td><td>
+
+_(Optional)_ Sets how the configuration is updated after a successful fetch - always: immediately start using the new configuration - expired: immediately start using the new configuration only if the current one has expired - empty: only use the new configuration if the current one is both expired and uninitialized/empty
+
+
+</td></tr>
+<tr><td>
+
+[useExpiredCache?](./js-client-sdk.iclientconfig.useexpiredcache.md)
+
+
+</td><td>
+
+
+</td><td>
+
+boolean
+
+
+</td><td>
+
+_(Optional)_ Whether initialization will be considered successfully complete if expired cache values are loaded. If false, initialization will always wait for a fetch if cached values are expired. (default: false)
+
+
+</td></tr>
+</tbody></table>
