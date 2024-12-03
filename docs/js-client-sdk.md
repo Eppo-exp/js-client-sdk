@@ -6,29 +6,192 @@
 
 ## Classes
 
-|  Class | Description |
-|  --- | --- |
-|  [ChromeStorageEngine](./js-client-sdk.chromestorageengine.md) | <p>Chrome storage implementation of a string-valued store for storing a configuration and its metadata.</p><p>This serializes the entire configuration object into a string and then stores it to a single key within the object for another single top-level key. Same with metadata about the store (e.g., when it was last updated).</p><p>Note: this behaves a bit differently than local storage as the chrome storage API gets and sets subsets of key-value pairs, so we have to dereference or re-specify the key.</p> |
-|  [EppoJSClient](./js-client-sdk.eppojsclient.md) | Client for assigning experiment variations. |
-|  [EppoPrecomputedJSClient](./js-client-sdk.eppoprecomputedjsclient.md) | Client for assigning precomputed experiment variations. |
+<table><thead><tr><th>
+
+Class
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[ChromeStorageEngine](./js-client-sdk.chromestorageengine.md)
+
+
+</td><td>
+
+Chrome storage implementation of a string-valued store for storing a configuration and its metadata.
+
+This serializes the entire configuration object into a string and then stores it to a single key within the object for another single top-level key. Same with metadata about the store (e.g., when it was last updated).
+
+Note: this behaves a bit differently than local storage as the chrome storage API gets and sets subsets of key-value pairs, so we have to dereference or re-specify the key.
+
+
+</td></tr>
+<tr><td>
+
+[EppoJSClient](./js-client-sdk.eppojsclient.md)
+
+
+</td><td>
+
+Client for assigning experiment variations.
+
+
+</td></tr>
+<tr><td>
+
+[EppoPrecomputedJSClient](./js-client-sdk.eppoprecomputedjsclient.md)
+
+
+</td><td>
+
+Client for assigning precomputed experiment variations.
+
+
+</td></tr>
+</tbody></table>
 
 ## Functions
 
-|  Function | Description |
-|  --- | --- |
-|  [buildStorageKeySuffix(apiKey)](./js-client-sdk.buildstoragekeysuffix.md) |  |
-|  [getConfigUrl(apiKey, baseUrl)](./js-client-sdk.getconfigurl.md) | Used to build the URL for fetching the flag configuration. |
-|  [getInstance()](./js-client-sdk.getinstance.md) | Used to access a singleton SDK client instance. Use the method after calling init() to initialize the client. |
-|  [getPrecomputedInstance()](./js-client-sdk.getprecomputedinstance.md) | Used to access a singleton SDK precomputed client instance. Use the method after calling precomputedInit() to initialize the client. |
-|  [init(config)](./js-client-sdk.init.md) | Initializes the Eppo client with configuration parameters. This method should be called once on application startup. |
-|  [offlineInit(config)](./js-client-sdk.offlineinit.md) | <p>Initializes the Eppo client with configuration parameters.</p><p>The purpose is for use-cases where the configuration is available from an external process that can bootstrap the SDK.</p><p>This method should be called once on application startup.</p> |
-|  [precomputedInit(config)](./js-client-sdk.precomputedinit.md) | Initializes the Eppo precomputed client with configuration parameters. This method should be called once on application startup. |
+<table><thead><tr><th>
+
+Function
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[buildStorageKeySuffix(apiKey)](./js-client-sdk.buildstoragekeysuffix.md)
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[getConfigUrl(apiKey, baseUrl)](./js-client-sdk.getconfigurl.md)
+
+
+</td><td>
+
+Used to build the URL for fetching the flag configuration.
+
+
+</td></tr>
+<tr><td>
+
+[getInstance()](./js-client-sdk.getinstance.md)
+
+
+</td><td>
+
+Used to access a singleton SDK client instance. Use the method after calling init() to initialize the client.
+
+
+</td></tr>
+<tr><td>
+
+[getPrecomputedInstance()](./js-client-sdk.getprecomputedinstance.md)
+
+
+</td><td>
+
+Used to access a singleton SDK precomputed client instance. Use the method after calling precomputedInit() to initialize the client.
+
+
+</td></tr>
+<tr><td>
+
+[init(config)](./js-client-sdk.init.md)
+
+
+</td><td>
+
+Initializes the Eppo client with configuration parameters. This method should be called once on application startup.
+
+
+</td></tr>
+<tr><td>
+
+[offlineInit(config)](./js-client-sdk.offlineinit.md)
+
+
+</td><td>
+
+Initializes the Eppo client with configuration parameters.
+
+The purpose is for use-cases where the configuration is available from an external process that can bootstrap the SDK.
+
+This method should be called once on application startup.
+
+
+</td></tr>
+<tr><td>
+
+[precomputedInit(config)](./js-client-sdk.precomputedinit.md)
+
+
+</td><td>
+
+Initializes the Eppo precomputed client with configuration parameters. This method should be called once on application startup.
+
+
+</td></tr>
+</tbody></table>
 
 ## Interfaces
 
-|  Interface | Description |
-|  --- | --- |
-|  [IClientConfig](./js-client-sdk.iclientconfig.md) | Configuration for regular client initialization |
-|  [IClientConfigSync](./js-client-sdk.iclientconfigsync.md) |  |
-|  [IPrecomputedClientConfig](./js-client-sdk.iprecomputedclientconfig.md) | Configuration for Eppo precomputed client initialization |
+<table><thead><tr><th>
 
+Interface
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[IClientConfig](./js-client-sdk.iclientconfig.md)
+
+
+</td><td>
+
+Configuration for regular client initialization
+
+
+</td></tr>
+<tr><td>
+
+[IClientConfigSync](./js-client-sdk.iclientconfigsync.md)
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[IPrecomputedClientConfig](./js-client-sdk.iprecomputedclientconfig.md)
+
+
+</td><td>
+
+Configuration for Eppo precomputed client initialization
+
+
+</td></tr>
+</tbody></table>

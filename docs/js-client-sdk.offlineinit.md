@@ -18,10 +18,39 @@ export declare function offlineInit(config: IClientConfigSync): EppoClient;
 
 ## Parameters
 
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  config | [IClientConfigSync](./js-client-sdk.iclientconfigsync.md) | client configuration |
+<table><thead><tr><th>
 
+Parameter
+
+
+</th><th>
+
+Type
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+config
+
+
+</td><td>
+
+[IClientConfigSync](./js-client-sdk.iclientconfigsync.md)
+
+
+</td><td>
+
+client configuration
+
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 EppoClient

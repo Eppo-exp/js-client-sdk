@@ -12,10 +12,99 @@ export interface IClientConfigSync
 
 ## Properties
 
-|  Property | Modifiers | Type | Description |
-|  --- | --- | --- | --- |
-|  [assignmentLogger?](./js-client-sdk.iclientconfigsync.assignmentlogger.md) |  | IAssignmentLogger | _(Optional)_ |
-|  [flagsConfiguration](./js-client-sdk.iclientconfigsync.flagsconfiguration.md) |  | Record&lt;string, Flag \| ObfuscatedFlag&gt; |  |
-|  [isObfuscated?](./js-client-sdk.iclientconfigsync.isobfuscated.md) |  | boolean | _(Optional)_ |
-|  [throwOnFailedInitialization?](./js-client-sdk.iclientconfigsync.throwonfailedinitialization.md) |  | boolean | _(Optional)_ |
+<table><thead><tr><th>
 
+Property
+
+
+</th><th>
+
+Modifiers
+
+
+</th><th>
+
+Type
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[assignmentLogger?](./js-client-sdk.iclientconfigsync.assignmentlogger.md)
+
+
+</td><td>
+
+
+</td><td>
+
+IAssignmentLogger
+
+
+</td><td>
+
+_(Optional)_
+
+
+</td></tr>
+<tr><td>
+
+[flagsConfiguration](./js-client-sdk.iclientconfigsync.flagsconfiguration.md)
+
+
+</td><td>
+
+
+</td><td>
+
+Record&lt;string, Flag \| ObfuscatedFlag&gt;
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[isObfuscated?](./js-client-sdk.iclientconfigsync.isobfuscated.md)
+
+
+</td><td>
+
+
+</td><td>
+
+boolean
+
+
+</td><td>
+
+_(Optional)_
+
+
+</td></tr>
+<tr><td>
+
+[throwOnFailedInitialization?](./js-client-sdk.iclientconfigsync.throwonfailedinitialization.md)
+
+
+</td><td>
+
+
+</td><td>
+
+boolean
+
+
+</td><td>
+
+_(Optional)_
+
+
+</td></tr>
+</tbody></table>

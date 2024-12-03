@@ -15,27 +15,251 @@ export declare class EppoJSClient extends EppoClient
 
 ## Properties
 
-|  Property | Modifiers | Type | Description |
-|  --- | --- | --- | --- |
-|  [initialized](./js-client-sdk.eppojsclient.initialized.md) | <code>static</code> | boolean |  |
-|  [instance](./js-client-sdk.eppojsclient.instance.md) | <code>static</code> | [EppoJSClient](./js-client-sdk.eppojsclient.md) |  |
+<table><thead><tr><th>
+
+Property
+
+
+</th><th>
+
+Modifiers
+
+
+</th><th>
+
+Type
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[initialized](./js-client-sdk.eppojsclient.initialized.md)
+
+
+</td><td>
+
+`static`
+
+
+</td><td>
+
+boolean
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[instance](./js-client-sdk.eppojsclient.instance.md)
+
+
+</td><td>
+
+`static`
+
+
+</td><td>
+
+[EppoJSClient](./js-client-sdk.eppojsclient.md)
+
+
+</td><td>
+
+
+</td></tr>
+</tbody></table>
 
 ## Methods
 
-|  Method | Modifiers | Description |
-|  --- | --- | --- |
-|  [getBanditAction(flagKey, subjectKey, subjectAttributes, actions, defaultValue)](./js-client-sdk.eppojsclient.getbanditaction.md) |  |  |
-|  [getBanditActionDetails(flagKey, subjectKey, subjectAttributes, actions, defaultValue)](./js-client-sdk.eppojsclient.getbanditactiondetails.md) |  |  |
-|  [getBoolAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getboolassignment.md) |  |  |
-|  [getBooleanAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getbooleanassignment.md) |  |  |
-|  [getBooleanAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getbooleanassignmentdetails.md) |  |  |
-|  [getExperimentContainerEntry(flagExperiment, subjectKey, subjectAttributes)](./js-client-sdk.eppojsclient.getexperimentcontainerentry.md) |  |  |
-|  [getIntegerAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getintegerassignment.md) |  |  |
-|  [getIntegerAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getintegerassignmentdetails.md) |  |  |
-|  [getJSONAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getjsonassignment.md) |  |  |
-|  [getJSONAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getjsonassignmentdetails.md) |  |  |
-|  [getNumericAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getnumericassignment.md) |  |  |
-|  [getNumericAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getnumericassignmentdetails.md) |  |  |
-|  [getStringAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getstringassignment.md) |  |  |
-|  [getStringAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getstringassignmentdetails.md) |  |  |
+<table><thead><tr><th>
 
+Method
+
+
+</th><th>
+
+Modifiers
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[getBanditAction(flagKey, subjectKey, subjectAttributes, actions, defaultValue)](./js-client-sdk.eppojsclient.getbanditaction.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[getBanditActionDetails(flagKey, subjectKey, subjectAttributes, actions, defaultValue)](./js-client-sdk.eppojsclient.getbanditactiondetails.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[getBoolAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getboolassignment.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[getBooleanAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getbooleanassignment.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[getBooleanAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getbooleanassignmentdetails.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[getExperimentContainerEntry(flagExperiment, subjectKey, subjectAttributes)](./js-client-sdk.eppojsclient.getexperimentcontainerentry.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[getIntegerAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getintegerassignment.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[getIntegerAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getintegerassignmentdetails.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[getJSONAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getjsonassignment.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[getJSONAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getjsonassignmentdetails.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[getNumericAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getnumericassignment.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[getNumericAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getnumericassignmentdetails.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[getStringAssignment(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getstringassignment.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[getStringAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getstringassignmentdetails.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+</tbody></table>

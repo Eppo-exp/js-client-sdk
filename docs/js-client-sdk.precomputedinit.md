@@ -14,10 +14,39 @@ export declare function precomputedInit(config: IPrecomputedClientConfig): Promi
 
 ## Parameters
 
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  config | [IPrecomputedClientConfig](./js-client-sdk.iprecomputedclientconfig.md) | client configuration |
+<table><thead><tr><th>
 
+Parameter
+
+
+</th><th>
+
+Type
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+config
+
+
+</td><td>
+
+[IPrecomputedClientConfig](./js-client-sdk.iprecomputedclientconfig.md)
+
+
+</td><td>
+
+client configuration
+
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 Promise&lt;EppoPrecomputedClient&gt;

@@ -15,8 +15,63 @@ export interface IPrecomputedClientConfig extends IBaseRequestConfig
 
 ## Properties
 
-|  Property | Modifiers | Type | Description |
-|  --- | --- | --- | --- |
-|  [subjectAttributes?](./js-client-sdk.iprecomputedclientconfig.subjectattributes.md) |  | Record&lt;string, AttributeType&gt; | _(Optional)_ Subject attributes to use for precomputed flag assignments. |
-|  [subjectKey](./js-client-sdk.iprecomputedclientconfig.subjectkey.md) |  | string | Subject key to use for precomputed flag assignments. |
+<table><thead><tr><th>
 
+Property
+
+
+</th><th>
+
+Modifiers
+
+
+</th><th>
+
+Type
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[subjectAttributes?](./js-client-sdk.iprecomputedclientconfig.subjectattributes.md)
+
+
+</td><td>
+
+
+</td><td>
+
+Record&lt;string, AttributeType&gt;
+
+
+</td><td>
+
+_(Optional)_ Subject attributes to use for precomputed flag assignments.
+
+
+</td></tr>
+<tr><td>
+
+[subjectKey](./js-client-sdk.iprecomputedclientconfig.subjectkey.md)
+
+
+</td><td>
+
+
+</td><td>
+
+string
+
+
+</td><td>
+
+Subject key to use for precomputed flag assignments.
+
+
+</td></tr>
+</tbody></table>

@@ -14,10 +14,39 @@ export declare function init(config: IClientConfig): Promise<EppoClient>;
 
 ## Parameters
 
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  config | [IClientConfig](./js-client-sdk.iclientconfig.md) | client configuration |
+<table><thead><tr><th>
 
+Parameter
+
+
+</th><th>
+
+Type
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+config
+
+
+</td><td>
+
+[IClientConfig](./js-client-sdk.iclientconfig.md)
+
+
+</td><td>
+
+client configuration
+
+
+</td></tr>
+</tbody></table>
 **Returns:**
 
 Promise&lt;EppoClient&gt;
