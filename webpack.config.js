@@ -2,6 +2,7 @@
 const path = require('path');
 
 const TerserPlugin = require('terser-webpack-plugin');
+const webpack = require('webpack');
 
 module.exports = {
   entry: './src/index.ts',
@@ -32,4 +33,10 @@ module.exports = {
     minimize: true,
     minimizer: [new TerserPlugin()],
   },
+  plugins: [
+    // Replace process.env.LOG_LEVEL with null (`process` is not defined in the browser env)
+    new webpack.DefinePlugin({
+      'process.env.LOG_LEVEL': null,
+    }),
+  ],
 };
