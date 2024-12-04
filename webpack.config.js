@@ -20,6 +20,10 @@ module.exports = {
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
+    fallback: {
+      // resolve the Buffer polyfill
+      buffer: require.resolve('buffer'),
+    },
   },
   output: {
     filename: 'eppo-sdk.js',
@@ -37,6 +41,10 @@ module.exports = {
     // Replace process.env.LOG_LEVEL with null (`process` is not defined in the browser env)
     new webpack.DefinePlugin({
       'process.env.LOG_LEVEL': null,
+    }),
+    // Make sure any usages of Buffer use the polyfill in the browser
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer'],
     }),
   ],
 };
