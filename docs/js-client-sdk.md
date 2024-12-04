@@ -76,6 +76,8 @@ Description
 
 </td><td>
 
+Builds a storage key suffix from an API key.
+
 
 </td></tr>
 <tr><td>
@@ -180,6 +182,8 @@ Configuration for regular client initialization
 
 
 </td><td>
+
+Configuration interface for synchronous client initialization.
 
 
 </td></tr>
