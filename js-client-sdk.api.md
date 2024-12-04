@@ -20,7 +20,7 @@ import { IAsyncStore } from '@eppo/js-client-sdk-common';
 import { IContainerExperiment } from '@eppo/js-client-sdk-common';
 import { ObfuscatedFlag } from '@eppo/js-client-sdk-common';
 
-// @public (undocumented)
+// @public
 export function buildStorageKeySuffix(apiKey: string): string;
 
 // Warning: (ae-forgotten-export) The symbol "IStringStorageEngine" needs to be exported by the entry point index.d.ts
@@ -125,7 +125,7 @@ export interface IClientConfig extends IBaseRequestConfig {
     useExpiredCache?: boolean;
 }
 
-// @public (undocumented)
+// @public
 export interface IClientConfigSync {
     // (undocumented)
     assignmentLogger?: IAssignmentLogger;
