@@ -17,6 +17,7 @@ import {
   ObfuscatedFlag,
   BoundedEventQueue,
   validation,
+  PrecomputedFlag,
 } from '@eppo/js-client-sdk-common';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
@@ -623,4 +624,53 @@ function newEventDispatcher(sdkKey: string): EventDispatcher {
   const networkStatusListener =
     typeof window !== 'undefined' ? new BrowserNetworkStatusListener() : emptyNetworkStatusListener;
   return newDefaultEventDispatcher(eventQueue, networkStatusListener, sdkKey);
+}
+
+/**
+ * Initializes the Eppo precomputed client with configuration parameters.
+ *
+ * The purpose is for use-cases where the precomputed assignments are available from an external process
+ * that can bootstrap the SDK.
+ *
+ * This method should be called once on application startup.
+ *
+ * @param config - client configuration
+ * @returns a singleton precomputed client instance
+ * @public
+ */
+export interface IPrecomputedClientConfigSync {
+  precomputedAssignments: Record<string, PrecomputedFlag>;
+  assignmentLogger?: IAssignmentLogger;
+  throwOnFailedInitialization?: boolean;
+}
+
+export function offlinePrecomputedInit(
+  config: IPrecomputedClientConfigSync,
+): EppoPrecomputedClient {
+  const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
+
+  try {
+    const memoryOnlyPrecomputedStore = precomputedFlagsStorageFactory();
+    memoryOnlyPrecomputedStore
+      .setEntries(config.precomputedAssignments)
+      .catch((err) =>
+        applicationLogger.warn('Error setting precomputed assignments for memory-only store', err),
+      );
+
+    EppoPrecomputedJSClient.instance.setPrecomputedFlagStore(memoryOnlyPrecomputedStore);
+
+    if (config.assignmentLogger) {
+      EppoPrecomputedJSClient.instance.setAssignmentLogger(config.assignmentLogger);
+    }
+  } catch (error) {
+    applicationLogger.warn(
+      'Eppo SDK encountered an error initializing precomputed client, assignment calls will return the default value and not be logged',
+    );
+    if (throwOnFailedInitialization) {
+      throw error;
+    }
+  }
+
+  EppoPrecomputedJSClient.initialized = true;
+  return EppoPrecomputedJSClient.instance;
 }
