@@ -34,6 +34,10 @@ import LocalStorageBackedNamedEventQueue from './events/local-storage-backed-nam
 import { IClientConfig, IPrecomputedClientConfig } from './i-client-config';
 import { sdkName, sdkVersion } from './sdk-data';
 
+/**
+ * Configuration interface for synchronous client initialization.
+ * @public
+ */
 export interface IClientConfigSync {
   flagsConfiguration: Record<string, Flag | ObfuscatedFlag>;
 
@@ -235,6 +239,12 @@ export class EppoJSClient extends EppoClient {
   }
 }
 
+/**
+ * Builds a storage key suffix from an API key.
+ * @param apiKey - The API key to build the suffix from
+ * @returns A string suffix for storage keys
+ * @public
+ */
 export function buildStorageKeySuffix(apiKey: string): string {
   // Note that we use the first 8 characters of the API key to create per-API key persistent storages and caches
   return apiKey.replace(/\W/g, '').substring(0, 8);

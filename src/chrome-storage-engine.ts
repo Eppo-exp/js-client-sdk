@@ -11,6 +11,7 @@ import { IStringStorageEngine } from './string-valued.store';
  *
  * Note: this behaves a bit differently than local storage as the chrome storage API gets and sets
  * subsets of key-value pairs, so we have to dereference or re-specify the key.
+ * @public
  */
 export class ChromeStorageEngine implements IStringStorageEngine {
   private readonly contentsKey;
