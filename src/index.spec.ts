@@ -1127,8 +1127,10 @@ describe('EppoPrecomputedJSClient E2E test', () => {
       apiKey: 'dummy',
       baseUrl: 'http://127.0.0.1:4000',
       assignmentLogger: mockLogger,
-      subjectKey: 'test-subject',
-      subjectAttributes: { attr1: 'value1' },
+      precompute: {
+        subjectKey: 'test-subject',
+        subjectAttributes: { attr1: 'value1' },
+      },
     });
   });
 
