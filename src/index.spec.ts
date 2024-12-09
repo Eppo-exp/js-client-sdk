@@ -35,6 +35,7 @@ import {
   IAssignmentLogger,
   init,
   offlineInit,
+  offlinePrecomputedInit,
   precomputedInit,
 } from './index';
 

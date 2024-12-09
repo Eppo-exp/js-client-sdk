@@ -18,7 +18,9 @@ import {
   BoundedEventQueue,
   validation,
   PrecomputedFlag,
+  NamedEventQueue,
 } from '@eppo/js-client-sdk-common';
+import { Event } from '@eppo/js-client-sdk-common/src/events/event-dispatcher';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
 import HybridAssignmentCache from './cache/hybrid-assignment-cache';
@@ -619,7 +621,11 @@ function newEventDispatcher(sdkKey: string): EventDispatcher {
     { isOffline: () => false, onNetworkStatusChange: () => {} };
   const networkStatusListener =
     typeof window !== 'undefined' ? new BrowserNetworkStatusListener() : emptyNetworkStatusListener;
-  return newDefaultEventDispatcher(eventQueue, networkStatusListener, sdkKey);
+  return newDefaultEventDispatcher(
+    eventQueue as NamedEventQueue<Event>,
+    networkStatusListener,
+    sdkKey,
+  );
 }
 
 /**
