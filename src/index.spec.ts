@@ -1179,3 +1179,59 @@ describe('EppoPrecomputedJSClient E2E test', () => {
     });
   });
 });
+
+describe('offlinePrecomputedInit', () => {
+  let mockLogger: IAssignmentLogger;
+
+  beforeEach(() => {
+    mockLogger = td.object<IAssignmentLogger>();
+    // Reset the static instance before each test
+    jest.isolateModules(() => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      require('./index');
+    });
+  });
+
+  const mockPrecomputedAssignments = {
+    'test-flag': {
+      allocationKey: 'allocation-123',
+      variationKey: 'variation-123',
+      variationType: VariationType.STRING,
+      variationValue: 'test-value',
+      extraLogging: {},
+      doLog: true,
+    },
+  };
+
+  it('initializes with precomputed assignments', () => {
+    const client = offlinePrecomputedInit({
+      precompute: {
+        subjectKey: 'test-subject',
+        subjectAttributes: { attr1: 'value1' },
+      },
+      precomputedAssignments: mockPrecomputedAssignments,
+      assignmentLogger: mockLogger,
+    });
+
+    expect(client.getStringAssignment('test-flag', 'default')).toBe('test-value');
+    expect(td.explain(mockLogger.logAssignment).callCount).toBe(1);
+    expect(td.explain(mockLogger.logAssignment).calls[0]?.args[0]).toMatchObject({
+      subject: 'test-subject',
+      featureFlag: 'test-flag',
+      allocation: 'allocation-123',
+      variation: 'variation-123',
+      subjectAttributes: { attr1: 'value1' },
+    });
+  });
+
+  it('initializes with empty subject attributes', () => {
+    const client = offlinePrecomputedInit({
+      precompute: {
+        subjectKey: 'test-subject',
+      },
+      precomputedAssignments: mockPrecomputedAssignments,
+    });
+
+    expect(client.getStringAssignment('test-flag', 'default')).toBe('test-value');
+  });
+});
