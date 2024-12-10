@@ -60,6 +60,23 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
+[precompute](./js-client-sdk.iprecomputedclientconfigsync.precompute.md)
+
+
+</td><td>
+
+
+</td><td>
+
+IPrecompute
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
 [precomputedAssignments](./js-client-sdk.iprecomputedclientconfigsync.precomputedassignments.md)
 
 

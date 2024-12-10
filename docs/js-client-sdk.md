@@ -146,6 +146,12 @@ This method should be called once on application startup.
 
 </td><td>
 
+Initializes the Eppo precomputed client with configuration parameters.
+
+The purpose is for use-cases where the precomputed assignments are available from an external process that can bootstrap the SDK.
+
+This method should be called once on application startup.
+
 
 </td></tr>
 <tr><td>

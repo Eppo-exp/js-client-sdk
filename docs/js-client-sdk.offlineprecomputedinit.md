@@ -4,6 +4,12 @@
 
 ## offlinePrecomputedInit() function
 
+Initializes the Eppo precomputed client with configuration parameters.
+
+The purpose is for use-cases where the precomputed assignments are available from an external process that can bootstrap the SDK.
+
+This method should be called once on application startup.
+
 **Signature:**
 
 ```typescript
@@ -40,10 +46,14 @@ config
 
 </td><td>
 
+precomputed client configuration
+
 
 </td></tr>
 </tbody></table>
 **Returns:**
 
 EppoPrecomputedClient
+
+a singleton precomputed client instance
 
