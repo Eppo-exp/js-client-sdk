@@ -4,8 +4,6 @@
 
 ## IClientConfigSync interface
 
-Configuration interface for synchronous client initialization.
-
 **Signature:**
 
 ```typescript

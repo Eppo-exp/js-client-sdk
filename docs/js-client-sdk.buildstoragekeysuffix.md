@@ -4,8 +4,6 @@
 
 ## buildStorageKeySuffix() function
 
-Builds a storage key suffix from an API key.
-
 **Signature:**
 
 ```typescript
@@ -42,14 +40,10 @@ string
 
 </td><td>
 
-The API key to build the suffix from
-
 
 </td></tr>
 </tbody></table>
 **Returns:**
 
 string
-
-A string suffix for storage keys
 

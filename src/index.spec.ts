@@ -1176,4 +1176,27 @@ describe('EppoPrecomputedJSClient E2E test', () => {
       format: 'PRECOMPUTED',
     });
   });
+
+  it('should initialize event dispatcher with default values', async () => {
+    const client = await init({
+      apiKey: 'zCsQuoHJxVPp895.ZWg9MTIzNDU2LmUudGVzdGluZy5lcHBvLmNsb3Vk',
+      assignmentLogger: mockLogger,
+      eventIngestionConfig: {
+        deliveryIntervalMs: 1,
+        retryIntervalMs: 2,
+        maxRetryDelayMs: 3,
+        maxRetries: 4,
+        batchSize: 5,
+      },
+    });
+    // hack to read the private class members config
+    const eventDispatcher = client['eventDispatcher'];
+    const retryManager = eventDispatcher['retryManager'];
+    const batchProcessor = eventDispatcher['batchProcessor'];
+    expect(eventDispatcher['deliveryIntervalMs']).toEqual(1);
+    expect(batchProcessor['batchSize']).toEqual(5);
+    expect(retryManager['config']['retryIntervalMs']).toEqual(2);
+    expect(retryManager['config']['maxRetryDelayMs']).toEqual(3);
+    expect(retryManager['config']['maxRetries']).toEqual(4);
+  });
 });
