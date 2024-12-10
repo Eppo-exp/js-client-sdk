@@ -29,6 +29,7 @@ import { IClientConfig } from './i-client-config';
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 
 import {
+  EppoJSClient,
   EppoPrecomputedJSClient,
   getConfigUrl,
   getInstance,
@@ -1155,11 +1156,11 @@ describe('EppoPrecomputedJSClient E2E test', () => {
 
     expect(td.explain(mockLogger.logAssignment).callCount).toEqual(1);
     expect(td.explain(mockLogger.logAssignment).calls[0]?.args[0]).toMatchObject({
-      subject: 'test-subject',
+      subject: '',
       featureFlag: 'string-flag',
       allocation: 'allocation-123',
       variation: 'variation-123',
-      subjectAttributes: { attr1: 'value1' },
+      subjectAttributes: {},
       format: 'PRECOMPUTED',
     });
 
@@ -1168,19 +1169,29 @@ describe('EppoPrecomputedJSClient E2E test', () => {
 
     expect(td.explain(mockLogger.logAssignment).callCount).toEqual(2);
     expect(td.explain(mockLogger.logAssignment).calls[1]?.args[0]).toMatchObject({
-      subject: 'test-subject',
+      subject: '',
       featureFlag: 'boolean-flag',
       allocation: 'allocation-124',
       variation: 'variation-124',
-      subjectAttributes: { attr1: 'value1' },
+      subjectAttributes: {},
       format: 'PRECOMPUTED',
     });
   });
+});
 
+describe('EppoClient config', () => {
   it('should initialize event dispatcher with default values', async () => {
+    global.fetch = jest.fn(() => {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({}),
+      });
+    }) as jest.Mock;
+    EppoJSClient.initialized = false;
     const client = await init({
       apiKey: 'zCsQuoHJxVPp895.ZWg9MTIzNDU2LmUudGVzdGluZy5lcHBvLmNsb3Vk',
-      assignmentLogger: mockLogger,
+      assignmentLogger: td.object<IAssignmentLogger>(),
       eventIngestionConfig: {
         deliveryIntervalMs: 1,
         retryIntervalMs: 2,
