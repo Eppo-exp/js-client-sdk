@@ -1,4 +1,5 @@
 import { AttributeType, Flag, IAssignmentLogger, IAsyncStore } from '@eppo/js-client-sdk-common';
+import { EventDispatcherConfig } from '@eppo/js-client-sdk-common/src/events/default-event-dispatcher';
 
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 
@@ -120,4 +121,18 @@ export interface IClientConfig extends IBaseRequestConfig {
    * Force reinitialize the SDK if it is already initialized.
    */
   forceReinitialize?: boolean;
+
+  /** Configuration settings for the event dispatcher */
+  eventIngestionConfig?: {
+    // number of milliseconds to wait between each batch delivery. Default is 10 seconds.
+    deliveryIntervalMs?: number;
+    // minimum amount of milliseconds to wait before retrying a failed delivery. Default is 5 seconds
+    retryIntervalMs?: number;
+    // maximum amount of milliseconds to wait before retrying a failed delivery. Default is 30 seconds.
+    maxRetryDelayMs?: number;
+    // maximum number of retry attempts before giving up on a batch delivery. Default is 3.
+    maxRetries?: number;
+    // maximum number of events to send per delivery request. Default is 100.
+    batchSize?: number;
+  };
 }
