@@ -621,6 +621,7 @@ export interface IPrecomputedClientConfigSync {
   throwOnFailedInitialization?: boolean;
 }
 
+// TODO: remove when this interface is exported from the common library
 export interface IConfigurationWire {
   version: number;
   precomputed: {
