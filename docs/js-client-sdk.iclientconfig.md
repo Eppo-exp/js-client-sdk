@@ -38,6 +38,25 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[eventIngestionConfig?](./js-client-sdk.iclientconfig.eventingestionconfig.md)
+
+
+</td><td>
+
+
+</td><td>
+
+{ deliveryIntervalMs?: number; retryIntervalMs?: number; maxRetryDelayMs?: number; maxRetries?: number; batchSize?: number; }
+
+
+</td><td>
+
+_(Optional)_ Configuration settings for the event dispatcher
+
+
+</td></tr>
+<tr><td>
+
 [forceReinitialize?](./js-client-sdk.iclientconfig.forcereinitialize.md)
 
 

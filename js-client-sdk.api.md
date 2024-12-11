@@ -117,6 +117,13 @@ export { IAsyncStore }
 //
 // @public
 export interface IClientConfig extends IBaseRequestConfig {
+    eventIngestionConfig?: {
+        deliveryIntervalMs?: number;
+        retryIntervalMs?: number;
+        maxRetryDelayMs?: number;
+        maxRetries?: number;
+        batchSize?: number;
+    };
     forceReinitialize?: boolean;
     maxCacheAgeSeconds?: number;
     persistentStore?: IAsyncStore<Flag>;

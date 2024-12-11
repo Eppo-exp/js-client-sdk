@@ -18,9 +18,8 @@ import {
   BoundedEventQueue,
   validation,
   PrecomputedFlag,
-  NamedEventQueue,
+  Event,
 } from '@eppo/js-client-sdk-common';
-import { Event } from '@eppo/js-client-sdk-common/src/events/event-dispatcher';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
 import HybridAssignmentCache from './cache/hybrid-assignment-cache';
@@ -338,6 +337,7 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
     pollAfterSuccessfulInitialization = false,
     pollAfterFailedInitialization = false,
     skipInitialRequest = false,
+    eventIngestionConfig,
   } = config;
   try {
     if (EppoJSClient.initialized) {
@@ -407,7 +407,7 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
       skipInitialPoll: skipInitialRequest,
     };
     instance.setConfigurationRequestParameters(requestConfiguration);
-    instance.setEventDispatcher(newEventDispatcher(apiKey));
+    instance.setEventDispatcher(newEventDispatcher(apiKey, eventIngestionConfig));
 
     // We have two at-bats for initialization: from the configuration store and from fetching
     // We can resolve the initialization promise as soon as either one succeeds
@@ -612,20 +612,32 @@ export function getPrecomputedInstance(): EppoPrecomputedClient {
   return EppoPrecomputedJSClient.instance;
 }
 
-function newEventDispatcher(sdkKey: string): EventDispatcher {
+function newEventDispatcher(
+  sdkKey: string,
+  config: IClientConfig['eventIngestionConfig'] = {},
+): EventDispatcher {
   const eventQueue = hasWindowLocalStorage()
-    ? new LocalStorageBackedNamedEventQueue('events')
-    : new BoundedEventQueue('events');
+    ? new LocalStorageBackedNamedEventQueue<Event>('events')
+    : new BoundedEventQueue<Event>('events');
   const emptyNetworkStatusListener =
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     { isOffline: () => false, onNetworkStatusChange: () => {} };
   const networkStatusListener =
     typeof window !== 'undefined' ? new BrowserNetworkStatusListener() : emptyNetworkStatusListener;
-  return newDefaultEventDispatcher(
-    eventQueue as NamedEventQueue<Event>,
-    networkStatusListener,
-    sdkKey,
-  );
+  // initialize config with default values
+  const {
+    batchSize = 100,
+    deliveryIntervalMs = 10_000,
+    retryIntervalMs = 5_000,
+    maxRetryDelayMs = 30_000,
+    maxRetries = 3,
+  } = config;
+  return newDefaultEventDispatcher(eventQueue, networkStatusListener, sdkKey, batchSize, {
+    deliveryIntervalMs,
+    retryIntervalMs,
+    maxRetryDelayMs,
+    maxRetries,
+  });
 }
 
 /**
