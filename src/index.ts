@@ -17,6 +17,7 @@ import {
   ObfuscatedFlag,
   BoundedEventQueue,
   validation,
+  PrecomputedFlag,
   Event,
 } from '@eppo/js-client-sdk-common';
 
@@ -32,7 +33,7 @@ import {
 } from './configuration-factory';
 import BrowserNetworkStatusListener from './events/browser-network-status-listener';
 import LocalStorageBackedNamedEventQueue from './events/local-storage-backed-named-event-queue';
-import { IClientConfig, IPrecomputedClientConfig } from './i-client-config';
+import { IClientConfig, IPrecompute, IPrecomputedClientConfig } from './i-client-config';
 import { sdkName, sdkVersion } from './sdk-data';
 
 /**
@@ -558,13 +559,12 @@ export async function precomputedInit(
   config: IPrecomputedClientConfig,
 ): Promise<EppoPrecomputedClient> {
   validation.validateNotBlank(config.apiKey, 'API key required');
-  validation.validateNotBlank(config.subjectKey, 'Subject key required');
+  validation.validateNotBlank(config.precompute.subjectKey, 'Subject key required');
 
   const instance = EppoPrecomputedJSClient.instance;
   const {
     apiKey,
-    subjectKey,
-    subjectAttributes = {},
+    precompute: { subjectKey, subjectAttributes = {} },
     baseUrl,
     requestTimeoutMs,
     numInitialRequestRetries,
@@ -584,10 +584,7 @@ export async function precomputedInit(
     sdkName,
     sdkVersion,
     baseUrl,
-    precompute: {
-      subjectKey,
-      subjectAttributes,
-    },
+    precompute: { subjectKey, subjectAttributes },
     requestTimeoutMs,
     numInitialRequestRetries,
     numPollRequestRetries,
@@ -641,4 +638,71 @@ function newEventDispatcher(
     maxRetryDelayMs,
     maxRetries,
   });
+}
+
+/**
+ * Initializes the Eppo precomputed client with configuration parameters.
+ *
+ * The purpose is for use-cases where the precomputed assignments are available from an external process
+ * that can bootstrap the SDK.
+ *
+ * This method should be called once on application startup.
+ *
+ * @param config - client configuration
+ * @returns a singleton precomputed client instance
+ * @public
+ */
+export interface IPrecomputedClientConfigSync {
+  precompute: IPrecompute;
+  precomputedAssignments: Record<string, PrecomputedFlag>;
+  assignmentLogger?: IAssignmentLogger;
+  throwOnFailedInitialization?: boolean;
+}
+
+/**
+ * Initializes the Eppo precomputed client with configuration parameters.
+ *
+ * The purpose is for use-cases where the precomputed assignments are available from an external process
+ * that can bootstrap the SDK.
+ *
+ * This method should be called once on application startup.
+ *
+ * @param config - precomputed client configuration
+ * @returns a singleton precomputed client instance
+ * @public
+ */
+export function offlinePrecomputedInit(
+  config: IPrecomputedClientConfigSync,
+): EppoPrecomputedClient {
+  const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
+
+  try {
+    const memoryOnlyPrecomputedStore = precomputedFlagsStorageFactory();
+    memoryOnlyPrecomputedStore
+      .setEntries(config.precomputedAssignments)
+      .catch((err) =>
+        applicationLogger.warn('Error setting precomputed assignments for memory-only store', err),
+      );
+
+    const { subjectKey, subjectAttributes = {} } = config.precompute;
+    EppoPrecomputedJSClient.instance.setSubjectAndPrecomputedFlagStore(
+      subjectKey,
+      subjectAttributes,
+      memoryOnlyPrecomputedStore,
+    );
+
+    if (config.assignmentLogger) {
+      EppoPrecomputedJSClient.instance.setAssignmentLogger(config.assignmentLogger);
+    }
+  } catch (error) {
+    applicationLogger.warn(
+      'Eppo SDK encountered an error initializing precomputed client, assignment calls will return the default value and not be logged',
+    );
+    if (throwOnFailedInitialization) {
+      throw error;
+    }
+  }
+
+  EppoPrecomputedJSClient.initialized = true;
+  return EppoPrecomputedJSClient.instance;
 }

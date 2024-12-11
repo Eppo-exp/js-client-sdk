@@ -19,6 +19,7 @@ import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
 import { IAsyncStore } from '@eppo/js-client-sdk-common';
 import { IContainerExperiment } from '@eppo/js-client-sdk-common';
 import { ObfuscatedFlag } from '@eppo/js-client-sdk-common';
+import { PrecomputedFlag } from '@eppo/js-client-sdk-common';
 
 // @public
 export function buildStorageKeySuffix(apiKey: string): string;
@@ -149,14 +150,31 @@ export function init(config: IClientConfig): Promise<EppoClient>;
 
 // @public
 export interface IPrecomputedClientConfig extends IBaseRequestConfig {
-    subjectAttributes?: Record<string, AttributeType>;
-    subjectKey: string;
+    // Warning: (ae-forgotten-export) The symbol "IPrecompute" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    precompute: IPrecompute;
+}
+
+// @public
+export interface IPrecomputedClientConfigSync {
+    // (undocumented)
+    assignmentLogger?: IAssignmentLogger;
+    // (undocumented)
+    precompute: IPrecompute;
+    // (undocumented)
+    precomputedAssignments: Record<string, PrecomputedFlag>;
+    // (undocumented)
+    throwOnFailedInitialization?: boolean;
 }
 
 export { ObfuscatedFlag }
 
 // @public
 export function offlineInit(config: IClientConfigSync): EppoClient;
+
+// @public
+export function offlinePrecomputedInit(config: IPrecomputedClientConfigSync): EppoPrecomputedClient;
 
 // @public
 export function precomputedInit(config: IPrecomputedClientConfig): Promise<EppoPrecomputedClient>;
