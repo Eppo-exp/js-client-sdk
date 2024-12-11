@@ -597,7 +597,7 @@ export async function precomputedInit(
     throwOnFailedInitialization: true, // always use true here as underlying instance fetch is surrounded by try/catch
     skipInitialPoll: skipInitialRequest,
   };
-  instance.setPrecomputedFlagsRequestParameters(precomputedFlagsRequestParameters);
+  instance.setSubjectAndPrecomputedFlagsRequestParameters(precomputedFlagsRequestParameters);
 
   await instance.fetchPrecomputedFlags();
 

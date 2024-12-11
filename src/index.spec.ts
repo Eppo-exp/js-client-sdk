@@ -1156,11 +1156,11 @@ describe('EppoPrecomputedJSClient E2E test', () => {
 
     expect(td.explain(mockLogger.logAssignment).callCount).toEqual(1);
     expect(td.explain(mockLogger.logAssignment).calls[0]?.args[0]).toMatchObject({
-      subject: '',
+      subject: 'test-subject',
       featureFlag: 'string-flag',
       allocation: 'allocation-123',
       variation: 'variation-123',
-      subjectAttributes: {},
+      subjectAttributes: { attr1: 'value1' },
       format: 'PRECOMPUTED',
     });
 
@@ -1169,11 +1169,11 @@ describe('EppoPrecomputedJSClient E2E test', () => {
 
     expect(td.explain(mockLogger.logAssignment).callCount).toEqual(2);
     expect(td.explain(mockLogger.logAssignment).calls[1]?.args[0]).toMatchObject({
-      subject: '',
+      subject: 'test-subject',
       featureFlag: 'boolean-flag',
       allocation: 'allocation-124',
       variation: 'variation-124',
-      subjectAttributes: {},
+      subjectAttributes: { attr1: 'value1' },
       format: 'PRECOMPUTED',
     });
   });
