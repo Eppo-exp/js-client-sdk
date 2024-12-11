@@ -18,9 +18,11 @@ import * as td from 'testdouble';
 import {
   getTestAssignments,
   IAssignmentTestCase,
+  MOCK_PRECOMPUTED_RESPONSE_FILE,
   MOCK_UFC_RESPONSE_FILE,
   OBFUSCATED_MOCK_UFC_RESPONSE_FILE,
   readAssignmentTestData,
+  readMockPrecomputedResponse,
   readMockUfcResponse,
   validateTestAssignments,
 } from '../test/testHelpers';
@@ -1067,59 +1069,14 @@ describe('EppoPrecomputedJSClient E2E test', () => {
 
   beforeAll(async () => {
     global.fetch = jest.fn(() => {
+      const precomputedConfigurationWire = readMockPrecomputedResponse(
+        MOCK_PRECOMPUTED_RESPONSE_FILE,
+      );
+      const precomputedResponse = JSON.parse(precomputedConfigurationWire).precomputed.response;
       return Promise.resolve({
         ok: true,
         status: 200,
-        json: () =>
-          Promise.resolve({
-            createdAt: '2024-11-18T14:23:39.456Z',
-            format: 'PRECOMPUTED',
-            environment: {
-              name: 'Test',
-            },
-            flags: {
-              'string-flag': {
-                allocationKey: 'allocation-123',
-                variationKey: 'variation-123',
-                variationType: 'STRING',
-                variationValue: 'red',
-                extraLogging: {},
-                doLog: true,
-              },
-              'boolean-flag': {
-                allocationKey: 'allocation-124',
-                variationKey: 'variation-124',
-                variationType: 'BOOLEAN',
-                variationValue: true,
-                extraLogging: {},
-                doLog: true,
-              },
-              'numeric-flag': {
-                allocationKey: 'allocation-126',
-                variationKey: 'variation-126',
-                variationType: 'NUMERIC',
-                variationValue: 3.14,
-                extraLogging: {},
-                doLog: true,
-              },
-              'integer-flag': {
-                allocationKey: 'allocation-125',
-                variationKey: 'variation-125',
-                variationType: 'INTEGER',
-                variationValue: 42,
-                extraLogging: {},
-                doLog: true,
-              },
-              'json-flag': {
-                allocationKey: 'allocation-127',
-                variationKey: 'variation-127',
-                variationType: 'JSON',
-                variationValue: '{"key": "value", "number": 123}',
-                extraLogging: {},
-                doLog: true,
-              },
-            },
-          }),
+        json: () => Promise.resolve(precomputedResponse),
       });
     }) as jest.Mock;
 
@@ -1184,6 +1141,11 @@ describe('EppoPrecomputedJSClient E2E test', () => {
 
 describe('offlinePrecomputedInit', () => {
   let mockLogger: IAssignmentLogger;
+  let precomputedConfigurationWire: string;
+
+  beforeAll(() => {
+    precomputedConfigurationWire = readMockPrecomputedResponse(MOCK_PRECOMPUTED_RESPONSE_FILE);
+  });
 
   beforeEach(() => {
     mockLogger = td.object<IAssignmentLogger>();
@@ -1194,47 +1156,30 @@ describe('offlinePrecomputedInit', () => {
     });
   });
 
-  const mockPrecomputedAssignments = {
-    'test-flag': {
-      allocationKey: 'allocation-123',
-      variationKey: 'variation-123',
-      variationType: VariationType.STRING,
-      variationValue: 'test-value',
-      extraLogging: {},
-      doLog: true,
-    },
-  };
-
   it('initializes with precomputed assignments', () => {
     const client = offlinePrecomputedInit({
-      precompute: {
-        subjectKey: 'test-subject',
-        subjectAttributes: { attr1: 'value1' },
-      },
-      precomputedAssignments: mockPrecomputedAssignments,
+      precomputedConfigurationWire,
       assignmentLogger: mockLogger,
     });
 
-    expect(client.getStringAssignment('test-flag', 'default')).toBe('test-value');
+    expect(client.getStringAssignment('string-flag', 'default')).toBe('red');
     expect(td.explain(mockLogger.logAssignment).callCount).toBe(1);
     expect(td.explain(mockLogger.logAssignment).calls[0]?.args[0]).toMatchObject({
-      subject: 'test-subject',
-      featureFlag: 'test-flag',
+      subject: 'test-subject-key',
+      featureFlag: 'string-flag',
       allocation: 'allocation-123',
       variation: 'variation-123',
-      subjectAttributes: { attr1: 'value1' },
+      subjectAttributes: {
+        device: 'iPhone',
+        country: 'USA',
+      },
     });
   });
 
-  it('initializes with empty subject attributes', () => {
-    const client = offlinePrecomputedInit({
-      precompute: {
-        subjectKey: 'test-subject',
-      },
-      precomputedAssignments: mockPrecomputedAssignments,
-    });
+  it('initializes without an assignment logger', () => {
+    const client = offlinePrecomputedInit({ precomputedConfigurationWire });
 
-    expect(client.getStringAssignment('test-flag', 'default')).toBe('test-value');
+    expect(client.getStringAssignment('string-flag', 'default')).toBe('red');
   });
 });
 

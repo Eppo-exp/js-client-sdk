@@ -38,7 +38,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[precompute](./js-client-sdk.iprecomputedclientconfig.precompute.md)
+[subjectAttributes?](./js-client-sdk.iprecomputedclientconfig.subjectattributes.md)
 
 
 </td><td>
@@ -46,10 +46,31 @@ Description
 
 </td><td>
 
-IPrecompute
+Record&lt;string, AttributeType&gt;
 
 
 </td><td>
+
+_(Optional)_ Subject attributes to use for precomputed flag assignments.
+
+
+</td></tr>
+<tr><td>
+
+[subjectKey](./js-client-sdk.iprecomputedclientconfig.subjectkey.md)
+
+
+</td><td>
+
+
+</td><td>
+
+string
+
+
+</td><td>
+
+Subject key to use for precomputed flag assignments.
 
 
 </td></tr>
