@@ -130,9 +130,9 @@ export interface IClientConfig extends IBaseRequestConfig {
     retryIntervalMs?: number;
     /** maximum amount of milliseconds to wait before retrying a failed delivery. Defaults to 30 seconds. */
     maxRetryDelayMs?: number;
-    /** maximum number of retry attempts before giving up on a batch delivery. Defaults to 3. */
+    /** maximum number of retry attempts before giving up on a batch delivery. Defaults to 3 retries. */
     maxRetries?: number;
-    /** maximum number of events to send per delivery request. Defaults to 1000. */
+    /** maximum number of events to send per delivery request. Defaults to 1000 events. */
     batchSize?: number;
   };
 }
