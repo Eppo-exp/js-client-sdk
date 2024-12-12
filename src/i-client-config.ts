@@ -124,15 +124,15 @@ export interface IClientConfig extends IBaseRequestConfig {
 
   /** Configuration settings for the event dispatcher */
   eventIngestionConfig?: {
-    // number of milliseconds to wait between each batch delivery. Default is 10 seconds.
+    /** number of milliseconds to wait between each batch delivery. Defaults to 10 seconds. */
     deliveryIntervalMs?: number;
-    // minimum amount of milliseconds to wait before retrying a failed delivery. Default is 5 seconds
+    /** minimum amount of milliseconds to wait before retrying a failed delivery. Defaults to 5 seconds */
     retryIntervalMs?: number;
-    // maximum amount of milliseconds to wait before retrying a failed delivery. Default is 30 seconds.
+    /** maximum amount of milliseconds to wait before retrying a failed delivery. Defaults to 30 seconds. */
     maxRetryDelayMs?: number;
-    // maximum number of retry attempts before giving up on a batch delivery. Default is 3.
+    /** maximum number of retry attempts before giving up on a batch delivery. Defaults to 3 retries. */
     maxRetries?: number;
-    // maximum number of events to send per delivery request. Default is 100.
+    /** maximum number of events to send per delivery request. Defaults to 1000 events. */
     batchSize?: number;
   };
 }
