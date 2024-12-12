@@ -629,7 +629,7 @@ function newEventDispatcher(
     typeof window !== 'undefined' ? new BrowserNetworkStatusListener() : emptyNetworkStatusListener;
   // initialize config with default values
   const {
-    batchSize = 100,
+    batchSize = 1_000,
     deliveryIntervalMs = 10_000,
     retryIntervalMs = 5_000,
     maxRetryDelayMs = 30_000,
