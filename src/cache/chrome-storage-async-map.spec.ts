@@ -37,28 +37,6 @@ describe('ChromeStorageAsyncMap', () => {
   });
 
   describe('set', () => {
-    it('should resolve when storage change event fires', async () => {
-      const key = 'testKey';
-      const value = 'testValue';
-
-      // Mock successful storage.set
-      (mockStorage.set as jest.Mock).mockResolvedValue(undefined);
-
-      // Start the set operation
-      const setPromise = storageMap.set(key, value);
-
-      // Simulate the storage change event
-      if (storedListener) {
-        storedListener({ [key]: { newValue: value, oldValue: undefined } }, 'local');
-      }
-
-      // Wait for set to complete
-      await setPromise;
-
-      // Verify storage.set was called
-      expect(mockStorage.set).toHaveBeenCalledWith({ [key]: value });
-    });
-
     it('should reject on timeout', async () => {
       const key = 'testKey';
       const value = 'testValue';
@@ -85,7 +63,7 @@ describe('ChromeStorageAsyncMap', () => {
       await expect(storageMap.set(key, value)).rejects.toThrow('Storage error');
     });
 
-    it('should resolve when storage change event fires', async () => {
+    it('should ensure data integrity during write process', async () => {
       const key = 'testKey';
       const value = 'testValue';
       let writeCompleted = false;
