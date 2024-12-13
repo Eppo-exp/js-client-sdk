@@ -34,7 +34,7 @@ export default class ChromeStorageAsyncMap<T> implements AsyncMap<string, T> {
       const timeout = setTimeout(() => {
         chrome.storage.onChanged.removeListener(listener);
         reject(new Error('Chrome storage write timeout'));
-      }, 5000); // 5 second timeout
+      }, 1000); // 1 second timeout
 
       // Perform the write
       this.storage.set({ [key]: value }).catch((error) => {
