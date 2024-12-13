@@ -1,4 +1,4 @@
-import { AsyncMap } from '@eppo/js-client-sdk-common';
+import { applicationLogger, AsyncMap } from '@eppo/js-client-sdk-common';
 
 /** Chrome storage-backed {@link AsyncMap}. */
 export default class ChromeStorageAsyncMap<T> implements AsyncMap<string, T> {
@@ -19,29 +19,35 @@ export default class ChromeStorageAsyncMap<T> implements AsyncMap<string, T> {
   }
 
   async set(key: string, value: T): Promise<void> {
-    return new Promise((resolve, reject) => {
-      // Set up listener for this specific write
-      const listener = (changes: { [key: string]: chrome.storage.StorageChange }) => {
-        if (changes[key]) {
+    try {
+      await new Promise<void>((resolve) => {
+        // Set up listener for this specific write
+        const listener = (changes: { [key: string]: chrome.storage.StorageChange }) => {
+          if (changes[key]) {
+            chrome.storage.onChanged.removeListener(listener);
+            resolve();
+          }
+        };
+
+        chrome.storage.onChanged.addListener(listener);
+
+        // Set a timeout in case the change event never fires
+        const timeout = setTimeout(() => {
           chrome.storage.onChanged.removeListener(listener);
+          applicationLogger.warn('Chrome storage write timeout for key:', key);
           resolve();
-        }
-      };
+        }, 1000);
 
-      chrome.storage.onChanged.addListener(listener);
-
-      // Set a timeout in case the change event never fires
-      const timeout = setTimeout(() => {
-        chrome.storage.onChanged.removeListener(listener);
-        reject(new Error('Chrome storage write timeout'));
-      }, 1000); // 1 second timeout
-
-      // Perform the write
-      this.storage.set({ [key]: value }).catch((error) => {
-        clearTimeout(timeout);
-        chrome.storage.onChanged.removeListener(listener);
-        reject(error);
+        // Perform the write
+        this.storage.set({ [key]: value }).catch((error) => {
+          clearTimeout(timeout);
+          chrome.storage.onChanged.removeListener(listener);
+          applicationLogger.warn('Chrome storage write failed for key:', key, error);
+          resolve();
+        });
       });
-    });
+    } catch (error) {
+      applicationLogger.warn('Unexpected error in ChromeStorageAsyncMap.set:', error);
+    }
   }
 }

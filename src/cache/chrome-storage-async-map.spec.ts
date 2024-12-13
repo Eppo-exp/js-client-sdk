@@ -1,5 +1,7 @@
 /// <reference types="chrome"/>
 
+import { applicationLogger } from '@eppo/js-client-sdk-common';
+
 import ChromeStorageAsyncMap from './chrome-storage-async-map';
 
 type StorageChangeListener = (
@@ -17,6 +19,7 @@ describe('ChromeStorageAsyncMap', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(applicationLogger, 'warn').mockImplementation();
     storedListener = null;
     global.chrome = {
       storage: {
@@ -37,30 +40,38 @@ describe('ChromeStorageAsyncMap', () => {
   });
 
   describe('set', () => {
-    it('should reject on timeout', async () => {
+    it('should complete without error on timeout', async () => {
       const key = 'testKey';
       const value = 'testValue';
 
       // Mock successful storage.set but don't trigger change event
       (mockStorage.set as jest.Mock).mockResolvedValue(undefined);
 
-      // Attempt to set value
-      const setPromise = storageMap.set(key, value);
+      await storageMap.set(key, value);
 
-      // Wait for timeout
-      await expect(setPromise).rejects.toThrow('Chrome storage write timeout');
-    });
+      // Verify warning was logged
+      expect(applicationLogger.warn).toHaveBeenCalledWith(
+        'Chrome storage write timeout for key:',
+        key,
+      );
+    }, 10000);
 
-    it('should reject if storage.set fails', async () => {
+    it('should complete without error if storage.set fails', async () => {
       const key = 'testKey';
       const value = 'testValue';
+      const error = new Error('Storage error');
 
       // Mock failed storage.set
-      const error = new Error('Storage error');
       (mockStorage.set as jest.Mock).mockRejectedValue(error);
 
-      // Attempt to set value
-      await expect(storageMap.set(key, value)).rejects.toThrow('Storage error');
+      await storageMap.set(key, value);
+
+      // Verify warning was logged
+      expect(applicationLogger.warn).toHaveBeenCalledWith(
+        'Chrome storage write failed for key:',
+        key,
+        error,
+      );
     });
 
     it('should ensure data integrity during write process', async () => {
