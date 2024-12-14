@@ -20,34 +20,10 @@ export default class ChromeStorageAsyncMap<T> implements AsyncMap<string, T> {
 
   async set(key: string, value: T): Promise<void> {
     try {
-      await new Promise<void>((resolve) => {
-        // Set up listener for this specific write
-        const listener = (changes: { [key: string]: chrome.storage.StorageChange }) => {
-          if (changes[key]) {
-            chrome.storage.onChanged.removeListener(listener);
-            resolve();
-          }
-        };
-
-        chrome.storage.onChanged.addListener(listener);
-
-        // Set a timeout in case the change event never fires
-        const timeout = setTimeout(() => {
-          chrome.storage.onChanged.removeListener(listener);
-          applicationLogger.warn('Chrome storage write timeout for key:', key);
-          resolve();
-        }, 1000);
-
-        // Perform the write
-        this.storage.set({ [key]: value }).catch((error) => {
-          clearTimeout(timeout);
-          chrome.storage.onChanged.removeListener(listener);
-          applicationLogger.warn('Chrome storage write failed for key:', key, error);
-          resolve();
-        });
-      });
+      await this.storage.set({ [key]: value });
     } catch (error) {
-      applicationLogger.warn('Unexpected error in ChromeStorageAsyncMap.set:', error);
+      applicationLogger.warn('Chrome storage write failed for key:', key, error);
+      throw error;
     }
   }
 }
