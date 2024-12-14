@@ -19,11 +19,16 @@ export interface IStringStorageEngine {
  */
 export class StringValuedAsyncStore<T> implements IAsyncStore<T> {
   private initialized = false;
+  private isInitializing = false;
 
   public constructor(private storageEngine: IStringStorageEngine, private cooldownSeconds = 0) {}
 
   public isInitialized(): boolean {
     return this.initialized;
+  }
+
+  public isInProcessOfInitializing(): boolean {
+    return this.isInitializing;
   }
 
   public async isExpired(): Promise<boolean> {
@@ -47,11 +52,16 @@ export class StringValuedAsyncStore<T> implements IAsyncStore<T> {
   }
 
   public async setEntries(entries: Record<string, T>): Promise<void> {
-    // String-based storage takes a dictionary of key-value string pairs,
-    // so we write the entire configuration and meta to a single location for each.
-    await this.storageEngine.setContentsJsonString(JSON.stringify(entries));
-    const updatedMeta = { lastUpdatedAtMs: new Date().getTime() };
-    await this.storageEngine.setMetaJsonString(JSON.stringify(updatedMeta));
-    this.initialized = true;
+    try {
+      this.isInitializing = true;
+      // String-based storage takes a dictionary of key-value string pairs,
+      // so we write the entire configuration and meta to a single location for each.
+      await this.storageEngine.setContentsJsonString(JSON.stringify(entries));
+      const updatedMeta = { lastUpdatedAtMs: new Date().getTime() };
+      await this.storageEngine.setMetaJsonString(JSON.stringify(updatedMeta));
+      this.initialized = true;
+    } finally {
+      this.isInitializing = false;
+    }
   }
 }
