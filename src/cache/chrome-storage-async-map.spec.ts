@@ -90,7 +90,7 @@ describe('ChromeStorageAsyncMap', () => {
       // Mock successful storage.set
       (mockStorage.set as jest.Mock).mockResolvedValue(undefined);
 
-      // Start the set operation
+      // Create the set operation Promise
       const setPromise = storageMap.set(key, value);
 
       // Verify entry is not written yet
