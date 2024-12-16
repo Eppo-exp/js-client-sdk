@@ -40,6 +40,7 @@ import {
   hasWindowLocalStorage,
   localStorageIfAvailable,
   precomputedBanditStoreFactory,
+  overrideStorageFactory,
 } from './configuration-factory';
 import BrowserNetworkStatusListener from './events/browser-network-status-listener';
 import LocalStorageBackedNamedEventQueue from './events/local-storage-backed-named-event-queue';
@@ -60,6 +61,10 @@ export interface IClientConfigSync {
   isObfuscated?: boolean;
 
   throwOnFailedInitialization?: boolean;
+
+  enableOverrides?: boolean;
+
+  overridesStorageKey?: string;
 }
 
 export { IClientConfig, IPrecomputedClientConfig };
@@ -289,6 +294,7 @@ export class EppoJSClient extends EppoClient {
       pollAfterFailedInitialization = false,
       skipInitialRequest = false,
       eventIngestionConfig,
+      enableOverrides = false,
     } = config;
     try {
       // If any existing instances; ensure they are not polling
@@ -320,6 +326,22 @@ export class EppoJSClient extends EppoClient {
         },
       );
       this.setFlagConfigurationStore(configurationStore);
+
+      if (enableOverrides) {
+        const overrideStore = overrideStorageFactory(
+          {
+            hasWindowLocalStorage: hasWindowLocalStorage(),
+          },
+          {
+            windowLocalStorage: localStorageIfAvailable(),
+            storageKey: config.overridesStorageKey,
+          },
+        );
+
+        this.setOverrideStore(overrideStore);
+      } else {
+        this.unsetOverrideStore();
+      }
 
       // instantiate and init assignment cache
       const assignmentCache = assignmentCacheFactory({
@@ -456,8 +478,8 @@ export class EppoJSClient extends EppoClient {
         initializationError = initFromFetchError
           ? initFromFetchError
           : initFromConfigStoreError
-            ? initFromConfigStoreError
-            : new Error('Eppo SDK: No configuration source produced a valid configuration');
+          ? initFromConfigStoreError
+          : new Error('Eppo SDK: No configuration source produced a valid configuration');
       }
       applicationLogger.debug('Initialization source', initializationSource);
     } catch (error: unknown) {
@@ -486,6 +508,7 @@ export class EppoJSClient extends EppoClient {
   offlineInit(config: IClientConfigSync) {
     const isObfuscated = config.isObfuscated ?? false;
     const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
+    const enableOverrides = config.enableOverrides ?? false;
 
     try {
       const memoryOnlyConfigurationStore = configurationStorageFactory({
@@ -497,6 +520,22 @@ export class EppoJSClient extends EppoClient {
           applicationLogger.warn('Error setting flags for memory-only configuration store', err),
         );
       this.setFlagConfigurationStore(memoryOnlyConfigurationStore);
+
+      if (enableOverrides) {
+        const overrideStore = overrideStorageFactory(
+          {
+            hasWindowLocalStorage: hasWindowLocalStorage(),
+          },
+          {
+            windowLocalStorage: localStorageIfAvailable(),
+            storageKey: config.overridesStorageKey,
+          },
+        );
+
+        this.setOverrideStore(overrideStore);
+      } else {
+        this.unsetOverrideStore();
+      }
 
       // Allow the caller to override the default obfuscated mode, which is false
       // since the purpose of this method is to bootstrap the SDK from an external source,
@@ -715,6 +754,8 @@ export async function precomputedInit(
     pollAfterSuccessfulInitialization = false,
     pollAfterFailedInitialization = false,
     skipInitialRequest = false,
+    enableOverrides = false,
+    overridesStorageKey,
   } = config;
 
   // Add assignment cache initialization
@@ -753,6 +794,22 @@ export async function precomputedInit(
     banditActions,
   });
 
+  // Set up overrides if enabled
+  if (enableOverrides) {
+    const overrideStore = overrideStorageFactory(
+      {
+        hasWindowLocalStorage: hasWindowLocalStorage(),
+      },
+      {
+        windowLocalStorage: localStorageIfAvailable(),
+        storageKey: overridesStorageKey,
+      },
+    );
+    EppoPrecomputedJSClient.instance.setOverrideStore(overrideStore);
+  } else {
+    EppoPrecomputedJSClient.instance.unsetOverrideStore();
+  }
+
   EppoPrecomputedJSClient.instance.setAssignmentLogger(config.assignmentLogger);
   if (config.banditLogger) {
     EppoPrecomputedJSClient.instance.setBanditLogger(config.banditLogger);
@@ -781,6 +838,8 @@ export interface IPrecomputedClientConfigSync {
   assignmentLogger?: IAssignmentLogger;
   banditLogger?: IBanditLogger;
   throwOnFailedInitialization?: boolean;
+  enableOverrides?: boolean;
+  overridesStorageKey?: string;
 }
 
 /**
@@ -799,6 +858,7 @@ export function offlinePrecomputedInit(
   config: IPrecomputedClientConfigSync,
 ): EppoPrecomputedClient {
   const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
+  const enableOverrides = config.enableOverrides ?? false;
 
   let configurationWire: IConfigurationWire;
   try {
@@ -850,6 +910,22 @@ export function offlinePrecomputedInit(
       precomputedBanditStore: memoryOnlyPrecomputedBanditStore,
       subject,
     });
+
+    // Set up overrides if enabled
+    if (enableOverrides) {
+      const overrideStore = overrideStorageFactory(
+        {
+          hasWindowLocalStorage: hasWindowLocalStorage(),
+        },
+        {
+          windowLocalStorage: localStorageIfAvailable(),
+          storageKey: config.overridesStorageKey,
+        },
+      );
+      EppoPrecomputedJSClient.instance.setOverrideStore(overrideStore);
+    } else {
+      EppoPrecomputedJSClient.instance.unsetOverrideStore();
+    }
 
     if (config.assignmentLogger) {
       EppoPrecomputedJSClient.instance.setAssignmentLogger(config.assignmentLogger);

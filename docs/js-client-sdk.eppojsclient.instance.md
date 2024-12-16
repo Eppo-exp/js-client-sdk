@@ -4,8 +4,6 @@
 
 ## EppoJSClient.instance property
 
-@<!-- -->deprecated. use `getInstance()` instead.
-
 **Signature:**
 
 ```typescript

@@ -3,9 +3,11 @@ import {
   IAsyncStore,
   IConfigurationStore,
   IObfuscatedPrecomputedBandit,
+  ISyncStore,
   MemoryOnlyConfigurationStore,
   MemoryStore,
   PrecomputedFlag,
+  Variation,
 } from '@eppo/js-client-sdk-common';
 
 import ChromeStorageAsyncMap from './cache/chrome-storage-async-map';
@@ -15,6 +17,7 @@ import {
   ServingStoreUpdateStrategy,
 } from './isolatable-hybrid.store';
 import { LocalStorageEngine } from './local-storage-engine';
+import { OVERRIDES_KEY } from './storage-key-constants';
 import { StringValuedAsyncStore } from './string-valued.store';
 
 export function precomputedFlagsStorageFactory(): IConfigurationStore<PrecomputedFlag> {
@@ -82,6 +85,33 @@ export function configurationStorageFactory(
 
   // No persistence store available, use memory only
   return new MemoryOnlyConfigurationStore();
+}
+
+export function overrideStorageFactory(
+  {
+    hasWindowLocalStorage = false,
+    forceMemoryOnly = false,
+  }: {
+    hasWindowLocalStorage?: boolean;
+    forceMemoryOnly?: boolean;
+  },
+  {
+    windowLocalStorage,
+    storageKey = OVERRIDES_KEY,
+  }: {
+    windowLocalStorage?: Storage;
+    storageKey?: string;
+  } = {},
+): ISyncStore<Variation> {
+  const memoryStore = new MemoryStore<Variation>();
+  if (!forceMemoryOnly && hasWindowLocalStorage && windowLocalStorage) {
+    const localStorageContents = windowLocalStorage.getItem(storageKey);
+    if (localStorageContents) {
+      const parsedContents = JSON.parse(localStorageContents);
+      memoryStore.setEntries(parsedContents);
+    }
+  }
+  return memoryStore;
 }
 
 export function hasChromeStorage(): boolean {
