@@ -8,10 +8,15 @@ const MOCK_UFC_FILENAME = 'flags-v1';
 export const MOCK_UFC_RESPONSE_FILE = `${MOCK_UFC_FILENAME}.json`;
 export const OBFUSCATED_MOCK_UFC_RESPONSE_FILE = `${MOCK_UFC_FILENAME}-obfuscated.json`;
 
-export const TEST_PRECOMPUTED_DATA_DIR = './test/data/configuration-wire/';
+// export const TEST_PRECOMPUTED_DATA_DIR = './test/data/configuration-wire/';
+// const MOCK_PRECOMPUTED_FILENAME = 'precomputed-v1';
+// export const MOCK_PRECOMPUTED_RESPONSE_FILE = `${MOCK_PRECOMPUTED_FILENAME}.json`;
+// export const OBFUSCATED_MOCK_PRECOMPUTED_RESPONSE_FILE = `${MOCK_PRECOMPUTED_FILENAME}-obfuscated.json`;
+
+const TEST_CONFIGURATION_WIRE_DATA_DIR = './test/data/configuration-wire/';
 const MOCK_PRECOMPUTED_FILENAME = 'precomputed-v1';
-export const MOCK_PRECOMPUTED_RESPONSE_FILE = `${MOCK_PRECOMPUTED_FILENAME}.json`;
-export const OBFUSCATED_MOCK_PRECOMPUTED_RESPONSE_FILE = `${MOCK_PRECOMPUTED_FILENAME}-obfuscated.json`;
+export const MOCK_PRECOMPUTED_WIRE_FILE = `${MOCK_PRECOMPUTED_FILENAME}.json`;
+export const MOCK_DEOBFUSCATED_PRECOMPUTED_RESPONSE_FILE = `${MOCK_PRECOMPUTED_WIRE_FILE}-deobfuscated.json`;
 
 export enum ValueTestType {
   BoolType = 'boolean',
@@ -67,7 +72,7 @@ export function readMockUfcResponse(filename: string): {
 }
 
 export function readMockPrecomputedResponse(filename: string): string {
-  return fs.readFileSync(TEST_PRECOMPUTED_DATA_DIR + filename, 'utf-8');
+  return fs.readFileSync(TEST_CONFIGURATION_WIRE_DATA_DIR + filename, 'utf-8');
 }
 
 export function readAssignmentTestData(): IAssignmentTestCase[] {

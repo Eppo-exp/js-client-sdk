@@ -11,6 +11,7 @@ import {
   Flag,
   HybridConfigurationStore,
   IAsyncStore,
+  IPrecomputedConfigurationResponse,
   VariationType,
 } from '@eppo/js-client-sdk-common';
 import * as td from 'testdouble';
@@ -18,7 +19,7 @@ import * as td from 'testdouble';
 import {
   getTestAssignments,
   IAssignmentTestCase,
-  MOCK_PRECOMPUTED_RESPONSE_FILE,
+  MOCK_PRECOMPUTED_WIRE_FILE,
   MOCK_UFC_RESPONSE_FILE,
   OBFUSCATED_MOCK_UFC_RESPONSE_FILE,
   readAssignmentTestData,
@@ -1069,10 +1070,10 @@ describe('EppoPrecomputedJSClient E2E test', () => {
 
   beforeAll(async () => {
     global.fetch = jest.fn(() => {
-      const precomputedConfigurationWire = readMockPrecomputedResponse(
-        MOCK_PRECOMPUTED_RESPONSE_FILE,
-      );
-      const precomputedResponse = JSON.parse(precomputedConfigurationWire).precomputed.response;
+      const precomputedConfigurationWire = readMockPrecomputedResponse(MOCK_PRECOMPUTED_WIRE_FILE);
+      const precomputedResponse: IPrecomputedConfigurationResponse = JSON.parse(
+        precomputedConfigurationWire,
+      ).precomputed.response;
       return Promise.resolve({
         ok: true,
         status: 200,
@@ -1144,7 +1145,7 @@ describe('offlinePrecomputedInit', () => {
   let precomputedConfigurationWire: string;
 
   beforeAll(() => {
-    precomputedConfigurationWire = readMockPrecomputedResponse(MOCK_PRECOMPUTED_RESPONSE_FILE);
+    precomputedConfigurationWire = readMockPrecomputedResponse(MOCK_PRECOMPUTED_WIRE_FILE);
   });
 
   beforeEach(() => {

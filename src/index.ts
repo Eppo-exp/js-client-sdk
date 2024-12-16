@@ -17,10 +17,12 @@ import {
   ObfuscatedFlag,
   BoundedEventQueue,
   validation,
-  PrecomputedFlag,
   Event,
+  IConfigurationWire,
+  IPrecomputedConfigurationResponse,
+  convertContextAttributesToSubjectAttributes,
+  Attributes,
 } from '@eppo/js-client-sdk-common';
-import { Environment, FormatEnum } from '@eppo/js-client-sdk-common/dist/interfaces';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
 import HybridAssignmentCache from './cache/hybrid-assignment-cache';
@@ -467,6 +469,8 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
       // both failed, make the "fatal" error the fetch one
       initializationError = initFromFetchError;
     }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     initializationError = error;
   }
@@ -621,23 +625,6 @@ export interface IPrecomputedClientConfigSync {
   throwOnFailedInitialization?: boolean;
 }
 
-// TODO: remove when this interface is exported from the common library
-export interface IConfigurationWire {
-  version: number;
-  precomputed: {
-    subjectKey: string;
-    subjectAttributes: Record<string, AttributeType>;
-    fetchedAt: string;
-    response: {
-      createdAt: string;
-      format: FormatEnum;
-      obfuscated: boolean;
-      environment: Environment;
-      flags: Record<string, PrecomputedFlag>;
-    };
-  };
-}
-
 /**
  * Initializes the Eppo precomputed client with configuration parameters.
  *
@@ -656,8 +643,16 @@ export function offlinePrecomputedInit(
   const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
 
   const configurationWire: IConfigurationWire = JSON.parse(config.precomputedConfigurationWire);
-  const { subjectKey, subjectAttributes, response } = configurationWire.precomputed;
-  const parsedResponse = response; // TODO: use a JSON.parse when the obfuscated version is usable
+  if (!configurationWire.precomputed) {
+    applicationLogger.error('Invalid precomputed configuration wire');
+    return EppoPrecomputedJSClient.instance;
+  }
+  const {
+    subjectKey,
+    subjectAttributes: contextAttributes,
+    response,
+  } = configurationWire.precomputed;
+  const parsedResponse: IPrecomputedConfigurationResponse = JSON.parse(response); // TODO: use a JSON.parse when the obfuscated version is usable
 
   try {
     const memoryOnlyPrecomputedStore = precomputedFlagsStorageFactory();
@@ -667,9 +662,14 @@ export function offlinePrecomputedInit(
         applicationLogger.warn('Error setting precomputed assignments for memory-only store', err),
       );
 
-    EppoPrecomputedJSClient.instance.setSubjectAndPrecomputedFlagStore(
+    const subjectAttributes: Attributes = convertContextAttributesToSubjectAttributes(
+      contextAttributes ?? { numericAttributes: {}, categoricalAttributes: {} },
+    );
+
+    EppoPrecomputedJSClient.instance.setSubjectSaltAndPrecomputedFlagStore(
       subjectKey,
       subjectAttributes,
+      parsedResponse.salt,
       memoryOnlyPrecomputedStore,
     );
 
