@@ -517,10 +517,9 @@ export function getConfigUrl(apiKey: string, baseUrl?: string): URL {
  */
 export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
   // Use an empty memory-only configuration store
-  public static instance: EppoPrecomputedJSClient = new EppoPrecomputedJSClient(
-    memoryOnlyPrecomputedFlagsStore,
-    true,
-  );
+  public static instance: EppoPrecomputedJSClient = new EppoPrecomputedJSClient({
+    precomputedFlagStore: memoryOnlyPrecomputedFlagsStore,
+  });
   public static initialized = false;
 
   public getStringAssignment(flagKey: string, defaultValue: string): string {
@@ -653,7 +652,7 @@ export function offlinePrecomputedInit(
     subjectAttributes: contextAttributes,
     response,
   } = configurationWire.precomputed;
-  const parsedResponse: IPrecomputedConfigurationResponse = JSON.parse(response); // TODO: use a JSON.parse when the obfuscated version is usable
+  const parsedResponse: IPrecomputedConfigurationResponse = JSON.parse(response);
 
   try {
     const memoryOnlyPrecomputedStore = precomputedFlagsStorageFactory();

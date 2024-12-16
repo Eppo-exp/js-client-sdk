@@ -19,7 +19,6 @@ import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
 import { IAsyncStore } from '@eppo/js-client-sdk-common';
 import { IContainerExperiment } from '@eppo/js-client-sdk-common';
 import { ObfuscatedFlag } from '@eppo/js-client-sdk-common';
-import { PrecomputedFlag } from '@eppo/js-client-sdk-common';
 
 // @public
 export function buildStorageKeySuffix(apiKey: string): string;
@@ -161,9 +160,7 @@ export interface IPrecomputedClientConfigSync {
     // (undocumented)
     assignmentLogger?: IAssignmentLogger;
     // (undocumented)
-    precompute: IPrecompute;
-    // (undocumented)
-    precomputedAssignments: Record<string, PrecomputedFlag>;
+    precomputedConfigurationWire: string;
     // (undocumented)
     throwOnFailedInitialization?: boolean;
 }
