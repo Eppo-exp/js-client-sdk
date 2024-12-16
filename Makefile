@@ -27,7 +27,7 @@ help: Makefile
 testDataDir := test/data/
 tempDir := ${testDataDir}temp/
 gitDataDir := ${tempDir}sdk-test-data/
-branchName := main
+branchName := sameeran/fix-context-attributes-keys
 githubRepoLink := https://github.com/Eppo-exp/sdk-test-data.git
 .PHONY: test-data
 test-data: 

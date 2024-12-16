@@ -1072,8 +1072,8 @@ describe('EppoPrecomputedJSClient E2E test', () => {
     global.fetch = jest.fn(() => {
       const precomputedConfigurationWire = readMockPrecomputedResponse(MOCK_PRECOMPUTED_WIRE_FILE);
       const precomputedResponse: IPrecomputedConfigurationResponse = JSON.parse(
-        precomputedConfigurationWire,
-      ).precomputed.response;
+        JSON.parse(precomputedConfigurationWire).precomputed.response,
+      );
       return Promise.resolve({
         ok: true,
         status: 200,
@@ -1171,8 +1171,12 @@ describe('offlinePrecomputedInit', () => {
       allocation: 'allocation-123',
       variation: 'variation-123',
       subjectAttributes: {
-        device: 'iPhone',
-        country: 'USA',
+        buildNumber: 42,
+        hasPushEnabled: false,
+        language: 'en-US',
+        lastLoginDays: 3,
+        lifetimeValue: 543.21,
+        platform: 'ios',
       },
     });
   });
@@ -1210,7 +1214,7 @@ describe('EppoClient config', () => {
     const retryManager = eventDispatcher['retryManager'];
     const batchProcessor = eventDispatcher['batchProcessor'];
     expect(eventDispatcher['deliveryIntervalMs']).toEqual(1);
-    expect(batchProcessor['batchSize']).toEqual(5);
+    expect(batchProcessor['batchSize']).toEqual(100);
     expect(retryManager['config']['retryIntervalMs']).toEqual(2);
     expect(retryManager['config']['maxRetryDelayMs']).toEqual(3);
     expect(retryManager['config']['maxRetries']).toEqual(4);

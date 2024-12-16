@@ -519,6 +519,7 @@ export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
   // Use an empty memory-only configuration store
   public static instance: EppoPrecomputedJSClient = new EppoPrecomputedJSClient(
     memoryOnlyPrecomputedFlagsStore,
+    true,
   );
   public static initialized = false;
 
