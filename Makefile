@@ -27,7 +27,7 @@ help: Makefile
 testDataDir := test/data/
 tempDir := ${testDataDir}temp/
 gitDataDir := ${tempDir}sdk-test-data/
-branchName := sameeran/ff-3687-obfuscated-precomputed-json
+branchName := main
 githubRepoLink := https://github.com/Eppo-exp/sdk-test-data.git
 .PHONY: test-data
 test-data: 
