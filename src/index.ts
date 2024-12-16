@@ -40,6 +40,7 @@ import {
   hasWindowLocalStorage,
   localStorageIfAvailable,
   precomputedBanditStoreFactory,
+  overridesStorageFactory,
 } from './configuration-factory';
 import BrowserNetworkStatusListener from './events/browser-network-status-listener';
 import LocalStorageBackedNamedEventQueue from './events/local-storage-backed-named-event-queue';
@@ -89,7 +90,17 @@ const flagConfigurationStore = configurationStorageFactory({
   forceMemoryOnly: true,
 });
 
-// Instantiate the precomputed flags and bandits stores with memory-only implementation.
+// Create the overrides store
+const overridesStore = overridesStorageFactory(
+  {
+    hasWindowLocalStorage: hasWindowLocalStorage(),
+  },
+  {
+    windowLocalStorage: localStorageIfAvailable(),
+  },
+);
+
+// Instantiate the precomputed flgas store with memory-only implementation.
 const memoryOnlyPrecomputedFlagsStore = precomputedFlagsStorageFactory();
 const memoryOnlyPrecomputedBanditsStore = precomputedBanditStoreFactory();
 
@@ -104,6 +115,7 @@ export class EppoJSClient extends EppoClient {
   public static instance = new EppoJSClient({
     flagConfigurationStore,
     isObfuscated: true,
+    overridesStore,
   });
   public static initialized = false;
 
@@ -301,6 +313,17 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
       );
     EppoJSClient.instance.setFlagConfigurationStore(memoryOnlyConfigurationStore);
 
+    // Create and set up the overrides store
+    const overridesStore = overridesStorageFactory(
+      {
+        hasWindowLocalStorage: hasWindowLocalStorage(),
+      },
+      {
+        windowLocalStorage: localStorageIfAvailable(),
+      },
+    );
+    EppoJSClient.instance.setOverridesStore(overridesStore);
+
     // Allow the caller to override the default obfuscated mode, which is false
     // since the purpose of this method is to bootstrap the SDK from an external source,
     // which is likely a server that has not-obfuscated flag values.
@@ -430,6 +453,17 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
       },
     );
     instance.setFlagConfigurationStore(configurationStore);
+
+    const overridesStore = overridesStorageFactory(
+      {
+        hasWindowLocalStorage: hasWindowLocalStorage(),
+      },
+      {
+        windowLocalStorage: localStorageIfAvailable(),
+      },
+    );
+    instance.setOverridesStore(overridesStore);
+    overridesStore.init();
 
     // instantiate and init assignment cache
     const assignmentCache = assignmentCacheFactory({
