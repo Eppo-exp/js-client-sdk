@@ -11,6 +11,7 @@ import {
   Flag,
   HybridConfigurationStore,
   IAsyncStore,
+  IPrecomputedConfigurationResponse,
   VariationType,
 } from '@eppo/js-client-sdk-common';
 import * as td from 'testdouble';
@@ -18,9 +19,11 @@ import * as td from 'testdouble';
 import {
   getTestAssignments,
   IAssignmentTestCase,
+  MOCK_PRECOMPUTED_WIRE_FILE,
   MOCK_UFC_RESPONSE_FILE,
   OBFUSCATED_MOCK_UFC_RESPONSE_FILE,
   readAssignmentTestData,
+  readMockPrecomputedResponse,
   readMockUfcResponse,
   validateTestAssignments,
 } from '../test/testHelpers';
@@ -36,6 +39,7 @@ import {
   IAssignmentLogger,
   init,
   offlineInit,
+  offlinePrecomputedInit,
   precomputedInit,
 } from './index';
 
@@ -1066,59 +1070,14 @@ describe('EppoPrecomputedJSClient E2E test', () => {
 
   beforeAll(async () => {
     global.fetch = jest.fn(() => {
+      const precomputedConfigurationWire = readMockPrecomputedResponse(MOCK_PRECOMPUTED_WIRE_FILE);
+      const precomputedResponse: IPrecomputedConfigurationResponse = JSON.parse(
+        JSON.parse(precomputedConfigurationWire).precomputed.response,
+      );
       return Promise.resolve({
         ok: true,
         status: 200,
-        json: () =>
-          Promise.resolve({
-            createdAt: '2024-11-18T14:23:39.456Z',
-            format: 'PRECOMPUTED',
-            environment: {
-              name: 'Test',
-            },
-            flags: {
-              'string-flag': {
-                allocationKey: 'allocation-123',
-                variationKey: 'variation-123',
-                variationType: 'STRING',
-                variationValue: 'red',
-                extraLogging: {},
-                doLog: true,
-              },
-              'boolean-flag': {
-                allocationKey: 'allocation-124',
-                variationKey: 'variation-124',
-                variationType: 'BOOLEAN',
-                variationValue: true,
-                extraLogging: {},
-                doLog: true,
-              },
-              'numeric-flag': {
-                allocationKey: 'allocation-126',
-                variationKey: 'variation-126',
-                variationType: 'NUMERIC',
-                variationValue: 3.14,
-                extraLogging: {},
-                doLog: true,
-              },
-              'integer-flag': {
-                allocationKey: 'allocation-125',
-                variationKey: 'variation-125',
-                variationType: 'INTEGER',
-                variationValue: 42,
-                extraLogging: {},
-                doLog: true,
-              },
-              'json-flag': {
-                allocationKey: 'allocation-127',
-                variationKey: 'variation-127',
-                variationType: 'JSON',
-                variationValue: '{"key": "value", "number": 123}',
-                extraLogging: {},
-                doLog: true,
-              },
-            },
-          }),
+        json: () => Promise.resolve(precomputedResponse),
       });
     }) as jest.Mock;
 
@@ -1128,8 +1087,10 @@ describe('EppoPrecomputedJSClient E2E test', () => {
       apiKey: 'dummy',
       baseUrl: 'http://127.0.0.1:4000',
       assignmentLogger: mockLogger,
-      subjectKey: 'test-subject',
-      subjectAttributes: { attr1: 'value1' },
+      precompute: {
+        subjectKey: 'test-subject',
+        subjectAttributes: { attr1: 'value1' },
+      },
     });
   });
 
@@ -1179,6 +1140,54 @@ describe('EppoPrecomputedJSClient E2E test', () => {
   });
 });
 
+describe('offlinePrecomputedInit', () => {
+  let mockLogger: IAssignmentLogger;
+  let precomputedConfigurationWire: string;
+
+  beforeAll(() => {
+    precomputedConfigurationWire = readMockPrecomputedResponse(MOCK_PRECOMPUTED_WIRE_FILE);
+  });
+
+  beforeEach(() => {
+    mockLogger = td.object<IAssignmentLogger>();
+    // Reset the static instance before each test
+    jest.isolateModules(() => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      require('./index');
+    });
+  });
+
+  it('initializes with precomputed assignments', () => {
+    const client = offlinePrecomputedInit({
+      precomputedConfigurationWire,
+      assignmentLogger: mockLogger,
+    });
+
+    expect(client.getStringAssignment('string-flag', 'default')).toBe('red');
+    expect(td.explain(mockLogger.logAssignment).callCount).toBe(1);
+    expect(td.explain(mockLogger.logAssignment).calls[0]?.args[0]).toMatchObject({
+      subject: 'test-subject-key',
+      featureFlag: 'string-flag',
+      allocation: 'allocation-123',
+      variation: 'variation-123',
+      subjectAttributes: {
+        buildNumber: 42,
+        hasPushEnabled: false,
+        language: 'en-US',
+        lastLoginDays: 3,
+        lifetimeValue: 543.21,
+        platform: 'ios',
+      },
+    });
+  });
+
+  it('initializes without an assignment logger', () => {
+    const client = offlinePrecomputedInit({ precomputedConfigurationWire });
+
+    expect(client.getStringAssignment('string-flag', 'default')).toBe('red');
+  });
+});
+
 describe('EppoClient config', () => {
   it('should initialize event dispatcher with default values', async () => {
     global.fetch = jest.fn(() => {
@@ -1205,7 +1214,7 @@ describe('EppoClient config', () => {
     const retryManager = eventDispatcher['retryManager'];
     const batchProcessor = eventDispatcher['batchProcessor'];
     expect(eventDispatcher['deliveryIntervalMs']).toEqual(1);
-    expect(batchProcessor['batchSize']).toEqual(5);
+    expect(batchProcessor['batchSize']).toEqual(100);
     expect(retryManager['config']['retryIntervalMs']).toEqual(2);
     expect(retryManager['config']['maxRetryDelayMs']).toEqual(3);
     expect(retryManager['config']['maxRetries']).toEqual(4);

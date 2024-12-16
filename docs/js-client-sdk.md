@@ -141,6 +141,21 @@ This method should be called once on application startup.
 </td></tr>
 <tr><td>
 
+[offlinePrecomputedInit(config)](./js-client-sdk.offlineprecomputedinit.md)
+
+
+</td><td>
+
+Initializes the Eppo precomputed client with configuration parameters.
+
+The purpose is for use-cases where the precomputed assignments are available from an external process that can bootstrap the SDK.
+
+This method should be called once on application startup.
+
+
+</td></tr>
+<tr><td>
+
 [precomputedInit(config)](./js-client-sdk.precomputedinit.md)
 
 
@@ -195,6 +210,21 @@ Configuration interface for synchronous client initialization.
 </td><td>
 
 Configuration for Eppo precomputed client initialization
+
+
+</td></tr>
+<tr><td>
+
+[IPrecomputedClientConfigSync](./js-client-sdk.iprecomputedclientconfigsync.md)
+
+
+</td><td>
+
+Initializes the Eppo precomputed client with configuration parameters.
+
+The purpose is for use-cases where the precomputed assignments are available from an external process that can bootstrap the SDK.
+
+This method should be called once on application startup.
 
 
 </td></tr>
