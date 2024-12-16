@@ -5,6 +5,7 @@ import {
   MemoryOnlyConfigurationStore,
   MemoryStore,
   PrecomputedFlag,
+  Variation,
 } from '@eppo/js-client-sdk-common';
 
 import ChromeStorageAsyncMap from './cache/chrome-storage-async-map';
@@ -14,6 +15,7 @@ import {
   ServingStoreUpdateStrategy,
 } from './isolatable-hybrid.store';
 import { LocalStorageEngine } from './local-storage-engine';
+import { OVERRIDES_SUFFIX_KEY } from './storage-key-constants';
 import { StringValuedAsyncStore } from './string-valued.store';
 
 export function precomputedFlagsStorageFactory(): IConfigurationStore<PrecomputedFlag> {
@@ -76,6 +78,33 @@ export function configurationStorageFactory(
   }
 
   // No persistence store available, use memory only
+  return new MemoryOnlyConfigurationStore();
+}
+
+export function overridesStorageFactory(
+  {
+    hasWindowLocalStorage = false,
+    forceMemoryOnly = false,
+  }: {
+    hasWindowLocalStorage?: boolean;
+    forceMemoryOnly?: boolean;
+  },
+  {
+    windowLocalStorage,
+  }: {
+    windowLocalStorage?: Storage;
+  } = {},
+): IConfigurationStore<Variation> {
+  if (forceMemoryOnly) {
+    return new MemoryOnlyConfigurationStore();
+  } else if (hasWindowLocalStorage && windowLocalStorage) {
+    const localStorageEngine = new LocalStorageEngine(windowLocalStorage, OVERRIDES_SUFFIX_KEY);
+    return new IsolatableHybridConfigurationStore(
+      new MemoryStore<Variation>(),
+      new StringValuedAsyncStore<Variation>(localStorageEngine),
+      'always',
+    );
+  }
   return new MemoryOnlyConfigurationStore();
 }
 
