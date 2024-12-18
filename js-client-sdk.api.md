@@ -116,6 +116,7 @@ export { IAsyncStore }
 //
 // @public
 export interface IClientConfig extends IBaseRequestConfig {
+    enableOverrides?: boolean;
     eventIngestionConfig?: {
         deliveryIntervalMs?: number;
         retryIntervalMs?: number;
@@ -136,6 +137,8 @@ export interface IClientConfig extends IBaseRequestConfig {
 export interface IClientConfigSync {
     // (undocumented)
     assignmentLogger?: IAssignmentLogger;
+    // (undocumented)
+    enableOverrides?: boolean;
     // (undocumented)
     flagsConfiguration: Record<string, Flag | ObfuscatedFlag>;
     // (undocumented)
