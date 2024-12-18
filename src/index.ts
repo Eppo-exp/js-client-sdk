@@ -18,6 +18,7 @@ import {
   BoundedEventQueue,
   validation,
   Event,
+  HybridConfigurationStore,
 } from '@eppo/js-client-sdk-common';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
@@ -29,6 +30,7 @@ import {
   hasChromeStorage,
   hasWindowLocalStorage,
   localStorageIfAvailable,
+  overridesStorageFactory,
 } from './configuration-factory';
 import BrowserNetworkStatusListener from './events/browser-network-status-listener';
 import LocalStorageBackedNamedEventQueue from './events/local-storage-backed-named-event-queue';
@@ -47,6 +49,8 @@ export interface IClientConfigSync {
   isObfuscated?: boolean;
 
   throwOnFailedInitialization?: boolean;
+
+  enableOverrides?: boolean;
 }
 
 export { IClientConfig, IPrecomputedClientConfig };
@@ -266,7 +270,7 @@ export function buildStorageKeySuffix(apiKey: string): string {
 export function offlineInit(config: IClientConfigSync): EppoClient {
   const isObfuscated = config.isObfuscated ?? false;
   const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
-
+  const enableOverrides = config.enableOverrides ?? false;
   try {
     const memoryOnlyConfigurationStore = configurationStorageFactory({
       forceMemoryOnly: true,
@@ -277,6 +281,23 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
         applicationLogger.warn('Error setting flags for memory-only configuration store', err),
       );
     EppoJSClient.instance.setFlagConfigurationStore(memoryOnlyConfigurationStore);
+
+    if (enableOverrides) {
+      const overridesStore = overridesStorageFactory(
+        {
+          hasWindowLocalStorage: hasWindowLocalStorage(),
+        },
+        {
+          windowLocalStorage: localStorageIfAvailable(),
+        },
+      );
+      if (overridesStore instanceof HybridConfigurationStore) {
+        overridesStore
+          .init()
+          .catch((err) => applicationLogger.warn('Error initializing overrides store', err));
+      }
+      EppoJSClient.instance.setOverridesStore(overridesStore);
+    }
 
     // Allow the caller to override the default obfuscated mode, which is false
     // since the purpose of this method is to bootstrap the SDK from an external source,
@@ -337,6 +358,7 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
     pollAfterFailedInitialization = false,
     skipInitialRequest = false,
     eventIngestionConfig,
+    enableOverrides,
   } = config;
   try {
     if (EppoJSClient.initialized) {
@@ -379,6 +401,21 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
       },
     );
     instance.setFlagConfigurationStore(configurationStore);
+
+    if (enableOverrides) {
+      const overridesStore = overridesStorageFactory(
+        {
+          hasWindowLocalStorage: hasWindowLocalStorage(),
+        },
+        {
+          windowLocalStorage: localStorageIfAvailable(),
+        },
+      );
+      if (overridesStore instanceof HybridConfigurationStore) {
+        await overridesStore.init();
+      }
+      instance.setOverridesStore(overridesStore);
+    }
 
     // instantiate and init assignment cache
     const assignmentCache = assignmentCacheFactory({
