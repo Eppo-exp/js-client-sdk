@@ -165,4 +165,10 @@ export interface IClientConfig extends IBaseRequestConfig {
      */
     maxQueueSize?: number;
   };
+
+  /**
+   * Enable the Overrides Store for local flag overrides.
+   * (default: false)
+   */
+  enableOverrides?: boolean;
 }
