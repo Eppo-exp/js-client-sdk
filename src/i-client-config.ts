@@ -1,4 +1,10 @@
-import { AttributeType, Flag, IAssignmentLogger, IAsyncStore } from '@eppo/js-client-sdk-common';
+import {
+  AttributeType,
+  ContextAttributes,
+  Flag,
+  IAssignmentLogger,
+  IAsyncStore,
+} from '@eppo/js-client-sdk-common';
 import { EventDispatcherConfig } from '@eppo/js-client-sdk-common/src/events/default-event-dispatcher';
 
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
@@ -76,7 +82,7 @@ export interface IPrecomputedClientConfig extends IBaseRequestConfig {
   /**
    * Subject attributes to use for precomputed flag assignments.
    */
-  subjectAttributes?: Record<string, AttributeType>;
+  subjectAttributes?: ContextAttributes;
 }
 
 /**
