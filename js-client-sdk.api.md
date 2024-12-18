@@ -137,6 +137,7 @@ export { IBanditLogger }
 //
 // @public
 export interface IClientConfig extends IBaseRequestConfig {
+    enableOverrides?: boolean;
     eventIngestionConfig?: {
         deliveryIntervalMs?: number;
         retryIntervalMs?: number;
@@ -160,6 +161,8 @@ export interface IClientConfigSync {
     assignmentLogger?: IAssignmentLogger;
     // (undocumented)
     banditLogger?: IBanditLogger;
+    // (undocumented)
+    enableOverrides?: boolean;
     // (undocumented)
     flagsConfiguration: Record<string, Flag | ObfuscatedFlag>;
     // (undocumented)
