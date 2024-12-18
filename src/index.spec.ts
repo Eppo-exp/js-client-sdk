@@ -1063,6 +1063,11 @@ describe('getConfigUrl function', () => {
 describe('EppoPrecomputedJSClient E2E test', () => {
   let globalClient: EppoPrecomputedJSClient;
   let mockLogger: IAssignmentLogger;
+  const stringFlagMD5 = '7724c9cf3eeb7e9478d4c5d45d523db0';
+  const booleanFlagMD5 = 'da342f2d2df9aa65fd422191c581d4dc';
+  const numericFlagMD5 = 'ea3957393f8c54d09bb0800186480bae';
+  const jsonFlagMD5 = '801c055015c6cf6710d486f099000fea';
+  const integerFlagMD5 = 'eb4caea3db4e58836bda9830ee098291';
 
   beforeAll(async () => {
     global.fetch = jest.fn(() => {
@@ -1077,43 +1082,44 @@ describe('EppoPrecomputedJSClient E2E test', () => {
               name: 'Test',
             },
             flags: {
-              'string-flag': {
-                allocationKey: 'allocation-123',
-                variationKey: 'variation-123',
+              [stringFlagMD5]: {
+                flagKey: stringFlagMD5,
+                allocationKey: base64Encode('allocation-123'),
+                variationKey: base64Encode('variation-123'),
                 variationType: 'STRING',
-                variationValue: 'red',
+                variationValue: base64Encode('red'),
                 extraLogging: {},
                 doLog: true,
               },
-              'boolean-flag': {
-                allocationKey: 'allocation-124',
-                variationKey: 'variation-124',
+              [booleanFlagMD5]: {
+                allocationKey: base64Encode('allocation-124'),
+                variationKey: base64Encode('variation-124'),
                 variationType: 'BOOLEAN',
-                variationValue: true,
+                variationValue: base64Encode('true'),
                 extraLogging: {},
                 doLog: true,
               },
-              'numeric-flag': {
-                allocationKey: 'allocation-126',
-                variationKey: 'variation-126',
+              [numericFlagMD5]: {
+                allocationKey: base64Encode('allocation-126'),
+                variationKey: base64Encode('variation-126'),
                 variationType: 'NUMERIC',
-                variationValue: 3.14,
+                variationValue: base64Encode('3.14'),
                 extraLogging: {},
                 doLog: true,
               },
-              'integer-flag': {
-                allocationKey: 'allocation-125',
-                variationKey: 'variation-125',
+              [integerFlagMD5]: {
+                allocationKey: base64Encode('allocation-125'),
+                variationKey: base64Encode('variation-125'),
                 variationType: 'INTEGER',
-                variationValue: 42,
+                variationValue: base64Encode('42'),
                 extraLogging: {},
                 doLog: true,
               },
-              'json-flag': {
-                allocationKey: 'allocation-127',
-                variationKey: 'variation-127',
+              [jsonFlagMD5]: {
+                allocationKey: base64Encode('allocation-127'),
+                variationKey: base64Encode('variation-127'),
                 variationType: 'JSON',
-                variationValue: '{"key": "value", "number": 123}',
+                variationValue: base64Encode('{"key": "value", "number": 123}'),
                 extraLogging: {},
                 doLog: true,
               },
@@ -1129,7 +1135,7 @@ describe('EppoPrecomputedJSClient E2E test', () => {
       baseUrl: 'http://127.0.0.1:4000',
       assignmentLogger: mockLogger,
       subjectKey: 'test-subject',
-      subjectAttributes: { attr1: 'value1' },
+      subjectAttributes: { categoricalAttributes: { attr1: 'value1' }, numericAttributes: {} },
     });
   });
 
@@ -1205,7 +1211,7 @@ describe('EppoClient config', () => {
     const retryManager = eventDispatcher['retryManager'];
     const batchProcessor = eventDispatcher['batchProcessor'];
     expect(eventDispatcher['deliveryIntervalMs']).toEqual(1);
-    expect(batchProcessor['batchSize']).toEqual(5);
+    expect(batchProcessor['batchSize']).toEqual(100);
     expect(retryManager['config']['retryIntervalMs']).toEqual(2);
     expect(retryManager['config']['maxRetryDelayMs']).toEqual(3);
     expect(retryManager['config']['maxRetries']).toEqual(4);

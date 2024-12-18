@@ -380,10 +380,10 @@
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz#1d572bfbbe14b7704e0ba0f39b74815b84870d70"
   integrity sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==
 
-"@eppo/js-client-sdk-common@^4.6.3":
-  version "4.6.3"
-  resolved "https://registry.yarnpkg.com/@eppo/js-client-sdk-common/-/js-client-sdk-common-4.6.3.tgz#89267a1c247bc04725b7701cdfb573613c133ddc"
-  integrity sha512-e2nSvzONjqUiAYUjBMIIk1jWuKPOmBl5AlbiNjsoJAd6dZKN1RWpTmy83hNk6ff/syjAEWTcplls2cU37VbyiQ==
+"@eppo/js-client-sdk-common@^4.7.0-alpha.1":
+  version "4.7.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/@eppo/js-client-sdk-common/-/js-client-sdk-common-4.7.0-alpha.1.tgz#ff40526fb9f76ddbcff1264bbb26d8be38b3e25c"
+  integrity sha512-36DF7TVtPkn7JcLrV5YBChp/9Wv0+0bKC32SWrs1ag5/TTyF4cgZYzf1TIsX9ykHvIQGHNPW4Kd3S+TRRVOZ0w==
   dependencies:
     buffer "npm:@eppo/buffer@6.2.0"
     js-base64 "^3.7.7"

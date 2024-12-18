@@ -511,9 +511,9 @@ export function getConfigUrl(apiKey: string, baseUrl?: string): URL {
  */
 export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
   // Use an empty memory-only configuration store
-  public static instance: EppoPrecomputedJSClient = new EppoPrecomputedJSClient(
-    memoryOnlyPrecomputedFlagsStore,
-  );
+  public static instance: EppoPrecomputedJSClient = new EppoPrecomputedJSClient({
+    precomputedFlagStore: memoryOnlyPrecomputedFlagsStore,
+  });
   public static initialized = false;
 
   public getStringAssignment(flagKey: string, defaultValue: string): string {
@@ -564,7 +564,6 @@ export async function precomputedInit(
   const {
     apiKey,
     subjectKey,
-    subjectAttributes = {},
     baseUrl,
     requestTimeoutMs,
     numInitialRequestRetries,
@@ -574,6 +573,11 @@ export async function precomputedInit(
     pollAfterFailedInitialization = false,
     skipInitialRequest = false,
   } = config;
+
+  const subjectAttributes = config.subjectAttributes ?? {
+    categoricalAttributes: {},
+    numericAttributes: {},
+  };
 
   // Set up assignment logger and cache
   instance.setAssignmentLogger(config.assignmentLogger);
