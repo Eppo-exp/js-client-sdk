@@ -316,6 +316,8 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
       );
 
       EppoJSClient.instance.setOverridesStore(overridesStore);
+    } else {
+      EppoJSClient.instance.unsetOverridesStore();
     }
 
     // Allow the caller to override the default obfuscated mode, which is false
