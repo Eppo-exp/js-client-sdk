@@ -135,4 +135,10 @@ export interface IClientConfig extends IBaseRequestConfig {
     /** maximum number of events to send per delivery request. Defaults to 1000 events. */
     batchSize?: number;
   };
+
+  /**
+   * Enable the Overrides Store for local flag overrides.
+   * (default: false)
+   */
+  enableOverrides?: boolean;
 }

@@ -1211,3 +1211,120 @@ describe('EppoClient config', () => {
     expect(retryManager['config']['maxRetries']).toEqual(4);
   });
 });
+
+describe('enableOverrides', () => {
+  const mockConfigResponse = {
+    flags: {
+      [obfuscatedFlagKey]: mockObfuscatedUfcFlagConfig,
+    },
+  } as unknown as Record<'flags', Record<string, Flag>>;
+
+  beforeEach(() => {
+    global.fetch = jest.fn(() => {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(mockConfigResponse),
+      });
+    }) as jest.Mock;
+  });
+
+  afterEach(() => {
+    window.localStorage.clear();
+  });
+
+  it('should initialize with overrides disabled by default', async () => {
+    const client = await init({
+      apiKey: 'test-api-key',
+      assignmentLogger: td.object<IAssignmentLogger>(),
+    });
+
+    window.localStorage.setItem(
+      'eppo-overrides',
+      JSON.stringify({
+        'test-flag': {
+          value: 'override-value',
+          variationType: 'STRING',
+        },
+      }),
+    );
+
+    const assignment = client.getStringAssignment('test-flag', 'subject-1', {}, 'default-value');
+    expect(assignment).toBe('default-value');
+  });
+
+  it('should respect overrides when enabled', async () => {
+    // Set up override before initializing client
+    window.localStorage.setItem(
+      'eppo-overrides',
+      JSON.stringify({
+        'test-flag': {
+          value: 'override-value',
+          variationType: 'STRING',
+        },
+      }),
+    );
+
+    const client = await init({
+      apiKey: 'test-api-key',
+      assignmentLogger: td.object<IAssignmentLogger>(),
+      enableOverrides: true,
+      forceReinitialize: true,
+    });
+
+    const assignment = client.getStringAssignment('test-flag', 'subject-1', {}, 'default-value');
+    expect(assignment).toBe('override-value');
+  });
+
+  it('should work with offlineInit when enabled', () => {
+    window.localStorage.setItem(
+      'eppo-overrides',
+      JSON.stringify({
+        [flagKey]: {
+          key: flagKey,
+          enabled: true,
+          value: 'override-value',
+          variationType: 'STRING',
+        },
+      }),
+    );
+
+    const client = offlineInit({
+      isObfuscated: false,
+      flagsConfiguration: {
+        [flagKey]: mockNotObfuscatedFlagConfig,
+      },
+      enableOverrides: true,
+    });
+
+    expect(client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
+      'override-value',
+    );
+  });
+
+  it('should not use overrides with offlineInit when disabled', () => {
+    window.localStorage.setItem(
+      'eppo-overrides',
+      JSON.stringify({
+        [flagKey]: {
+          key: flagKey,
+          enabled: true,
+          value: 'override-value',
+          variationType: 'STRING',
+        },
+      }),
+    );
+
+    const client = offlineInit({
+      isObfuscated: false,
+      flagsConfiguration: {
+        [flagKey]: mockNotObfuscatedFlagConfig,
+      },
+      enableOverrides: false,
+    });
+
+    expect(client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
+      'variant-1',
+    );
+  });
+});
