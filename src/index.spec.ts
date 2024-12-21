@@ -1532,7 +1532,6 @@ describe('enableOverrides', () => {
       assignmentLogger: td.object<IAssignmentLogger>(),
     });
 
-    // Test that overrides are not applied
     window.localStorage.setItem(
       'eppo-overrides',
       JSON.stringify({
