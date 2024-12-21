@@ -18,7 +18,6 @@ import {
   BoundedEventQueue,
   validation,
   Event,
-  HybridConfigurationStore,
 } from '@eppo/js-client-sdk-common';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
