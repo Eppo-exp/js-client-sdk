@@ -291,11 +291,7 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
           windowLocalStorage: localStorageIfAvailable(),
         },
       );
-      if (overridesStore instanceof HybridConfigurationStore) {
-        overridesStore
-          .init()
-          .catch((err) => applicationLogger.warn('Error initializing overrides store', err));
-      }
+
       EppoJSClient.instance.setOverridesStore(overridesStore);
     }
 
@@ -411,9 +407,6 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
           windowLocalStorage: localStorageIfAvailable(),
         },
       );
-      if (overridesStore instanceof HybridConfigurationStore) {
-        await overridesStore.init();
-      }
       instance.setOverridesStore(overridesStore);
     }
 
