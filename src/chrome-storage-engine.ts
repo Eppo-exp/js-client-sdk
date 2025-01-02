@@ -17,7 +17,10 @@ export class ChromeStorageEngine implements IStringStorageEngine {
   private readonly contentsKey;
   private readonly metaKey;
 
-  public constructor(private storageMap: ChromeStorageAsyncMap<string>, storageKeySuffix: string) {
+  public constructor(
+    private storageMap: ChromeStorageAsyncMap<string>,
+    storageKeySuffix: string,
+  ) {
     const keySuffix = storageKeySuffix ? `-${storageKeySuffix}` : '';
     this.contentsKey = CONFIGURATION_KEY + keySuffix;
     this.metaKey = META_KEY + keySuffix;
