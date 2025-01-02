@@ -465,8 +465,8 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
       // both failed, make the "fatal" error the fetch one
       initializationError = initFromFetchError;
     }
-  } catch (error: any) {
-    initializationError = error;
+  } catch (error: unknown) {
+    initializationError = error instanceof Error ? error : new Error(String(error));
   }
 
   if (initializationError) {

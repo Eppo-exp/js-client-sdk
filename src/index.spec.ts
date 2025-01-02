@@ -29,7 +29,6 @@ import { IClientConfig } from './i-client-config';
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 
 import {
-  EppoJSClient,
   EppoPrecomputedJSClient,
   getConfigUrl,
   getInstance,
@@ -1188,8 +1187,8 @@ describe('EppoClient config', () => {
         json: () => Promise.resolve({}),
       });
     }) as jest.Mock;
-    EppoJSClient.initialized = false;
     const client = await init({
+      forceReinitialize: true,
       apiKey: 'zCsQuoHJxVPp895.ZWg9MTIzNDU2LmUudGVzdGluZy5lcHBvLmNsb3Vk',
       assignmentLogger: td.object<IAssignmentLogger>(),
       eventIngestionConfig: {
@@ -1197,7 +1196,7 @@ describe('EppoClient config', () => {
         retryIntervalMs: 2,
         maxRetryDelayMs: 3,
         maxRetries: 4,
-        batchSize: 5,
+        batchSize: 500,
       },
     });
     // hack to read the private class members config
@@ -1205,7 +1204,7 @@ describe('EppoClient config', () => {
     const retryManager = eventDispatcher['retryManager'];
     const batchProcessor = eventDispatcher['batchProcessor'];
     expect(eventDispatcher['deliveryIntervalMs']).toEqual(1);
-    expect(batchProcessor['batchSize']).toEqual(5);
+    expect(batchProcessor['batchSize']).toEqual(500);
     expect(retryManager['config']['retryIntervalMs']).toEqual(2);
     expect(retryManager['config']['maxRetryDelayMs']).toEqual(3);
     expect(retryManager['config']['maxRetries']).toEqual(4);
