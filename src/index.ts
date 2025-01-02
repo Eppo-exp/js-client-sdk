@@ -619,14 +619,6 @@ function newEventDispatcher(
   sdkKey: string,
   config: IClientConfig['eventIngestionConfig'] = {},
 ): EventDispatcher {
-  const eventQueue = hasWindowLocalStorage()
-    ? new LocalStorageBackedNamedEventQueue<Event>('events')
-    : new BoundedEventQueue<Event>('events');
-  const emptyNetworkStatusListener =
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    { isOffline: () => false, onNetworkStatusChange: () => {} };
-  const networkStatusListener =
-    typeof window !== 'undefined' ? new BrowserNetworkStatusListener() : emptyNetworkStatusListener;
   // initialize config with default values
   const {
     batchSize = 1_000,
@@ -634,7 +626,16 @@ function newEventDispatcher(
     retryIntervalMs = 5_000,
     maxRetryDelayMs = 30_000,
     maxRetries = 3,
+    maxQueueSize = 10_000,
   } = config;
+  const eventQueue = hasWindowLocalStorage()
+    ? new LocalStorageBackedNamedEventQueue<Event>('events')
+    : new BoundedEventQueue<Event>('events', [], maxQueueSize);
+  const emptyNetworkStatusListener =
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    { isOffline: () => false, onNetworkStatusChange: () => {} };
+  const networkStatusListener =
+    typeof window !== 'undefined' ? new BrowserNetworkStatusListener() : emptyNetworkStatusListener;
   return newDefaultEventDispatcher(eventQueue, networkStatusListener, sdkKey, batchSize, {
     deliveryIntervalMs,
     retryIntervalMs,
