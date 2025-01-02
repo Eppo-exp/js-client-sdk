@@ -47,7 +47,10 @@ export default class LocalStorageBackedNamedEventQueue<T> implements NamedEventQ
     if (this.eventKeys.length === 0) {
       return undefined;
     }
-    const eventKey = this.eventKeys.shift()!;
+    const eventKey = this.eventKeys.shift();
+    if (eventKey === undefined) {
+      throw new Error('Unexpected undefined event key');
+    }
     const eventData = localStorage.getItem(eventKey);
     if (eventData) {
       localStorage.removeItem(eventKey);
