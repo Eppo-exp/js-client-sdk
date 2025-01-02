@@ -29,7 +29,6 @@ import { IClientConfig } from './i-client-config';
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 
 import {
-  EppoJSClient,
   EppoPrecomputedJSClient,
   getConfigUrl,
   getInstance,
