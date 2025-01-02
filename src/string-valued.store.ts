@@ -20,7 +20,10 @@ export interface IStringStorageEngine {
 export class StringValuedAsyncStore<T> implements IAsyncStore<T> {
   private initialized = false;
 
-  public constructor(private storageEngine: IStringStorageEngine, private cooldownSeconds = 0) {}
+  public constructor(
+    private storageEngine: IStringStorageEngine,
+    private cooldownSeconds = 0,
+  ) {}
 
   public isInitialized(): boolean {
     return this.initialized;
