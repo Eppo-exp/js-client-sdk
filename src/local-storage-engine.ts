@@ -11,7 +11,10 @@ export class LocalStorageEngine implements IStringStorageEngine {
   private readonly contentsKey;
   private readonly metaKey;
 
-  public constructor(private localStorage: Storage, storageKeySuffix: string) {
+  public constructor(
+    private localStorage: Storage,
+    storageKeySuffix: string,
+  ) {
     const keySuffix = storageKeySuffix ? `-${storageKeySuffix}` : '';
     this.contentsKey = CONFIGURATION_KEY + keySuffix;
     this.metaKey = META_KEY + keySuffix;
