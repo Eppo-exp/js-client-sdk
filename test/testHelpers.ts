@@ -1,17 +1,18 @@
 import * as fs from 'fs';
 
-import { Flag, VariationType, AttributeType, PrecomputedFlag } from '@eppo/js-client-sdk-common';
+import {
+  Flag,
+  VariationType,
+  AttributeType,
+  PrecomputedFlag,
+  FormatEnum,
+} from '@eppo/js-client-sdk-common';
 
 export const TEST_DATA_DIR = './test/data/ufc/';
 export const ASSIGNMENT_TEST_DATA_DIR = TEST_DATA_DIR + 'tests/';
 const MOCK_UFC_FILENAME = 'flags-v1';
 export const MOCK_UFC_RESPONSE_FILE = `${MOCK_UFC_FILENAME}.json`;
 export const OBFUSCATED_MOCK_UFC_RESPONSE_FILE = `${MOCK_UFC_FILENAME}-obfuscated.json`;
-
-// export const TEST_PRECOMPUTED_DATA_DIR = './test/data/configuration-wire/';
-// const MOCK_PRECOMPUTED_FILENAME = 'precomputed-v1';
-// export const MOCK_PRECOMPUTED_RESPONSE_FILE = `${MOCK_PRECOMPUTED_FILENAME}.json`;
-// export const OBFUSCATED_MOCK_PRECOMPUTED_RESPONSE_FILE = `${MOCK_PRECOMPUTED_FILENAME}-obfuscated.json`;
 
 const TEST_CONFIGURATION_WIRE_DATA_DIR = './test/data/configuration-wire/';
 const MOCK_PRECOMPUTED_FILENAME = 'precomputed-v1';
@@ -23,13 +24,6 @@ export enum ValueTestType {
   NumericType = 'numeric',
   StringType = 'string',
   JSONType = 'json',
-}
-
-// TODO: remove this once we can import from @eppo/js-client-sdk-common
-enum FormatEnum {
-  SERVER = 'SERVER',
-  CLIENT = 'CLIENT',
-  PRECOMPUTED = 'PRECOMPUTED',
 }
 
 interface Environment {

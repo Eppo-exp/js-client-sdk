@@ -20,8 +20,8 @@ import {
   Event,
   IConfigurationWire,
   IPrecomputedConfigurationResponse,
-  convertContextAttributesToSubjectAttributes,
   Attributes,
+  Subject,
 } from '@eppo/js-client-sdk-common';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
@@ -514,10 +514,7 @@ export function getConfigUrl(apiKey: string, baseUrl?: string): URL {
  * @public
  */
 export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
-  // Use an empty memory-only configuration store
-  public static instance: EppoPrecomputedJSClient = new EppoPrecomputedJSClient({
-    precomputedFlagStore: memoryOnlyPrecomputedFlagsStore,
-  });
+  public static instance: EppoPrecomputedJSClient;
   public static initialized = false;
 
   public getStringAssignment(flagKey: string, defaultValue: string): string {
@@ -564,7 +561,6 @@ export async function precomputedInit(
   validation.validateNotBlank(config.apiKey, 'API key required');
   validation.validateNotBlank(config.precompute.subjectKey, 'Subject key required');
 
-  const instance = EppoPrecomputedJSClient.instance;
   const {
     apiKey,
     precompute: { subjectKey, subjectAttributes = {} },
@@ -578,16 +574,12 @@ export async function precomputedInit(
     skipInitialRequest = false,
   } = config;
 
-  // Set up assignment logger and cache
-  instance.setAssignmentLogger(config.assignmentLogger);
-
   // Set up parameters for requesting updated configurations
-  const precomputedFlagsRequestParameters: PrecomputedFlagsRequestParameters = {
+  const requestParameters: PrecomputedFlagsRequestParameters = {
     apiKey,
     sdkName,
     sdkVersion,
     baseUrl,
-    precompute: { subjectKey, subjectAttributes },
     requestTimeoutMs,
     numInitialRequestRetries,
     numPollRequestRetries,
@@ -597,9 +589,17 @@ export async function precomputedInit(
     throwOnFailedInitialization: true, // always use true here as underlying instance fetch is surrounded by try/catch
     skipInitialPoll: skipInitialRequest,
   };
-  instance.setSubjectAndPrecomputedFlagsRequestParameters(precomputedFlagsRequestParameters);
 
-  await instance.fetchPrecomputedFlags();
+  const subject: Subject = { subjectKey, subjectAttributes };
+
+  EppoPrecomputedJSClient.instance = new EppoPrecomputedJSClient({
+    precomputedFlagStore: memoryOnlyPrecomputedFlagsStore,
+    requestParameters,
+    subject,
+  });
+
+  EppoPrecomputedJSClient.instance.setAssignmentLogger(config.assignmentLogger);
+  await EppoPrecomputedJSClient.instance.fetchPrecomputedFlags();
 
   EppoPrecomputedJSClient.initialized = true;
   return EppoPrecomputedJSClient.instance;
@@ -645,11 +645,7 @@ export function offlinePrecomputedInit(
     applicationLogger.error('Invalid precomputed configuration wire');
     return EppoPrecomputedJSClient.instance;
   }
-  const {
-    subjectKey,
-    subjectAttributes: contextAttributes,
-    response,
-  } = configurationWire.precomputed;
+  const { subjectKey, subjectAttributes, response } = configurationWire.precomputed;
   const parsedResponse: IPrecomputedConfigurationResponse = JSON.parse(response);
 
   try {
@@ -659,17 +655,17 @@ export function offlinePrecomputedInit(
       .catch((err) =>
         applicationLogger.warn('Error setting precomputed assignments for memory-only store', err),
       );
+    memoryOnlyPrecomputedStore.salt = parsedResponse.salt;
 
-    const subjectAttributes: Attributes = convertContextAttributesToSubjectAttributes(
-      contextAttributes ?? { numericAttributes: {}, categoricalAttributes: {} },
-    );
-
-    EppoPrecomputedJSClient.instance.setSubjectSaltAndPrecomputedFlagStore(
+    const subject: Subject = {
       subjectKey,
-      subjectAttributes,
-      parsedResponse.salt,
-      memoryOnlyPrecomputedStore,
-    );
+      subjectAttributes: subjectAttributes ?? ({} as Attributes),
+    };
+
+    EppoPrecomputedJSClient.instance = new EppoPrecomputedJSClient({
+      precomputedFlagStore: memoryOnlyPrecomputedStore,
+      subject,
+    });
 
     if (config.assignmentLogger) {
       EppoPrecomputedJSClient.instance.setAssignmentLogger(config.assignmentLogger);
@@ -683,7 +679,6 @@ export function offlinePrecomputedInit(
     }
   }
 
-  EppoPrecomputedJSClient.instance.setIsObfuscated(parsedResponse.obfuscated);
   EppoPrecomputedJSClient.initialized = true;
   return EppoPrecomputedJSClient.instance;
 }
