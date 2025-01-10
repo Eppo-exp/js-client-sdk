@@ -22,6 +22,7 @@ import {
   Attributes,
   Subject,
 } from '@eppo/js-client-sdk-common';
+import { loggerPrefix } from '@eppo/js-client-sdk-common/dist/application-logger';
 import { IObfuscatedPrecomputedConfigurationResponse } from '@eppo/js-client-sdk-common/src/configuration';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
@@ -646,7 +647,7 @@ export function offlinePrecomputedInit(
 
   const configurationWire: IConfigurationWire = JSON.parse(config.precomputedConfigurationWire);
   if (!configurationWire.precomputed) {
-    const errorMessage = 'Invalid precomputed configuration wire';
+    const errorMessage = `${loggerPrefix} Invalid precomputed configuration wire`;
     if (throwOnFailedInitialization) {
       throw new Error(errorMessage);
     } else {
@@ -681,7 +682,7 @@ export function offlinePrecomputedInit(
     }
   } catch (error) {
     applicationLogger.warn(
-      'Eppo SDK encountered an error initializing precomputed client, assignment calls will return the default value and not be logged',
+      `${loggerPrefix} Encountered an error initializing precomputed client, assignment calls will return the default value and not be logged`,
     );
     if (throwOnFailedInitialization) {
       throw error;

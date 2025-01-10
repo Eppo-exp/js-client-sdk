@@ -1149,11 +1149,6 @@ describe('offlinePrecomputedInit', () => {
 
   beforeEach(() => {
     mockLogger = td.object<IAssignmentLogger>();
-    // Reset the static instance before each test
-    jest.isolateModules(() => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      require('./index');
-    });
   });
 
   it('initializes with precomputed assignments', () => {
