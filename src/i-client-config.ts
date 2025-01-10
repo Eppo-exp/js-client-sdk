@@ -2,6 +2,8 @@ import { AttributeType, Flag, IAssignmentLogger, IAsyncStore } from '@eppo/js-cl
 
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 
+export const DEFAULT_LOCAL_STORE_HEAD_START_MS = 10;
+
 /**
  * Base configuration for API requests and polling behavior
  */
@@ -26,6 +28,11 @@ interface IBaseRequestConfig {
    * Timeout in milliseconds for the HTTPS request for the experiment configuration. (Default: 5000)
    */
   requestTimeoutMs?: number;
+
+  /**
+   * Time to wait, in milliseconds for the persistent store to initialize before polling on initialization. (Default: 10)
+   */
+  localStoreHeadstartMs?: number;
 
   /**
    * Number of additional times the initial configuration request will be attempted if it fails.
