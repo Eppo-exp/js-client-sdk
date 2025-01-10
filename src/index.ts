@@ -695,7 +695,6 @@ export function offlinePrecomputedInit(
 
 function shutdownEppoPrecomputedClient() {
   if (EppoPrecomputedJSClient.instance) {
-    // Perform necessary cleanup, such as stopping polling or logging
     EppoPrecomputedJSClient.instance.stopPolling();
     EppoPrecomputedJSClient.initialized = false;
     applicationLogger.warn(`${loggerPrefix} Precomputed client is being re-initialized.`);
