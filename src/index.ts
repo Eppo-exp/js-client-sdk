@@ -19,10 +19,10 @@ import {
   validation,
   Event,
   IConfigurationWire,
-  IPrecomputedConfigurationResponse,
   Attributes,
   Subject,
 } from '@eppo/js-client-sdk-common';
+import { IObfuscatedPrecomputedConfigurationResponse } from '@eppo/js-client-sdk-common/src/configuration';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
 import HybridAssignmentCache from './cache/hybrid-assignment-cache';
@@ -558,6 +558,10 @@ export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
 export async function precomputedInit(
   config: IPrecomputedClientConfig,
 ): Promise<EppoPrecomputedClient> {
+  if (EppoPrecomputedJSClient.instance) {
+    return EppoPrecomputedJSClient.instance;
+  }
+
   validation.validateNotBlank(config.apiKey, 'API key required');
   validation.validateNotBlank(config.precompute.subjectKey, 'Subject key required');
 
@@ -646,7 +650,7 @@ export function offlinePrecomputedInit(
     return EppoPrecomputedJSClient.instance;
   }
   const { subjectKey, subjectAttributes, response } = configurationWire.precomputed;
-  const parsedResponse: IPrecomputedConfigurationResponse = JSON.parse(response);
+  const parsedResponse: IObfuscatedPrecomputedConfigurationResponse = JSON.parse(response);
 
   try {
     const memoryOnlyPrecomputedStore = precomputedFlagsStorageFactory();
