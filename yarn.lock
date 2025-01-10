@@ -392,6 +392,17 @@
     spark-md5 "^3.0.2"
     uuid "^8.3.2"
 
+"@eppo/js-client-sdk-common@https://github.com/Eppo-exp/js-sdk-common#typo/fix/race-from-3.7.1":
+  version "4.7.2-alpha.0"
+  resolved "https://github.com/Eppo-exp/js-sdk-common#4cefe4cbdf747a2b84e49b6d375a358e1e91ce1a"
+  dependencies:
+    buffer "npm:@eppo/buffer@6.2.0"
+    js-base64 "^3.7.7"
+    pino "^9.5.0"
+    semver "^7.5.4"
+    spark-md5 "^3.0.2"
+    uuid "^8.3.2"
+
 "@eslint-community/eslint-utils@^4.2.0", "@eslint-community/eslint-utils@^4.4.0":
   version "4.4.1"
   resolved "https://registry.yarnpkg.com/@eslint-community/eslint-utils/-/eslint-utils-4.4.1.tgz#d1145bf2c20132d6400495d6df4bf59362fd9d56"
