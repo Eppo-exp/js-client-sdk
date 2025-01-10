@@ -671,6 +671,7 @@ export function offlinePrecomputedInit(
       subjectAttributes: subjectAttributes ?? {},
     };
 
+    shutdownEppoPrecomputedClient();
     EppoPrecomputedJSClient.instance = new EppoPrecomputedJSClient({
       precomputedFlagStore: memoryOnlyPrecomputedStore,
       subject,
@@ -690,6 +691,15 @@ export function offlinePrecomputedInit(
 
   EppoPrecomputedJSClient.initialized = true;
   return EppoPrecomputedJSClient.instance;
+}
+
+function shutdownEppoPrecomputedClient() {
+  if (EppoPrecomputedJSClient.instance) {
+    // Perform necessary cleanup, such as stopping polling or logging
+    EppoPrecomputedJSClient.instance.stopPolling();
+    EppoPrecomputedJSClient.initialized = false;
+    applicationLogger.warn(`${loggerPrefix} Precomputed client is being re-initialized.`);
+  }
 }
 
 /**

@@ -5,6 +5,7 @@
 import { createHash } from 'crypto';
 
 import {
+  applicationLogger,
   AssignmentCache,
   constants,
   EppoClient,
@@ -1151,6 +1152,10 @@ describe('offlinePrecomputedInit', () => {
     mockLogger = td.object<IAssignmentLogger>();
   });
 
+  afterEach(() => {
+    td.reset();
+  });
+
   it('initializes with precomputed assignments', () => {
     const client = offlinePrecomputedInit({
       precomputedConfiguration,
@@ -1179,6 +1184,31 @@ describe('offlinePrecomputedInit', () => {
     const client = offlinePrecomputedInit({ precomputedConfiguration });
 
     expect(client.getStringAssignment('string-flag', 'default')).toBe('red');
+  });
+
+  it('logs a warning on re-initialization', () => {
+    td.replace(applicationLogger, 'warn');
+    // First initialization there is no client to spy on, so we only test that no warning is logged
+    offlinePrecomputedInit({
+      precomputedConfiguration,
+      assignmentLogger: mockLogger,
+    });
+    td.verify(
+      applicationLogger.warn(td.matchers.contains('Precomputed client is being re-initialized.')),
+      { times: 0 },
+    );
+    // Replace instance with a mock and check that shutdown is called on re-initialization
+    const mockInstance = td.object<EppoPrecomputedJSClient>();
+    EppoPrecomputedJSClient.instance = mockInstance;
+    offlinePrecomputedInit({
+      precomputedConfiguration,
+      assignmentLogger: mockLogger,
+    });
+    td.verify(mockInstance.stopPolling(), { times: 1 });
+    td.verify(
+      applicationLogger.warn(td.matchers.contains('Precomputed client is being re-initialized.')),
+      { times: 1 },
+    );
   });
 });
 
