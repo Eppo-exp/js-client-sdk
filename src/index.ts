@@ -668,7 +668,7 @@ export function offlinePrecomputedInit(
 
     const subject: Subject = {
       subjectKey,
-      subjectAttributes: subjectAttributes ?? ({} as Attributes),
+      subjectAttributes: subjectAttributes ?? {},
     };
 
     EppoPrecomputedJSClient.instance = new EppoPrecomputedJSClient({
