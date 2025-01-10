@@ -15,5 +15,6 @@ eventIngestionConfig?: {
         maxRetryDelayMs?: number;
         maxRetries?: number;
         batchSize?: number;
+        maxQueueSize?: number;
     };
 ```

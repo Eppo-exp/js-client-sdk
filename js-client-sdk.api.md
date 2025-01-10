@@ -122,6 +122,7 @@ export interface IClientConfig extends IBaseRequestConfig {
         maxRetryDelayMs?: number;
         maxRetries?: number;
         batchSize?: number;
+        maxQueueSize?: number;
     };
     forceReinitialize?: boolean;
     maxCacheAgeSeconds?: number;
