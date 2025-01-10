@@ -32,7 +32,11 @@ import {
 } from './configuration-factory';
 import BrowserNetworkStatusListener from './events/browser-network-status-listener';
 import LocalStorageBackedNamedEventQueue from './events/local-storage-backed-named-event-queue';
-import { IClientConfig, IPrecomputedClientConfig } from './i-client-config';
+import {
+  DEFAULT_LOCAL_STORE_HEAD_START_MS,
+  IClientConfig,
+  IPrecomputedClientConfig,
+} from './i-client-config';
 import { sdkName, sdkVersion } from './sdk-data';
 
 /**
@@ -409,25 +413,30 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
     instance.setEventDispatcher(newEventDispatcher(apiKey, eventIngestionConfig));
 
     // We have two at-bats for initialization: from the configuration store and from fetching
+    // The remote fetch races against a local persistent store, however, the
+
     // We can resolve the initialization promise as soon as either one succeeds
     let initFromConfigStoreError = undefined;
     let initFromFetchError = undefined;
 
-    const attemptInitFromConfigStore = configurationStore
+    type ConfigSources = 'config store' | 'head start' | 'fetch' | 'did not finish';
+    type RacingPromise = Promise<ConfigSources>;
+
+    const attemptInitFromConfigStore: RacingPromise = configurationStore
       .init()
       .then(async () => {
         if (!configurationStore.getKeys().length) {
           // Consider empty configuration stores invalid
           applicationLogger.warn('Eppo SDK cached configuration is empty');
           initFromConfigStoreError = new Error('Configuration store was empty');
-          return '';
+          return 'did not finish';
         }
 
         const cacheIsExpired = await configurationStore.isExpired();
         if (cacheIsExpired && !config.useExpiredCache) {
           applicationLogger.warn('Eppo SDK set not to use expired cached configuration');
           initFromConfigStoreError = new Error('Configuration store was expired');
-          return '';
+          return 'did not finish';
         }
         return 'config store';
       })
@@ -437,22 +446,41 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
           e,
         );
         initFromConfigStoreError = e;
+        return 'did not finish';
       });
-    const attemptInitFromFetch = instance
+
+    const attemptInitFromFetch: RacingPromise = instance
       .fetchFlagConfigurations()
-      .then(() => 'fetch')
+      .then(() => 'fetch' as ConfigSources)
       .catch((e) => {
         applicationLogger.warn('Eppo SDK encountered an error initializing from fetching', e);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         initFromFetchError = e;
+        return 'did not finish';
       });
+
+    const persistentStoreHeadStartMs =
+      config.localStoreHeadstartMs ?? DEFAULT_LOCAL_STORE_HEAD_START_MS;
+    const headStart = new Promise<ConfigSources>((resolve) => {
+      setTimeout(() => resolve('head start'), persistentStoreHeadStartMs);
+    });
+
+    const headStartWinner = await Promise.race([headStart, attemptInitFromConfigStore]);
+
+    console.log('head start', headStartWinner);
+    if (headStartWinner === 'config store' && !(await configurationStore.isExpired())) {
+      EppoJSClient.initialized = true;
+      return instance;
+    }
 
     let initializationSource = await Promise.race([
       attemptInitFromConfigStore,
       attemptInitFromFetch,
     ]);
 
-    if (!initializationSource) {
+    console.log('initializationSource', initializationSource);
+
+    if (!initializationSource || initializationSource === 'did not finish') {
       // First attempt failed, but we have a second at bat that will be executed in the scope of the top-level try-catch
       if (!initFromConfigStoreError) {
         initializationSource = await attemptInitFromConfigStore;
@@ -461,7 +489,7 @@ export async function init(config: IClientConfig): Promise<EppoClient> {
       }
     }
 
-    if (!initializationSource) {
+    if (initializationSource === 'did not finish') {
       // both failed, make the "fatal" error the fetch one
       initializationError = initFromFetchError;
     }

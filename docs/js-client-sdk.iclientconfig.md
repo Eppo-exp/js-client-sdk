@@ -46,7 +46,7 @@ Description
 
 </td><td>
 
-{ deliveryIntervalMs?: number; retryIntervalMs?: number; maxRetryDelayMs?: number; maxRetries?: number; batchSize?: number; }
+{ deliveryIntervalMs?: number; retryIntervalMs?: number; maxRetryDelayMs?: number; maxRetries?: number; batchSize?: number; maxQueueSize?: number; }
 
 
 </td><td>
