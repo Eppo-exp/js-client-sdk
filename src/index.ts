@@ -611,19 +611,18 @@ export async function precomputedInit(
 }
 
 /**
- * Initializes the Eppo precomputed client with configuration parameters.
+ * Configuration parameters for initializing the Eppo precomputed client.
  *
- * The purpose is for use-cases where the precomputed assignments are available from an external process
- * that can bootstrap the SDK.
+ * This interface is used for cases where precomputed assignments are available
+ * from an external process that can bootstrap the SDK client.
  *
- * This method should be called once on application startup.
- *
- * @param config - client configuration
- * @returns a singleton precomputed client instance
+ * @property precomputedConfiguration - The configuration as a string to bootstrap the client.
+ * @property assignmentLogger - Optional logger for assignment events.
+ * @property throwOnFailedInitialization - Optional flag to throw an error if initialization fails.
  * @public
  */
 export interface IPrecomputedClientConfigSync {
-  precomputedConfigurationWire: string;
+  precomputedConfiguration: string;
   assignmentLogger?: IAssignmentLogger;
   throwOnFailedInitialization?: boolean;
 }
@@ -645,7 +644,7 @@ export function offlinePrecomputedInit(
 ): EppoPrecomputedClient {
   const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
 
-  const configurationWire: IConfigurationWire = JSON.parse(config.precomputedConfigurationWire);
+  const configurationWire: IConfigurationWire = JSON.parse(config.precomputedConfiguration);
   if (!configurationWire.precomputed) {
     const errorMessage = `${loggerPrefix} Invalid precomputed configuration wire`;
     if (throwOnFailedInitialization) {

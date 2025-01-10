@@ -1069,9 +1069,9 @@ describe('EppoPrecomputedJSClient E2E test', () => {
 
   beforeAll(async () => {
     global.fetch = jest.fn(() => {
-      const precomputedConfigurationWire = readMockPrecomputedResponse(MOCK_PRECOMPUTED_WIRE_FILE);
+      const precomputedConfiguration = readMockPrecomputedResponse(MOCK_PRECOMPUTED_WIRE_FILE);
       const precomputedResponse: IPrecomputedConfigurationResponse = JSON.parse(
-        JSON.parse(precomputedConfigurationWire).precomputed.response,
+        JSON.parse(precomputedConfiguration).precomputed.response,
       );
       return Promise.resolve({
         ok: true,
@@ -1141,10 +1141,10 @@ describe('EppoPrecomputedJSClient E2E test', () => {
 
 describe('offlinePrecomputedInit', () => {
   let mockLogger: IAssignmentLogger;
-  let precomputedConfigurationWire: string;
+  let precomputedConfiguration: string;
 
   beforeAll(() => {
-    precomputedConfigurationWire = readMockPrecomputedResponse(MOCK_PRECOMPUTED_WIRE_FILE);
+    precomputedConfiguration = readMockPrecomputedResponse(MOCK_PRECOMPUTED_WIRE_FILE);
   });
 
   beforeEach(() => {
@@ -1153,7 +1153,7 @@ describe('offlinePrecomputedInit', () => {
 
   it('initializes with precomputed assignments', () => {
     const client = offlinePrecomputedInit({
-      precomputedConfigurationWire,
+      precomputedConfiguration,
       assignmentLogger: mockLogger,
     });
 
@@ -1176,7 +1176,7 @@ describe('offlinePrecomputedInit', () => {
   });
 
   it('initializes without an assignment logger', () => {
-    const client = offlinePrecomputedInit({ precomputedConfigurationWire });
+    const client = offlinePrecomputedInit({ precomputedConfiguration });
 
     expect(client.getStringAssignment('string-flag', 'default')).toBe('red');
   });
