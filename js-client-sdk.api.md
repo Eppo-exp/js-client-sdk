@@ -161,7 +161,7 @@ export interface IPrecomputedClientConfigSync {
     // (undocumented)
     assignmentLogger?: IAssignmentLogger;
     // (undocumented)
-    precomputedConfigurationWire: string;
+    precomputedConfiguration: string;
     // (undocumented)
     throwOnFailedInitialization?: boolean;
 }

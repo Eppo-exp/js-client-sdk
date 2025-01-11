@@ -19,10 +19,8 @@ import {
   validation,
   Event,
   IConfigurationWire,
-  Attributes,
   Subject,
 } from '@eppo/js-client-sdk-common';
-import { loggerPrefix } from '@eppo/js-client-sdk-common/dist/application-logger';
 import { IObfuscatedPrecomputedConfigurationResponse } from '@eppo/js-client-sdk-common/src/configuration';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
@@ -616,9 +614,9 @@ export async function precomputedInit(
  * This interface is used for cases where precomputed assignments are available
  * from an external process that can bootstrap the SDK client.
  *
- * @property precomputedConfiguration - The configuration as a string to bootstrap the client.
- * @property assignmentLogger - Optional logger for assignment events.
- * @property throwOnFailedInitialization - Optional flag to throw an error if initialization fails.
+ * @param precomputedConfiguration - The configuration as a string to bootstrap the client.
+ * @param assignmentLogger - Optional logger for assignment events.
+ * @param throwOnFailedInitialization - Optional flag to throw an error if initialization fails.
  * @public
  */
 export interface IPrecomputedClientConfigSync {
@@ -650,7 +648,7 @@ export function offlinePrecomputedInit(
     if (throwOnFailedInitialization) {
       throw new Error(errorMessage);
     } else {
-      applicationLogger.error(`${loggerPrefix} ${errorMessage}`);
+      applicationLogger.error('[Eppo SDK] ${errorMessage}');
       return EppoPrecomputedJSClient.instance;
     }
   }
@@ -682,7 +680,7 @@ export function offlinePrecomputedInit(
     }
   } catch (error) {
     applicationLogger.warn(
-      `${loggerPrefix} Encountered an error initializing precomputed client, assignment calls will return the default value and not be logged`,
+      '[Eppo SDK] Encountered an error initializing precomputed client, assignment calls will return the default value and not be logged',
     );
     if (throwOnFailedInitialization) {
       throw error;
@@ -697,7 +695,7 @@ function shutdownEppoPrecomputedClient() {
   if (EppoPrecomputedJSClient.instance) {
     EppoPrecomputedJSClient.instance.stopPolling();
     EppoPrecomputedJSClient.initialized = false;
-    applicationLogger.warn(`${loggerPrefix} Precomputed client is being re-initialized.`);
+    applicationLogger.warn('[Eppo SDK] Precomputed client is being re-initialized.');
   }
 }
 

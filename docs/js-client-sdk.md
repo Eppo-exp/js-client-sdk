@@ -220,11 +220,11 @@ Configuration for Eppo precomputed client initialization
 
 </td><td>
 
-Initializes the Eppo precomputed client with configuration parameters.
+Configuration parameters for initializing the Eppo precomputed client.
 
-The purpose is for use-cases where the precomputed assignments are available from an external process that can bootstrap the SDK.
+This interface is used for cases where precomputed assignments are available from an external process that can bootstrap the SDK client.
 
-This method should be called once on application startup.
+ precomputedConfiguration - The configuration as a string to bootstrap the client.  assignmentLogger - Optional logger for assignment events.  throwOnFailedInitialization - Optional flag to throw an error if initialization fails.
 
 
 </td></tr>
