@@ -1,6 +1,12 @@
 import * as fs from 'fs';
 
-import { Flag, VariationType, AttributeType } from '@eppo/js-client-sdk-common';
+import {
+  Flag,
+  VariationType,
+  AttributeType,
+  PrecomputedFlag,
+  FormatEnum,
+} from '@eppo/js-client-sdk-common';
 
 export const TEST_DATA_DIR = './test/data/ufc/';
 export const ASSIGNMENT_TEST_DATA_DIR = TEST_DATA_DIR + 'tests/';
@@ -8,11 +14,36 @@ const MOCK_UFC_FILENAME = 'flags-v1';
 export const MOCK_UFC_RESPONSE_FILE = `${MOCK_UFC_FILENAME}.json`;
 export const OBFUSCATED_MOCK_UFC_RESPONSE_FILE = `${MOCK_UFC_FILENAME}-obfuscated.json`;
 
+const TEST_CONFIGURATION_WIRE_DATA_DIR = './test/data/configuration-wire/';
+const MOCK_PRECOMPUTED_FILENAME = 'precomputed-v1';
+export const MOCK_PRECOMPUTED_WIRE_FILE = `${MOCK_PRECOMPUTED_FILENAME}.json`;
+export const MOCK_DEOBFUSCATED_PRECOMPUTED_RESPONSE_FILE = `${MOCK_PRECOMPUTED_WIRE_FILE}-deobfuscated.json`;
+
 export enum ValueTestType {
   BoolType = 'boolean',
   NumericType = 'numeric',
   StringType = 'string',
   JSONType = 'json',
+}
+
+interface Environment {
+  name: string;
+}
+
+export interface IConfigurationWire {
+  version: number;
+  precomputed: {
+    subjectKey: string;
+    subjectAttributes: Record<string, AttributeType>;
+    fetchedAt: string;
+    response: {
+      createdAt: string;
+      format: FormatEnum;
+      obfuscated: boolean;
+      environment: Environment;
+      flags: Record<string, PrecomputedFlag>;
+    };
+  };
 }
 
 export interface SubjectTestCase {
@@ -32,6 +63,10 @@ export function readMockUfcResponse(filename: string): {
   flags: Record<string, Flag>;
 } {
   return JSON.parse(fs.readFileSync(TEST_DATA_DIR + filename, 'utf-8'));
+}
+
+export function readMockPrecomputedResponse(filename: string): string {
+  return fs.readFileSync(TEST_CONFIGURATION_WIRE_DATA_DIR + filename, 'utf-8');
 }
 
 export function readAssignmentTestData(): IAssignmentTestCase[] {

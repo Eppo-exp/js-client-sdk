@@ -63,10 +63,9 @@ interface IBaseRequestConfig {
 }
 
 /**
- * Configuration for Eppo precomputed client initialization
- * @public
+ * Configuration for precomputed flag assignments
  */
-export interface IPrecomputedClientConfig extends IBaseRequestConfig {
+interface IPrecompute {
   /**
    * Subject key to use for precomputed flag assignments.
    */
@@ -76,6 +75,14 @@ export interface IPrecomputedClientConfig extends IBaseRequestConfig {
    * Subject attributes to use for precomputed flag assignments.
    */
   subjectAttributes?: Record<string, AttributeType>;
+}
+
+/**
+ * Configuration for Eppo precomputed client initialization
+ * @public
+ */
+export interface IPrecomputedClientConfig extends IBaseRequestConfig {
+  precompute: IPrecompute;
 }
 
 /**

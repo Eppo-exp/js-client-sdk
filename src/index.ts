@@ -18,7 +18,10 @@ import {
   BoundedEventQueue,
   validation,
   Event,
+  IConfigurationWire,
+  Subject,
 } from '@eppo/js-client-sdk-common';
+import { IObfuscatedPrecomputedConfigurationResponse } from '@eppo/js-client-sdk-common/src/configuration';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
 import HybridAssignmentCache from './cache/hybrid-assignment-cache';
@@ -510,10 +513,7 @@ export function getConfigUrl(apiKey: string, baseUrl?: string): URL {
  * @public
  */
 export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
-  // Use an empty memory-only configuration store
-  public static instance: EppoPrecomputedJSClient = new EppoPrecomputedJSClient(
-    memoryOnlyPrecomputedFlagsStore,
-  );
+  public static instance: EppoPrecomputedJSClient;
   public static initialized = false;
 
   public getStringAssignment(flagKey: string, defaultValue: string): string {
@@ -557,14 +557,16 @@ export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
 export async function precomputedInit(
   config: IPrecomputedClientConfig,
 ): Promise<EppoPrecomputedClient> {
-  validation.validateNotBlank(config.apiKey, 'API key required');
-  validation.validateNotBlank(config.subjectKey, 'Subject key required');
+  if (EppoPrecomputedJSClient.instance) {
+    return EppoPrecomputedJSClient.instance;
+  }
 
-  const instance = EppoPrecomputedJSClient.instance;
+  validation.validateNotBlank(config.apiKey, 'API key required');
+  validation.validateNotBlank(config.precompute.subjectKey, 'Subject key required');
+
   const {
     apiKey,
-    subjectKey,
-    subjectAttributes = {},
+    precompute: { subjectKey, subjectAttributes = {} },
     baseUrl,
     requestTimeoutMs,
     numInitialRequestRetries,
@@ -575,19 +577,12 @@ export async function precomputedInit(
     skipInitialRequest = false,
   } = config;
 
-  // Set up assignment logger and cache
-  instance.setAssignmentLogger(config.assignmentLogger);
-
   // Set up parameters for requesting updated configurations
-  const precomputedFlagsRequestParameters: PrecomputedFlagsRequestParameters = {
+  const requestParameters: PrecomputedFlagsRequestParameters = {
     apiKey,
     sdkName,
     sdkVersion,
     baseUrl,
-    precompute: {
-      subjectKey,
-      subjectAttributes,
-    },
     requestTimeoutMs,
     numInitialRequestRetries,
     numPollRequestRetries,
@@ -597,12 +592,111 @@ export async function precomputedInit(
     throwOnFailedInitialization: true, // always use true here as underlying instance fetch is surrounded by try/catch
     skipInitialPoll: skipInitialRequest,
   };
-  instance.setSubjectAndPrecomputedFlagsRequestParameters(precomputedFlagsRequestParameters);
 
-  await instance.fetchPrecomputedFlags();
+  const subject: Subject = { subjectKey, subjectAttributes };
+
+  EppoPrecomputedJSClient.instance = new EppoPrecomputedJSClient({
+    precomputedFlagStore: memoryOnlyPrecomputedFlagsStore,
+    requestParameters,
+    subject,
+  });
+
+  EppoPrecomputedJSClient.instance.setAssignmentLogger(config.assignmentLogger);
+  await EppoPrecomputedJSClient.instance.fetchPrecomputedFlags();
 
   EppoPrecomputedJSClient.initialized = true;
   return EppoPrecomputedJSClient.instance;
+}
+
+/**
+ * Configuration parameters for initializing the Eppo precomputed client.
+ *
+ * This interface is used for cases where precomputed assignments are available
+ * from an external process that can bootstrap the SDK client.
+ *
+ * @param precomputedConfiguration - The configuration as a string to bootstrap the client.
+ * @param assignmentLogger - Optional logger for assignment events.
+ * @param throwOnFailedInitialization - Optional flag to throw an error if initialization fails.
+ * @public
+ */
+export interface IPrecomputedClientConfigSync {
+  precomputedConfiguration: string;
+  assignmentLogger?: IAssignmentLogger;
+  throwOnFailedInitialization?: boolean;
+}
+
+/**
+ * Initializes the Eppo precomputed client with configuration parameters.
+ *
+ * The purpose is for use-cases where the precomputed assignments are available from an external process
+ * that can bootstrap the SDK.
+ *
+ * This method should be called once on application startup.
+ *
+ * @param config - precomputed client configuration
+ * @returns a singleton precomputed client instance
+ * @public
+ */
+export function offlinePrecomputedInit(
+  config: IPrecomputedClientConfigSync,
+): EppoPrecomputedClient {
+  const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
+
+  const configurationWire: IConfigurationWire = JSON.parse(config.precomputedConfiguration);
+  if (!configurationWire.precomputed) {
+    const errorMessage = 'Invalid precomputed configuration wire';
+    if (throwOnFailedInitialization) {
+      throw new Error(errorMessage);
+    } else {
+      applicationLogger.error('[Eppo SDK] ${errorMessage}');
+      return EppoPrecomputedJSClient.instance;
+    }
+  }
+  const { subjectKey, subjectAttributes, response } = configurationWire.precomputed;
+  const parsedResponse: IObfuscatedPrecomputedConfigurationResponse = JSON.parse(response);
+
+  try {
+    const memoryOnlyPrecomputedStore = precomputedFlagsStorageFactory();
+    memoryOnlyPrecomputedStore
+      .setEntries(parsedResponse.flags)
+      .catch((err) =>
+        applicationLogger.warn('Error setting precomputed assignments for memory-only store', err),
+      );
+    memoryOnlyPrecomputedStore.salt = parsedResponse.salt;
+
+    const subject: Subject = {
+      subjectKey,
+      subjectAttributes: subjectAttributes ?? {},
+    };
+
+    shutdownEppoPrecomputedClient();
+    EppoPrecomputedJSClient.instance = new EppoPrecomputedJSClient({
+      precomputedFlagStore: memoryOnlyPrecomputedStore,
+      subject,
+    });
+
+    if (config.assignmentLogger) {
+      EppoPrecomputedJSClient.instance.setAssignmentLogger(config.assignmentLogger);
+    }
+  } catch (error) {
+    applicationLogger.warn(
+      '[Eppo SDK] Encountered an error initializing precomputed client, assignment calls will return the default value and not be logged',
+    );
+    if (throwOnFailedInitialization) {
+      throw error;
+    }
+  }
+
+  EppoPrecomputedJSClient.initialized = true;
+  return EppoPrecomputedJSClient.instance;
+}
+
+function shutdownEppoPrecomputedClient() {
+  if (EppoPrecomputedJSClient.instance && EppoPrecomputedJSClient.initialized) {
+    EppoPrecomputedJSClient.instance.stopPolling();
+    EppoPrecomputedJSClient.initialized = false;
+    applicationLogger.warn('[Eppo SDK] Precomputed client is being re-initialized.');
+  }
 }
 
 /**

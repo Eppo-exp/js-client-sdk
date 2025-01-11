@@ -380,10 +380,10 @@
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.6.3.tgz#f13c7c205915eb91ae54c557f5e92bddd8be0e83"
   integrity sha512-4B4OijXeVNOPZlYA2oEwWOTkzyltLao+xbotHQeqN++Rv27Y6s818+n2Qkp8q+Fxhn0t/5lA5X1Mxktud8eayQ==
 
-"@eppo/js-client-sdk-common@^4.7.1":
-  version "4.7.1"
-  resolved "https://registry.yarnpkg.com/@eppo/js-client-sdk-common/-/js-client-sdk-common-4.7.1.tgz#8a0776055604af65d0e0f8410d4756aa3117992f"
-  integrity sha512-8+5WbFN1EvsS5Ba/qakjDGEhp9loTxSvVHeWaQXKKLXxV+5AhFNOl+d8jSwOkLnP+Qr5D9w1eO7lfzuNDkUcWw==
+"@eppo/js-client-sdk-common@4.8.0-alpha.1":
+  version "4.8.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/@eppo/js-client-sdk-common/-/js-client-sdk-common-4.8.0-alpha.1.tgz#3c5c5f9fad5aa4ba582f0f9ea09b5ee60456e4cf"
+  integrity sha512-sB/3D/aj4TvTw44mxb2hWNGB22FrJzvHrQxQ6eGGeTBZkrBJz4wnl3WcvVjiiNPKBJpKxYGs5C0kM/++IHfH6A==
   dependencies:
     buffer "npm:@eppo/buffer@6.2.0"
     js-base64 "^3.7.7"
@@ -1052,6 +1052,11 @@
   version "7.5.8"
   resolved "https://registry.yarnpkg.com/@types/semver/-/semver-7.5.8.tgz#8268a8c57a3e4abd25c165ecd36237db7948a55e"
   integrity sha512-I8EUhyrgfLrcTkzV3TSsGyl1tSuPrEDzr0yd5m90UgNxQkyDXULk3b6MlQqTCpZpNtWe1K0hzclnZkTcLBe2UQ==
+
+"@types/spark-md5@^3.0.5":
+  version "3.0.5"
+  resolved "https://registry.yarnpkg.com/@types/spark-md5/-/spark-md5-3.0.5.tgz#eddec8639217e518c26e9e221ff56bf5f5f5c900"
+  integrity sha512-lWf05dnD42DLVKQJZrDHtWFidcLrHuip01CtnC2/S6AMhX4t9ZlEUj4iuRlAnts0PQk7KESOqKxeGE/b6sIPGg==
 
 "@types/stack-utils@^2.0.0":
   version "2.0.1"
