@@ -38,6 +38,25 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[enableOverrides?](./js-client-sdk.iclientconfig.enableoverrides.md)
+
+
+</td><td>
+
+
+</td><td>
+
+boolean
+
+
+</td><td>
+
+_(Optional)_ Enable the Overrides Store for local flag overrides. (default: false)
+
+
+</td></tr>
+<tr><td>
+
 [eventIngestionConfig?](./js-client-sdk.iclientconfig.eventingestionconfig.md)
 
 
