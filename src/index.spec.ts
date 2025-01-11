@@ -1188,6 +1188,7 @@ describe('offlinePrecomputedInit', () => {
 
   it('logs a warning on re-initialization', () => {
     td.replace(applicationLogger, 'warn');
+    EppoPrecomputedJSClient.initialized = false;
     // First initialization there is no client to spy on, so we only test that no warning is logged
     offlinePrecomputedInit({
       precomputedConfiguration,
