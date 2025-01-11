@@ -1,4 +1,4 @@
-import { AsyncMap } from '@eppo/js-client-sdk-common';
+import { applicationLogger, AsyncMap } from '@eppo/js-client-sdk-common';
 
 /** Chrome storage-backed {@link AsyncMap}. */
 export default class ChromeStorageAsyncMap<T> implements AsyncMap<string, T> {
@@ -18,7 +18,12 @@ export default class ChromeStorageAsyncMap<T> implements AsyncMap<string, T> {
     return await this.storage.get(null);
   }
 
-  async set(key: string, value: T) {
-    await this.storage.set({ [key]: value });
+  async set(key: string, value: T): Promise<void> {
+    try {
+      await this.storage.set({ [key]: value });
+    } catch (error) {
+      applicationLogger.warn('Chrome storage write failed for key:', key, error);
+      throw error;
+    }
   }
 }
