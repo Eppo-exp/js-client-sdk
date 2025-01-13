@@ -315,6 +315,13 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
   return EppoJSClient.instance;
 }
 
+type APIKey = string;
+
+/**
+ * Tracks initialization by API key. After an initialization completes, the value is removed from the map.
+ */
+const _initializationPromises: Map<APIKey, Promise<EppoClient>> = new Map();
+
 /**
  * Initializes the Eppo client with configuration parameters.
  * This method should be called once on application startup.
@@ -322,6 +329,24 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
  * @public
  */
 export async function init(config: IClientConfig): Promise<EppoClient> {
+  validation.validateNotBlank(config.apiKey, 'API key required');
+
+  // If there is already an init in progress for this apiKey, return that.
+  let _initPromise = _initializationPromises.get(config.apiKey);
+  if (_initPromise) {
+    return _initPromise;
+  }
+
+  _initPromise = explicitInit(config);
+  _initializationPromises.set(config.apiKey, _initPromise);
+
+  return _initPromise.then((client) => {
+    _initializationPromises.delete(config.apiKey);
+    return client;
+  });
+}
+
+async function explicitInit(config: IClientConfig): Promise<EppoClient> {
   validation.validateNotBlank(config.apiKey, 'API key required');
   let initializationError: Error | undefined;
   const instance = EppoJSClient.instance;

@@ -503,6 +503,40 @@ describe('initialization options', () => {
     expect(callCount).toBe(2);
   });
 
+  it('Multiple Inits', async () => {
+    let callCount = 0;
+
+    global.fetch = jest.fn(() => {
+      ++callCount;
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(mockConfigResponse),
+      });
+    }) as jest.Mock;
+
+    const inits: Promise<EppoClient>[] = [];
+    [...Array(10).keys()].forEach(() => {
+      inits.push(
+        init({
+          apiKey,
+          baseUrl,
+          assignmentLogger: mockLogger,
+        }),
+      );
+    });
+
+    // Advance timers mid-init to allow retrying
+    await jest.advanceTimersByTimeAsync(maxRetryDelay);
+
+    // Await for all the initialization calls to resolve
+    const client = await Promise.race(inits);
+    await Promise.all(inits);
+
+    expect(callCount).toBe(1);
+    expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
+  });
+
   it('do not reinitialize if already initialized', async () => {
     let callCount = 0;
 
