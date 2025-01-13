@@ -503,6 +503,104 @@ describe('initialization options', () => {
     expect(callCount).toBe(2);
   });
 
+  it('only fetches/does initialization workload once if init is called multiple times concurrently', async () => {
+    let callCount = 0;
+
+    global.fetch = jest.fn(() => {
+      ++callCount;
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(mockConfigResponse),
+      });
+    }) as jest.Mock;
+
+    const inits: Promise<EppoClient>[] = [];
+    [...Array(10).keys()].forEach(() => {
+      inits.push(
+        init({
+          apiKey,
+          baseUrl,
+          assignmentLogger: mockLogger,
+        }),
+      );
+    });
+
+    // Advance timers mid-init to allow retrying
+    await jest.advanceTimersByTimeAsync(maxRetryDelay);
+
+    // Await for all the initialization calls to resolve
+    const client = await Promise.race(inits);
+    await Promise.all(inits);
+
+    expect(callCount).toBe(1);
+    expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
+  });
+
+  it('only fetches/does initialization workload once per API key if init is called multiple times concurrently', async () => {
+    let callCount = 0;
+
+    global.fetch = jest.fn(() => {
+      ++callCount;
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(mockConfigResponse),
+      });
+    }) as jest.Mock;
+
+    const inits: Promise<EppoClient>[] = [];
+    [
+      'KEY_1',
+      'KEY_2',
+      'KEY_1',
+      'KEY_2',
+      'KEY_1',
+      'KEY_2',
+      'KEY_3',
+      'KEY_1',
+      'KEY_2',
+      'KEY_3',
+    ].forEach((varyingAPIKey) => {
+      inits.push(
+        init({
+          apiKey: varyingAPIKey,
+          baseUrl,
+          forceReinitialize: true,
+          assignmentLogger: mockLogger,
+        }),
+      );
+    });
+
+    // Advance timers mid-init to allow retrying
+    await jest.advanceTimersByTimeAsync(maxRetryDelay);
+
+    // Await for all the initialization calls to resolve
+    const client = await Promise.race(inits);
+    await Promise.all(inits);
+
+    expect(callCount).toBe(3);
+    callCount = 0;
+    expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
+
+    const reInits: Promise<EppoClient>[] = [];
+    ['KEY_1', 'KEY_2', 'KEY_3', 'KEY_4'].forEach((varyingAPIKey) => {
+      reInits.push(
+        init({
+          apiKey: varyingAPIKey,
+          forceReinitialize: true,
+          baseUrl,
+          assignmentLogger: mockLogger,
+        }),
+      );
+    });
+
+    await Promise.all(reInits);
+
+    expect(callCount).toBe(4);
+    expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
+  });
+
   it('do not reinitialize if already initialized', async () => {
     let callCount = 0;
 
