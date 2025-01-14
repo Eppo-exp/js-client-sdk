@@ -380,7 +380,7 @@
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.6.3.tgz#f13c7c205915eb91ae54c557f5e92bddd8be0e83"
   integrity sha512-4B4OijXeVNOPZlYA2oEwWOTkzyltLao+xbotHQeqN++Rv27Y6s818+n2Qkp8q+Fxhn0t/5lA5X1Mxktud8eayQ==
 
-"@eppo/js-client-sdk-common@^4.8.1":
+"@eppo/js-client-sdk-common@4.8.1":
   version "4.8.1"
   resolved "https://registry.yarnpkg.com/@eppo/js-client-sdk-common/-/js-client-sdk-common-4.8.1.tgz#d273a43e791e50d36aea4dd8813e406139464e10"
   integrity sha512-z++Z3XxTUAcjYyt63YYN5mkzsBy25LYI1BU3hj3uKl6sn6hHqXJLftQcU/8n/b7VZgL8XTTD2+85xzKbCMKdAA==
