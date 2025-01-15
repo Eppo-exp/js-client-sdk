@@ -1,4 +1,10 @@
-import { AttributeType, Flag, IAssignmentLogger, IAsyncStore } from '@eppo/js-client-sdk-common';
+import {
+  AttributeType,
+  Flag,
+  IAssignmentLogger,
+  IAsyncStore,
+  IBanditLogger,
+} from '@eppo/js-client-sdk-common';
 
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 
@@ -22,7 +28,12 @@ interface IBaseRequestConfig {
    */
   assignmentLogger: IAssignmentLogger;
 
-  /***
+  /**
+   * Pass a logging implementation to send bandit assignments to your data warehouse.
+   */
+  banditLogger?: IBanditLogger;
+
+  /**
    * Timeout in milliseconds for the HTTPS request for the experiment configuration. (Default: 5000)
    */
   requestTimeoutMs?: number;
