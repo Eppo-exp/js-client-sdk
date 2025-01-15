@@ -96,6 +96,18 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[getBanditAction(flagKey, defaultValue)](./js-client-sdk.eppoprecomputedjsclient.getbanditaction.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
 [getBooleanAssignment(flagKey, defaultValue)](./js-client-sdk.eppoprecomputedjsclient.getbooleanassignment.md)
 
 
