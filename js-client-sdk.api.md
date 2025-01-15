@@ -17,6 +17,8 @@ import { IAssignmentDetails } from '@eppo/js-client-sdk-common';
 import { IAssignmentEvent } from '@eppo/js-client-sdk-common';
 import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
 import { IAsyncStore } from '@eppo/js-client-sdk-common';
+import { IBanditEvent } from '@eppo/js-client-sdk-common';
+import { IBanditLogger } from '@eppo/js-client-sdk-common';
 import { IContainerExperiment } from '@eppo/js-client-sdk-common';
 import { ObfuscatedFlag } from '@eppo/js-client-sdk-common';
 
@@ -111,6 +113,10 @@ export { IAssignmentEvent }
 export { IAssignmentLogger }
 
 export { IAsyncStore }
+
+export { IBanditEvent }
+
+export { IBanditLogger }
 
 // Warning: (ae-forgotten-export) The symbol "IBaseRequestConfig" needs to be exported by the entry point index.d.ts
 //

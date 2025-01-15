@@ -59,6 +59,8 @@ export {
   IAssignmentDetails,
   IAssignmentEvent,
   IAssignmentLogger,
+  IBanditEvent,
+  IBanditLogger,
   IAsyncStore,
   Flag,
   ObfuscatedFlag,
