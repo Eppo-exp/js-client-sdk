@@ -556,7 +556,13 @@ export function getConfigUrl(apiKey: string, baseUrl?: string): URL {
  * @public
  */
 export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
-  public static instance: EppoPrecomputedJSClient;
+  public static instance = new EppoPrecomputedJSClient({
+    precomputedFlagStore: memoryOnlyPrecomputedFlagsStore,
+    subject: {
+      subjectKey: '',
+      subjectAttributes: {},
+    },
+  });
   public static initialized = false;
 
   public getStringAssignment(flagKey: string, defaultValue: string): string {
