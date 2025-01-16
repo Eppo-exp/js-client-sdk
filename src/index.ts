@@ -33,6 +33,7 @@ import {
   hasChromeStorage,
   hasWindowLocalStorage,
   localStorageIfAvailable,
+  precomputedBanditStoreFactory,
 } from './configuration-factory';
 import BrowserNetworkStatusListener from './events/browser-network-status-listener';
 import LocalStorageBackedNamedEventQueue from './events/local-storage-backed-named-event-queue';
@@ -721,6 +722,14 @@ export function offlinePrecomputedInit(
       );
     memoryOnlyPrecomputedStore.salt = parsedResponse.salt;
 
+    const memoryOnlyPrecomputedBanditStore = precomputedBanditStoreFactory();
+    memoryOnlyPrecomputedBanditStore
+      .setEntries(parsedResponse.bandits)
+      .catch((err) =>
+        applicationLogger.warn('Error setting precomputed bandits for memory-only store', err),
+      );
+    memoryOnlyPrecomputedBanditStore.salt = parsedResponse.salt;
+
     const subject: Subject = {
       subjectKey,
       subjectAttributes: subjectAttributes ?? {},
@@ -729,6 +738,7 @@ export function offlinePrecomputedInit(
     shutdownEppoPrecomputedClient();
     EppoPrecomputedJSClient.instance = new EppoPrecomputedJSClient({
       precomputedFlagStore: memoryOnlyPrecomputedStore,
+      precomputedBanditStore: memoryOnlyPrecomputedBanditStore,
       subject,
     });
 
