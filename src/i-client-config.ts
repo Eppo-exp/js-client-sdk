@@ -4,6 +4,7 @@ import {
   IAssignmentLogger,
   IAsyncStore,
   IBanditLogger,
+  BanditActions,
 } from '@eppo/js-client-sdk-common';
 
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
@@ -86,6 +87,11 @@ interface IPrecompute {
    * Subject attributes to use for precomputed flag assignments.
    */
   subjectAttributes?: Record<string, AttributeType>;
+
+  /**
+   * Bandit actions to use for precomputed flag assignments.
+   */
+  banditActions?: BanditActions;
 }
 
 /**

@@ -62,11 +62,16 @@ export {
   IAssignmentDetails,
   IAssignmentEvent,
   IAssignmentLogger,
-  IBanditEvent,
-  IBanditLogger,
   IAsyncStore,
   Flag,
   ObfuscatedFlag,
+
+  // Bandits
+  IBanditLogger,
+  IBanditEvent,
+  ContextAttributes,
+  BanditSubjectAttributes,
+  BanditActions,
 } from '@eppo/js-client-sdk-common';
 export { ChromeStorageEngine } from './chrome-storage-engine';
 
