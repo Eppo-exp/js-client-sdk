@@ -1342,4 +1342,25 @@ describe('EppoClient config', () => {
     expect(retryManager['config']['maxRetryDelayMs']).toEqual(3);
     expect(retryManager['config']['maxRetries']).toEqual(4);
   });
+
+  it('handles empty precomputed configuration string', () => {
+    // Test with throwOnFailedInitialization = true (default)
+    expect(() =>
+      offlinePrecomputedInit({
+        precomputedConfiguration: '',
+      }),
+    ).toThrow('Invalid precomputed configuration wire');
+
+    // Test with throwOnFailedInitialization = false
+    td.replace(applicationLogger, 'error');
+    const client = offlinePrecomputedInit({
+      precomputedConfiguration: '',
+      throwOnFailedInitialization: false,
+    });
+
+    expect(client).toBe(EppoPrecomputedJSClient.instance);
+    td.verify(applicationLogger.error('[Eppo SDK] Invalid precomputed configuration wire'), {
+      times: 1,
+    });
+  });
 });
