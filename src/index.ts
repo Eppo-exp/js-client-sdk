@@ -768,7 +768,7 @@ export function offlinePrecomputedInit(
 }
 
 function shutdownEppoPrecomputedClient() {
-  if (EppoPrecomputedJSClient.instance && EppoPrecomputedJSClient.initialized) {
+  if (EppoPrecomputedJSClient.initialized) {
     EppoPrecomputedJSClient.instance.stopPolling();
     EppoPrecomputedJSClient.initialized = false;
     applicationLogger.warn('[Eppo SDK] Precomputed client is being re-initialized.');
