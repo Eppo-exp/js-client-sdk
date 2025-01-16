@@ -667,15 +667,17 @@ export function offlinePrecomputedInit(
 ): EppoPrecomputedClient {
   const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
 
-  const configurationWire: IConfigurationWire = JSON.parse(config.precomputedConfiguration);
-  if (!configurationWire.precomputed) {
+  let configurationWire: IConfigurationWire;
+  try {
+    configurationWire = JSON.parse(config.precomputedConfiguration);
+    if (!configurationWire.precomputed) throw new Error();
+  } catch (error) {
     const errorMessage = 'Invalid precomputed configuration wire';
     if (throwOnFailedInitialization) {
       throw new Error(errorMessage);
-    } else {
-      applicationLogger.error('[Eppo SDK] ${errorMessage}');
-      return EppoPrecomputedJSClient.instance;
     }
+    applicationLogger.error(`[Eppo SDK] ${errorMessage}`);
+    return EppoPrecomputedJSClient.instance;
   }
   const { subjectKey, subjectAttributes, response } = configurationWire.precomputed;
   const parsedResponse: IObfuscatedPrecomputedConfigurationResponse = JSON.parse(response);
