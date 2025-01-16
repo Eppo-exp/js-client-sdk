@@ -614,7 +614,7 @@ export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
 export async function precomputedInit(
   config: IPrecomputedClientConfig,
 ): Promise<EppoPrecomputedClient> {
-  if (EppoPrecomputedJSClient.instance) {
+  if (EppoPrecomputedJSClient.initialized) {
     return EppoPrecomputedJSClient.instance;
   }
 
