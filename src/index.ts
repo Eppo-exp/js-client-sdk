@@ -81,8 +81,9 @@ const flagConfigurationStore = configurationStorageFactory({
   forceMemoryOnly: true,
 });
 
-// Instantiate the precomputed flgas store with memory-only implementation.
+// Instantiate the precomputed flags and bandits stores with memory-only implementation.
 const memoryOnlyPrecomputedFlagsStore = precomputedFlagsStorageFactory();
+const memoryOnlyPrecomputedBanditsStore = precomputedBanditStoreFactory();
 
 /**
  * Client for assigning experiment variations.
@@ -656,6 +657,7 @@ export async function precomputedInit(
     precomputedFlagStore: memoryOnlyPrecomputedFlagsStore,
     requestParameters,
     subject,
+    precomputedBanditStore: memoryOnlyPrecomputedBanditsStore,
   });
 
   EppoPrecomputedJSClient.instance.setAssignmentLogger(config.assignmentLogger);
