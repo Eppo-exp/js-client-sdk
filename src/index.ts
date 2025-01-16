@@ -20,6 +20,7 @@ import {
   Event,
   IConfigurationWire,
   Subject,
+  IBanditLogger,
 } from '@eppo/js-client-sdk-common';
 import { IObfuscatedPrecomputedConfigurationResponse } from '@eppo/js-client-sdk-common/src/configuration';
 
@@ -47,6 +48,8 @@ export interface IClientConfigSync {
 
   assignmentLogger?: IAssignmentLogger;
 
+  banditLogger?: IBanditLogger;
+
   isObfuscated?: boolean;
 
   throwOnFailedInitialization?: boolean;
@@ -62,6 +65,13 @@ export {
   IAsyncStore,
   Flag,
   ObfuscatedFlag,
+
+  // Bandits
+  IBanditLogger,
+  IBanditEvent,
+  ContextAttributes,
+  BanditSubjectAttributes,
+  BanditActions,
 } from '@eppo/js-client-sdk-common';
 export { ChromeStorageEngine } from './chrome-storage-engine';
 
@@ -290,6 +300,10 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
       EppoJSClient.instance.setAssignmentLogger(config.assignmentLogger);
     }
 
+    if (config.banditLogger) {
+      EppoJSClient.instance.setBanditLogger(config.banditLogger);
+    }
+
     // There is no SDK key in the offline context.
     const storageKeySuffix = 'offline';
 
@@ -385,6 +399,9 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
     instance.stopPolling();
     // Set up assignment logger and cache
     instance.setAssignmentLogger(config.assignmentLogger);
+    if (config.banditLogger) {
+      instance.setBanditLogger(config.banditLogger);
+    }
     // Default to obfuscated mode when requesting configuration from the server.
     instance.setIsObfuscated(true);
 
@@ -566,6 +583,14 @@ export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
     return super.getJSONAssignment(flagKey, defaultValue);
   }
 
+  public getBanditAction(
+    flagKey: string,
+    defaultValue: string,
+  ): Omit<IAssignmentDetails<string>, 'evaluationDetails'> {
+    EppoPrecomputedJSClient.getAssignmentInitializationCheck();
+    return super.getBanditAction(flagKey, defaultValue);
+  }
+
   private static getAssignmentInitializationCheck() {
     if (!EppoJSClient.initialized) {
       applicationLogger.warn('Eppo SDK assignment requested before init() completed');
@@ -627,6 +652,9 @@ export async function precomputedInit(
   });
 
   EppoPrecomputedJSClient.instance.setAssignmentLogger(config.assignmentLogger);
+  if (config.banditLogger) {
+    EppoPrecomputedJSClient.instance.setBanditLogger(config.banditLogger);
+  }
   await EppoPrecomputedJSClient.instance.fetchPrecomputedFlags();
 
   EppoPrecomputedJSClient.initialized = true;
@@ -641,12 +669,14 @@ export async function precomputedInit(
  *
  * @param precomputedConfiguration - The configuration as a string to bootstrap the client.
  * @param assignmentLogger - Optional logger for assignment events.
+ * @param banditLogger - Optional logger for bandit events.
  * @param throwOnFailedInitialization - Optional flag to throw an error if initialization fails.
  * @public
  */
 export interface IPrecomputedClientConfigSync {
   precomputedConfiguration: string;
   assignmentLogger?: IAssignmentLogger;
+  banditLogger?: IBanditLogger;
   throwOnFailedInitialization?: boolean;
 }
 
@@ -704,6 +734,9 @@ export function offlinePrecomputedInit(
 
     if (config.assignmentLogger) {
       EppoPrecomputedJSClient.instance.setAssignmentLogger(config.assignmentLogger);
+    }
+    if (config.banditLogger) {
+      EppoPrecomputedJSClient.instance.setBanditLogger(config.banditLogger);
     }
   } catch (error) {
     applicationLogger.warn(

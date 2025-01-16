@@ -8,8 +8,6 @@ Configuration parameters for initializing the Eppo precomputed client.
 
 This interface is used for cases where precomputed assignments are available from an external process that can bootstrap the SDK client.
 
- precomputedConfiguration - The configuration as a string to bootstrap the client.  assignmentLogger - Optional logger for assignment events.  throwOnFailedInitialization - Optional flag to throw an error if initialization fails.
-
 **Signature:**
 
 ```typescript
@@ -50,6 +48,25 @@ Description
 </td><td>
 
 IAssignmentLogger
+
+
+</td><td>
+
+_(Optional)_
+
+
+</td></tr>
+<tr><td>
+
+[banditLogger?](./js-client-sdk.iprecomputedclientconfigsync.banditlogger.md)
+
+
+</td><td>
+
+
+</td><td>
+
+IBanditLogger
 
 
 </td><td>

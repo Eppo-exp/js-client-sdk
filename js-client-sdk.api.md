@@ -17,6 +17,8 @@ import { IAssignmentDetails } from '@eppo/js-client-sdk-common';
 import { IAssignmentEvent } from '@eppo/js-client-sdk-common';
 import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
 import { IAsyncStore } from '@eppo/js-client-sdk-common';
+import { IBanditEvent } from '@eppo/js-client-sdk-common';
+import { IBanditLogger } from '@eppo/js-client-sdk-common';
 import { IContainerExperiment } from '@eppo/js-client-sdk-common';
 import { ObfuscatedFlag } from '@eppo/js-client-sdk-common';
 
@@ -78,6 +80,8 @@ export class EppoJSClient extends EppoClient {
 // @public
 export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
     // (undocumented)
+    getBanditAction(flagKey: string, defaultValue: string): Omit<IAssignmentDetails<string>, 'evaluationDetails'>;
+    // (undocumented)
     getBooleanAssignment(flagKey: string, defaultValue: boolean): boolean;
     // (undocumented)
     getIntegerAssignment(flagKey: string, defaultValue: number): number;
@@ -112,6 +116,10 @@ export { IAssignmentLogger }
 
 export { IAsyncStore }
 
+export { IBanditEvent }
+
+export { IBanditLogger }
+
 // Warning: (ae-forgotten-export) The symbol "IBaseRequestConfig" needs to be exported by the entry point index.d.ts
 //
 // @public
@@ -138,6 +146,8 @@ export interface IClientConfigSync {
     // (undocumented)
     assignmentLogger?: IAssignmentLogger;
     // (undocumented)
+    banditLogger?: IBanditLogger;
+    // (undocumented)
     flagsConfiguration: Record<string, Flag | ObfuscatedFlag>;
     // (undocumented)
     isObfuscated?: boolean;
@@ -160,6 +170,8 @@ export interface IPrecomputedClientConfig extends IBaseRequestConfig {
 export interface IPrecomputedClientConfigSync {
     // (undocumented)
     assignmentLogger?: IAssignmentLogger;
+    // (undocumented)
+    banditLogger?: IBanditLogger;
     // (undocumented)
     precomputedConfiguration: string;
     // (undocumented)
