@@ -728,6 +728,7 @@ export function offlinePrecomputedInit(
       .catch((err) =>
         applicationLogger.warn('Error setting precomputed bandits for memory-only store', err),
       );
+    memoryOnlyPrecomputedBanditStore.salt = parsedResponse.salt;
 
     const subject: Subject = {
       subjectKey,
