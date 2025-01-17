@@ -36,6 +36,7 @@ import {
   EppoPrecomputedJSClient,
   getConfigUrl,
   getInstance,
+  getPrecomputedInstance,
   IAssignmentLogger,
   init,
   offlineInit,
@@ -1275,6 +1276,19 @@ describe('offlinePrecomputedInit', () => {
         lifetimeValue: 543.21,
         platform: 'ios',
       },
+    });
+  });
+
+  describe('getPrecomputedInstance', () => {
+    it('returns an instance that safely returns defaults without logging', () => {
+      const mockLogger = td.object<IAssignmentLogger>();
+      const instance = getPrecomputedInstance();
+      instance.setAssignmentLogger(mockLogger);
+
+      const result = instance.getStringAssignment('any-flag', 'default-value');
+
+      expect(result).toBe('default-value');
+      td.verify(mockLogger.logAssignment(td.matchers.anything()), { times: 0 });
     });
   });
 

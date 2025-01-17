@@ -557,7 +557,13 @@ export function getConfigUrl(apiKey: string, baseUrl?: string): URL {
  * @public
  */
 export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
-  public static instance: EppoPrecomputedJSClient;
+  public static instance = new EppoPrecomputedJSClient({
+    precomputedFlagStore: memoryOnlyPrecomputedFlagsStore,
+    subject: {
+      subjectKey: '',
+      subjectAttributes: {},
+    },
+  });
   public static initialized = false;
 
   public getStringAssignment(flagKey: string, defaultValue: string): string {
@@ -609,7 +615,7 @@ export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
 export async function precomputedInit(
   config: IPrecomputedClientConfig,
 ): Promise<EppoPrecomputedClient> {
-  if (EppoPrecomputedJSClient.instance) {
+  if (EppoPrecomputedJSClient.initialized) {
     return EppoPrecomputedJSClient.instance;
   }
 
@@ -764,7 +770,7 @@ export function offlinePrecomputedInit(
 }
 
 function shutdownEppoPrecomputedClient() {
-  if (EppoPrecomputedJSClient.instance && EppoPrecomputedJSClient.initialized) {
+  if (EppoPrecomputedJSClient.initialized) {
     EppoPrecomputedJSClient.instance.stopPolling();
     EppoPrecomputedJSClient.initialized = false;
     applicationLogger.warn('[Eppo SDK] Precomputed client is being re-initialized.');
