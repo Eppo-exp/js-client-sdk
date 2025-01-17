@@ -10,6 +10,7 @@ import { AsyncMap } from '@eppo/js-client-sdk-common';
 import { AttributeType } from '@eppo/js-client-sdk-common';
 import { BanditActions } from '@eppo/js-client-sdk-common';
 import { BanditSubjectAttributes } from '@eppo/js-client-sdk-common';
+import { ContextAttributes } from '@eppo/js-client-sdk-common';
 import { EppoClient } from '@eppo/js-client-sdk-common';
 import { EppoPrecomputedClient } from '@eppo/js-client-sdk-common';
 import { Flag } from '@eppo/js-client-sdk-common';
@@ -21,6 +22,10 @@ import { IBanditEvent } from '@eppo/js-client-sdk-common';
 import { IBanditLogger } from '@eppo/js-client-sdk-common';
 import { IContainerExperiment } from '@eppo/js-client-sdk-common';
 import { ObfuscatedFlag } from '@eppo/js-client-sdk-common';
+
+export { BanditActions }
+
+export { BanditSubjectAttributes }
 
 // @public
 export function buildStorageKeySuffix(apiKey: string): string;
@@ -40,6 +45,8 @@ export class ChromeStorageEngine implements IStringStorageEngine {
     // (undocumented)
     setMetaJsonString: (metaJsonString: string) => Promise<void>;
 }
+
+export { ContextAttributes }
 
 // @public
 export class EppoJSClient extends EppoClient {
