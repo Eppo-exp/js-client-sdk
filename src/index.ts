@@ -441,23 +441,30 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
     let initFromConfigStoreError = undefined;
     let initFromFetchError = undefined;
 
-    const attemptInitFromConfigStore = configurationStore
+    enum ConfigSource {
+      CONFIG_STORE,
+      FETCH,
+      NONE,
+    }
+    type RacingPromise = Promise<ConfigSource>;
+
+    const attemptInitFromConfigStore: RacingPromise = configurationStore
       .init()
       .then(async () => {
         if (!configurationStore.getKeys().length) {
           // Consider empty configuration stores invalid
           applicationLogger.warn('Eppo SDK cached configuration is empty');
           initFromConfigStoreError = new Error('Configuration store was empty');
-          return '';
+          return ConfigSource.NONE;
         }
 
         const cacheIsExpired = await configurationStore.isExpired();
         if (cacheIsExpired && !config.useExpiredCache) {
           applicationLogger.warn('Eppo SDK set not to use expired cached configuration');
           initFromConfigStoreError = new Error('Configuration store was expired');
-          return '';
+          return ConfigSource.NONE;
         }
-        return 'config store';
+        return ConfigSource.CONFIG_STORE;
       })
       .catch((e) => {
         applicationLogger.warn(
@@ -465,22 +472,41 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
           e,
         );
         initFromConfigStoreError = e;
+        return ConfigSource.CONFIG_STORE;
       });
-    const attemptInitFromFetch = instance
+
+    let deferedToConfigStore = false;
+    const attemptInitFromFetch: RacingPromise = instance
       .fetchFlagConfigurations()
-      .then(() => 'fetch')
+      .then(() => {
+        if (configurationStore.isInitialized()) {
+          // If fetch has won the race and the configStore is initialized, that means we have a successful load and the
+          // fetched data was used to init.
+          return ConfigSource.FETCH;
+        } else {
+          // If the config store is not initialized and the fetch says it is done, that means the fetch did not set any
+          // values into the config store (ex:the cache is not expired or invalid config data was received).
+          // Here, we know that the fetch did not have any effect, so we defer to the config store initialization.
+          deferedToConfigStore = true;
+          return attemptInitFromConfigStore;
+        }
+      })
       .catch((e) => {
         applicationLogger.warn('Eppo SDK encountered an error initializing from fetching', e);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         initFromFetchError = e;
+        return ConfigSource.NONE;
       });
 
-    let initializationSource = await Promise.race([
-      attemptInitFromConfigStore,
-      attemptInitFromFetch,
-    ]);
+    const racers: RacingPromise[] = [attemptInitFromConfigStore];
 
-    if (!initializationSource) {
+    // attemptInitFromFetch only has side effects if `skipInitialRequest` is false.
+    if (!config.skipInitialRequest) {
+      racers.push(attemptInitFromFetch);
+    }
+    let initializationSource = await Promise.race(racers);
+
+    if (initializationSource === ConfigSource.NONE) {
       // First attempt failed, but we have a second at bat that will be executed in the scope of the top-level try-catch
       if (!initFromConfigStoreError) {
         initializationSource = await attemptInitFromConfigStore;
@@ -489,9 +515,11 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
       }
     }
 
-    if (!initializationSource) {
-      // both failed, make the "fatal" error the fetch one
-      initializationError = initFromFetchError;
+    // If we skip the initial request and have an empty config store, we end up throwing an error here which I don't think we want.
+    if (initializationSource === ConfigSource.NONE) {
+      console.log(initFromConfigStoreError);
+      // both failed. If fetched deferred to ConfigStore's resolution, then ConfigStore's error prevails.
+      initializationError = deferedToConfigStore ? initFromConfigStoreError : initFromFetchError;
     }
   } catch (error: unknown) {
     initializationError = error instanceof Error ? error : new Error(String(error));
