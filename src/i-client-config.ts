@@ -1,11 +1,12 @@
 import {
-  AttributeType,
+  BanditSubjectAttributes,
+  ContextAttributes,
   Flag,
   IAssignmentLogger,
   IAsyncStore,
   IBanditLogger,
-  BanditActions,
 } from '@eppo/js-client-sdk-common';
+import type { FlagKey } from '@eppo/js-client-sdk-common/dist/types';
 
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 
@@ -86,12 +87,12 @@ interface IPrecompute {
   /**
    * Subject attributes to use for precomputed flag assignments.
    */
-  subjectAttributes?: Record<string, AttributeType>;
+  subjectAttributes?: BanditSubjectAttributes;
 
   /**
    * Bandit actions to use for precomputed flag assignments.
    */
-  banditActions?: BanditActions;
+  banditActions?: Record<FlagKey, Record<string /*banditAction name*/, ContextAttributes>>;
 }
 
 /**
