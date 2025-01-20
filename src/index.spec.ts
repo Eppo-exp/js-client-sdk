@@ -37,6 +37,7 @@ import {
   EppoPrecomputedJSClient,
   getConfigUrl,
   getInstance,
+  getPrecomputedInstance,
   IAssignmentLogger,
   init,
   offlineInit,
@@ -1350,6 +1351,19 @@ describe('offlinePrecomputedInit', () => {
     });
   });
 
+  describe('getPrecomputedInstance', () => {
+    it('returns an instance that safely returns defaults without logging', () => {
+      const mockLogger = td.object<IAssignmentLogger>();
+      const instance = getPrecomputedInstance();
+      instance.setAssignmentLogger(mockLogger);
+
+      const result = instance.getStringAssignment('any-flag', 'default-value');
+
+      expect(result).toBe('default-value');
+      td.verify(mockLogger.logAssignment(td.matchers.anything()), { times: 0 });
+    });
+  });
+
   it('initializes without an assignment logger', () => {
     const client = offlinePrecomputedInit({ precomputedConfiguration });
 
@@ -1413,5 +1427,26 @@ describe('EppoClient config', () => {
     expect(retryManager['config']['retryIntervalMs']).toEqual(2);
     expect(retryManager['config']['maxRetryDelayMs']).toEqual(3);
     expect(retryManager['config']['maxRetries']).toEqual(4);
+  });
+
+  it('handles empty precomputed configuration string', () => {
+    // Test with throwOnFailedInitialization = true (default)
+    expect(() =>
+      offlinePrecomputedInit({
+        precomputedConfiguration: '',
+      }),
+    ).toThrow('Invalid precomputed configuration wire');
+
+    // Test with throwOnFailedInitialization = false
+    td.replace(applicationLogger, 'error');
+    const client = offlinePrecomputedInit({
+      precomputedConfiguration: '',
+      throwOnFailedInitialization: false,
+    });
+
+    expect(client).toBe(EppoPrecomputedJSClient.instance);
+    td.verify(applicationLogger.error('[Eppo SDK] Invalid precomputed configuration wire'), {
+      times: 1,
+    });
   });
 });

@@ -1,4 +1,12 @@
-import { AttributeType, Flag, IAssignmentLogger, IAsyncStore } from '@eppo/js-client-sdk-common';
+import {
+  BanditSubjectAttributes,
+  ContextAttributes,
+  Flag,
+  IAssignmentLogger,
+  IAsyncStore,
+  IBanditLogger,
+} from '@eppo/js-client-sdk-common';
+import type { FlagKey } from '@eppo/js-client-sdk-common/dist/types';
 
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 
@@ -22,7 +30,12 @@ interface IBaseRequestConfig {
    */
   assignmentLogger: IAssignmentLogger;
 
-  /***
+  /**
+   * Pass a logging implementation to send bandit assignments to your data warehouse.
+   */
+  banditLogger?: IBanditLogger;
+
+  /**
    * Timeout in milliseconds for the HTTPS request for the experiment configuration. (Default: 5000)
    */
   requestTimeoutMs?: number;
@@ -74,7 +87,12 @@ interface IPrecompute {
   /**
    * Subject attributes to use for precomputed flag assignments.
    */
-  subjectAttributes?: Record<string, AttributeType>;
+  subjectAttributes?: BanditSubjectAttributes;
+
+  /**
+   * Bandit actions to use for precomputed flag assignments.
+   */
+  banditActions?: Record<FlagKey, Record<string /*banditAction name*/, ContextAttributes>>;
 }
 
 /**

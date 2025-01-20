@@ -20,6 +20,7 @@ import {
   Event,
   IConfigurationWire,
   Subject,
+  IBanditLogger,
 } from '@eppo/js-client-sdk-common';
 import { IObfuscatedPrecomputedConfigurationResponse } from '@eppo/js-client-sdk-common/src/configuration';
 
@@ -32,6 +33,7 @@ import {
   hasChromeStorage,
   hasWindowLocalStorage,
   localStorageIfAvailable,
+  precomputedBanditStoreFactory,
 } from './configuration-factory';
 import BrowserNetworkStatusListener from './events/browser-network-status-listener';
 import LocalStorageBackedNamedEventQueue from './events/local-storage-backed-named-event-queue';
@@ -46,6 +48,8 @@ export interface IClientConfigSync {
   flagsConfiguration: Record<string, Flag | ObfuscatedFlag>;
 
   assignmentLogger?: IAssignmentLogger;
+
+  banditLogger?: IBanditLogger;
 
   isObfuscated?: boolean;
 
@@ -62,6 +66,13 @@ export {
   IAsyncStore,
   Flag,
   ObfuscatedFlag,
+
+  // Bandits
+  IBanditLogger,
+  IBanditEvent,
+  ContextAttributes,
+  BanditSubjectAttributes,
+  BanditActions,
 } from '@eppo/js-client-sdk-common';
 export { ChromeStorageEngine } from './chrome-storage-engine';
 
@@ -70,8 +81,9 @@ const flagConfigurationStore = configurationStorageFactory({
   forceMemoryOnly: true,
 });
 
-// Instantiate the precomputed flgas store with memory-only implementation.
+// Instantiate the precomputed flags and bandits stores with memory-only implementation.
 const memoryOnlyPrecomputedFlagsStore = precomputedFlagsStorageFactory();
+const memoryOnlyPrecomputedBanditsStore = precomputedBanditStoreFactory();
 
 /**
  * Client for assigning experiment variations.
@@ -290,6 +302,10 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
       EppoJSClient.instance.setAssignmentLogger(config.assignmentLogger);
     }
 
+    if (config.banditLogger) {
+      EppoJSClient.instance.setBanditLogger(config.banditLogger);
+    }
+
     // There is no SDK key in the offline context.
     const storageKeySuffix = 'offline';
 
@@ -385,6 +401,9 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
     instance.stopPolling();
     // Set up assignment logger and cache
     instance.setAssignmentLogger(config.assignmentLogger);
+    if (config.banditLogger) {
+      instance.setBanditLogger(config.banditLogger);
+    }
     // Default to obfuscated mode when requesting configuration from the server.
     instance.setIsObfuscated(true);
 
@@ -566,7 +585,13 @@ export function getConfigUrl(apiKey: string, baseUrl?: string): URL {
  * @public
  */
 export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
-  public static instance: EppoPrecomputedJSClient;
+  public static instance = new EppoPrecomputedJSClient({
+    precomputedFlagStore: memoryOnlyPrecomputedFlagsStore,
+    subject: {
+      subjectKey: '',
+      subjectAttributes: {},
+    },
+  });
   public static initialized = false;
 
   public getStringAssignment(flagKey: string, defaultValue: string): string {
@@ -594,6 +619,14 @@ export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
     return super.getJSONAssignment(flagKey, defaultValue);
   }
 
+  public getBanditAction(
+    flagKey: string,
+    defaultValue: string,
+  ): Omit<IAssignmentDetails<string>, 'evaluationDetails'> {
+    EppoPrecomputedJSClient.getAssignmentInitializationCheck();
+    return super.getBanditAction(flagKey, defaultValue);
+  }
+
   private static getAssignmentInitializationCheck() {
     if (!EppoJSClient.initialized) {
       applicationLogger.warn('Eppo SDK assignment requested before init() completed');
@@ -610,7 +643,7 @@ export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
 export async function precomputedInit(
   config: IPrecomputedClientConfig,
 ): Promise<EppoPrecomputedClient> {
-  if (EppoPrecomputedJSClient.instance) {
+  if (EppoPrecomputedJSClient.initialized) {
     return EppoPrecomputedJSClient.instance;
   }
 
@@ -619,7 +652,7 @@ export async function precomputedInit(
 
   const {
     apiKey,
-    precompute: { subjectKey, subjectAttributes = {} },
+    precompute: { subjectKey, subjectAttributes = {}, banditActions },
     baseUrl,
     requestTimeoutMs,
     numInitialRequestRetries,
@@ -652,9 +685,14 @@ export async function precomputedInit(
     precomputedFlagStore: memoryOnlyPrecomputedFlagsStore,
     requestParameters,
     subject,
+    precomputedBanditStore: memoryOnlyPrecomputedBanditsStore,
+    banditActions,
   });
 
   EppoPrecomputedJSClient.instance.setAssignmentLogger(config.assignmentLogger);
+  if (config.banditLogger) {
+    EppoPrecomputedJSClient.instance.setBanditLogger(config.banditLogger);
+  }
   await EppoPrecomputedJSClient.instance.fetchPrecomputedFlags();
 
   EppoPrecomputedJSClient.initialized = true;
@@ -669,12 +707,14 @@ export async function precomputedInit(
  *
  * @param precomputedConfiguration - The configuration as a string to bootstrap the client.
  * @param assignmentLogger - Optional logger for assignment events.
+ * @param banditLogger - Optional logger for bandit events.
  * @param throwOnFailedInitialization - Optional flag to throw an error if initialization fails.
  * @public
  */
 export interface IPrecomputedClientConfigSync {
   precomputedConfiguration: string;
   assignmentLogger?: IAssignmentLogger;
+  banditLogger?: IBanditLogger;
   throwOnFailedInitialization?: boolean;
 }
 
@@ -695,15 +735,17 @@ export function offlinePrecomputedInit(
 ): EppoPrecomputedClient {
   const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
 
-  const configurationWire: IConfigurationWire = JSON.parse(config.precomputedConfiguration);
-  if (!configurationWire.precomputed) {
+  let configurationWire: IConfigurationWire;
+  try {
+    configurationWire = JSON.parse(config.precomputedConfiguration);
+    if (!configurationWire.precomputed) throw new Error();
+  } catch (error) {
     const errorMessage = 'Invalid precomputed configuration wire';
     if (throwOnFailedInitialization) {
       throw new Error(errorMessage);
-    } else {
-      applicationLogger.error('[Eppo SDK] ${errorMessage}');
-      return EppoPrecomputedJSClient.instance;
     }
+    applicationLogger.error(`[Eppo SDK] ${errorMessage}`);
+    return EppoPrecomputedJSClient.instance;
   }
   const { subjectKey, subjectAttributes, response } = configurationWire.precomputed;
   const parsedResponse: IObfuscatedPrecomputedConfigurationResponse = JSON.parse(response);
@@ -717,6 +759,14 @@ export function offlinePrecomputedInit(
       );
     memoryOnlyPrecomputedStore.salt = parsedResponse.salt;
 
+    const memoryOnlyPrecomputedBanditStore = precomputedBanditStoreFactory();
+    memoryOnlyPrecomputedBanditStore
+      .setEntries(parsedResponse.bandits)
+      .catch((err) =>
+        applicationLogger.warn('Error setting precomputed bandits for memory-only store', err),
+      );
+    memoryOnlyPrecomputedBanditStore.salt = parsedResponse.salt;
+
     const subject: Subject = {
       subjectKey,
       subjectAttributes: subjectAttributes ?? {},
@@ -725,11 +775,15 @@ export function offlinePrecomputedInit(
     shutdownEppoPrecomputedClient();
     EppoPrecomputedJSClient.instance = new EppoPrecomputedJSClient({
       precomputedFlagStore: memoryOnlyPrecomputedStore,
+      precomputedBanditStore: memoryOnlyPrecomputedBanditStore,
       subject,
     });
 
     if (config.assignmentLogger) {
       EppoPrecomputedJSClient.instance.setAssignmentLogger(config.assignmentLogger);
+    }
+    if (config.banditLogger) {
+      EppoPrecomputedJSClient.instance.setBanditLogger(config.banditLogger);
     }
   } catch (error) {
     applicationLogger.warn(
@@ -745,7 +799,7 @@ export function offlinePrecomputedInit(
 }
 
 function shutdownEppoPrecomputedClient() {
-  if (EppoPrecomputedJSClient.instance && EppoPrecomputedJSClient.initialized) {
+  if (EppoPrecomputedJSClient.initialized) {
     EppoPrecomputedJSClient.instance.stopPolling();
     EppoPrecomputedJSClient.initialized = false;
     applicationLogger.warn('[Eppo SDK] Precomputed client is being re-initialized.');
