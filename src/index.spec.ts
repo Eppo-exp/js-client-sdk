@@ -1145,6 +1145,9 @@ describe('initialization options', () => {
 
   describe('advanced initialization conditions', () => {
     it('skips the fetch and uses the persistent store when unexpired', async () => {
+      // This test sets up a case where the persistent store has unexpired entries, but fails to load them into memory
+      // before the fetching code checks to see whether the entries are expired. In this case, the fetch can abort but
+      // we want the initialization routine to now wait for the config to finish loading.
       const entriesPromise = new DeferredPromise<Record<string, Flag>>();
 
       const mockStore: IAsyncStore<Flag> = {
@@ -1163,6 +1166,7 @@ describe('initialization options', () => {
       };
 
       let callCount = 0;
+      const mockStoreEntries = { flags: {} } as unknown as Record<string, Flag>;
       global.fetch = jest.fn(() => {
         callCount++;
         return Promise.resolve({
@@ -1173,21 +1177,29 @@ describe('initialization options', () => {
       }) as jest.Mock;
 
       const mockLogger = td.object<IAssignmentLogger>();
+      let clientInitialized = false;
       const initPromise = init({
         apiKey,
         baseUrl,
         persistentStore: mockStore,
         forceReinitialize: true,
         assignmentLogger: mockLogger,
+      }).then((client) => {
+        clientInitialized = true;
+        return client;
       });
 
-      const mockStoreEntries = { flags: {} } as unknown as Record<string, Flag>;
-      // Await so it can finish its initialization before this test proceeds
+      expect(callCount).toBe(0);
+      expect(clientInitialized).toBe(false);
+
+      // Complete the "load from cache"
       if (entriesPromise.resolve) {
         entriesPromise.resolve(mockConfigResponse.flags);
       } else {
         throw 'Error running test';
       }
+
+      // Await so it can finish its initialization before this test proceeds
       const client = await initPromise;
       expect(callCount).toBe(0);
       expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
