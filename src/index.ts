@@ -332,13 +332,9 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
   return EppoJSClient.instance;
 }
 
-type SDKKey = string;
-
 /**
- * Tracks initialization by API key. After an initialization completes, the value is removed from the map.
+ * Tracks pending initialization. After an initialization completes, the value is removed from the map.
  */
-const initializationPromises: Map<SDKKey, Promise<EppoClient>> = new Map();
-
 let initializationPromise: Promise<EppoClient> | null = null;
 
 /**
