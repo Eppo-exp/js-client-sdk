@@ -14,6 +14,7 @@ import { ContextAttributes } from '@eppo/js-client-sdk-common';
 import { EppoClient } from '@eppo/js-client-sdk-common';
 import { EppoPrecomputedClient } from '@eppo/js-client-sdk-common';
 import { Flag } from '@eppo/js-client-sdk-common';
+import type { FlagKey } from '@eppo/js-client-sdk-common/dist/types';
 import { IAssignmentDetails } from '@eppo/js-client-sdk-common';
 import { IAssignmentEvent } from '@eppo/js-client-sdk-common';
 import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
@@ -194,7 +195,7 @@ export function offlineInit(config: IClientConfigSync): EppoClient;
 export function offlinePrecomputedInit(config: IPrecomputedClientConfigSync): EppoPrecomputedClient;
 
 // @public
-export function precomputedInit(config: IPrecomputedClientConfig): Promise<EppoPrecomputedClient>;
+export function precomputedInit(config: IPrecomputedClientConfig): Promise<EppoPrecomputedJSClient>;
 
 // (No @packageDocumentation comment for this package)
 

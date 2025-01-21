@@ -554,15 +554,15 @@ describe('initialization options', () => {
     const inits: Promise<EppoClient>[] = [];
     [
       'KEY_1',
-      // 'KEY_2',
-      // 'KEY_1',
-      // 'KEY_2',
-      // 'KEY_1',
-      // 'KEY_2',
-      // 'KEY_3',
-      // 'KEY_1',
-      // 'KEY_2',
-      // 'KEY_3',
+      'KEY_2',
+      'KEY_1',
+      'KEY_2',
+      'KEY_1',
+      'KEY_2',
+      'KEY_3',
+      'KEY_1',
+      'KEY_2',
+      'KEY_3',
     ].forEach((varyingAPIKey) => {
       inits.push(
         init({
@@ -587,7 +587,7 @@ describe('initialization options', () => {
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
 
     const reInits: Promise<EppoClient>[] = [];
-    ['KEY_1'].forEach((varyingAPIKey) => {
+    ['KEY_1', 'KEY_2', 'KEY_3', 'KEY_4'].forEach((varyingAPIKey) => {
       reInits.push(
         init({
           apiKey: varyingAPIKey,
@@ -601,7 +601,7 @@ describe('initialization options', () => {
 
     await Promise.all(reInits);
 
-    expect(callCount).toBe(4);
+    expect(callCount).toBe(0);
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
   });
 
@@ -786,7 +786,7 @@ describe('initialization options', () => {
     await init({
       apiKey,
       baseUrl,
-      throwOnFailedInitialization:false,
+      throwOnFailedInitialization: false,
       assignmentLogger: mockLogger,
       skipInitialRequest: true,
     });
@@ -1159,7 +1159,7 @@ describe('initialization options', () => {
     }
   }
 
-  describe.skip('advanced initialization conditions', () => {
+  describe('advanced initialization conditions', () => {
     it('skips the fetch and uses the persistent store when unexpired', async () => {
       const entriesPromise = new DeferredPromise<Record<string, Flag>>();
 
