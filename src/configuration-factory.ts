@@ -2,11 +2,11 @@ import {
   Flag,
   IAsyncStore,
   IConfigurationStore,
+  IObfuscatedPrecomputedBandit,
   MemoryOnlyConfigurationStore,
   MemoryStore,
   PrecomputedFlag,
 } from '@eppo/js-client-sdk-common';
-import { IObfuscatedPrecomputedBandit } from '@eppo/js-client-sdk-common/dist/interfaces';
 
 import ChromeStorageAsyncMap from './cache/chrome-storage-async-map';
 import { ChromeStorageEngine } from './chrome-storage-engine';

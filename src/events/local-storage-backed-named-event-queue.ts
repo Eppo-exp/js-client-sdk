@@ -1,5 +1,4 @@
-import { applicationLogger } from '@eppo/js-client-sdk-common';
-import NamedEventQueue from '@eppo/js-client-sdk-common/dist/events/named-event-queue';
+import { applicationLogger, NamedEventQueue } from '@eppo/js-client-sdk-common';
 
 import { takeWhile } from '../util';
 
