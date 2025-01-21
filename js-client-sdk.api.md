@@ -195,7 +195,7 @@ export function offlineInit(config: IClientConfigSync): EppoClient;
 export function offlinePrecomputedInit(config: IPrecomputedClientConfigSync): EppoPrecomputedClient;
 
 // @public
-export function precomputedInit(config: IPrecomputedClientConfig): Promise<EppoPrecomputedJSClient>;
+export function precomputedInit(config: IPrecomputedClientConfig): Promise<EppoPrecomputedClient>;
 
 // (No @packageDocumentation comment for this package)
 

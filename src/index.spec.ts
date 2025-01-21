@@ -15,7 +15,6 @@ import {
   IPrecomputedConfigurationResponse,
   VariationType,
 } from '@eppo/js-client-sdk-common';
-import { resolve } from 'eslint-import-resolver-typescript';
 import * as td from 'testdouble';
 
 import {
