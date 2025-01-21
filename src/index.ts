@@ -26,7 +26,7 @@ import { IObfuscatedPrecomputedConfigurationResponse } from '@eppo/js-client-sdk
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
 import HybridAssignmentCache from './cache/hybrid-assignment-cache';
-import { ConfigLoaderStatus, ConfigSource } from './config-loader';
+import { ConfigLoaderStatus, ConfigSource, ConfigurationLoadAttempt } from './config-loader';
 import {
   chromeStorageIfAvailable,
   configurationStorageFactory,
@@ -462,9 +462,7 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
     let initFromConfigStoreError = undefined;
     let initFromFetchError = undefined;
 
-    type RacingPromise = Promise<[ConfigSource, ConfigLoaderStatus]>;
-
-    const attemptInitFromConfigStore: RacingPromise = configurationStore
+    const attemptInitFromConfigStore: ConfigurationLoadAttempt = configurationStore
       .init()
       .then(async () => {
         if (!configurationStore.getKeys().length) {
@@ -497,7 +495,7 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
         return [ConfigSource.CONFIG_STORE, status];
       });
 
-    const attemptInitFromFetch: RacingPromise = instance
+    const attemptInitFromFetch: ConfigurationLoadAttempt = instance
       .fetchFlagConfigurations()
       .then(() => {
         console.log(instance.getFlagConfigurations());
@@ -508,6 +506,7 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
         } else {
           // If the config store is not initialized and the fetch says it is done, that means the fetch did not set any
           // values into the config store (ex:the cache is not expired or invalid config data was received).
+          // It's important not to set an error here as this state does not mean that an error was encountered.
           return ConfigLoaderStatus.DID_NOT_PRODUCE;
         }
       })
@@ -521,7 +520,7 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
         return [ConfigSource.FETCH, status];
       });
 
-    const racers: RacingPromise[] = [attemptInitFromConfigStore];
+    const racers: ConfigurationLoadAttempt[] = [attemptInitFromConfigStore];
 
     // attemptInitFromFetch only has side effects if `skipInitialRequest` is false.
     if (!config.skipInitialRequest) {
@@ -544,7 +543,6 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
       });
     }
 
-    // If we skip the initial request and have an empty config store, we end up throwing an error here which I don't think we want.
     if (initializationSource === ConfigSource.NONE) {
       console.log(initFromConfigStoreError);
       // Neither config loader produced useful config. Return error, if exists, in order from first to last: fetch, config store, generic.
@@ -552,7 +550,7 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
         ? initFromFetchError
         : initFromConfigStoreError
           ? initFromConfigStoreError
-          : new Error('Eppo SDK: No configuration source produced a useful configuration');
+          : new Error('Eppo SDK: No configuration source produced a valid configuration');
     }
   } catch (error: unknown) {
     initializationError = error instanceof Error ? error : new Error(String(error));

@@ -590,7 +590,6 @@ describe('initialization options', () => {
         init({
           apiKey: varyingAPIKey,
           forceReinitialize: true,
-          maxCacheAgeSeconds: 30,
           baseUrl,
           assignmentLogger: mockLogger,
         }),
