@@ -2,11 +2,11 @@ import {
   BanditSubjectAttributes,
   ContextAttributes,
   Flag,
+  FlagKey,
   IAssignmentLogger,
   IAsyncStore,
   IBanditLogger,
 } from '@eppo/js-client-sdk-common';
-import type { FlagKey } from '@eppo/js-client-sdk-common/dist/types';
 
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 

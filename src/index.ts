@@ -21,8 +21,8 @@ import {
   IConfigurationWire,
   Subject,
   IBanditLogger,
+  IObfuscatedPrecomputedConfigurationResponse,
 } from '@eppo/js-client-sdk-common';
-import { IObfuscatedPrecomputedConfigurationResponse } from '@eppo/js-client-sdk-common/src/configuration';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
 import HybridAssignmentCache from './cache/hybrid-assignment-cache';
@@ -73,6 +73,8 @@ export {
   ContextAttributes,
   BanditSubjectAttributes,
   BanditActions,
+  Attributes,
+  AttributeType,
 } from '@eppo/js-client-sdk-common';
 export { ChromeStorageEngine } from './chrome-storage-engine';
 
