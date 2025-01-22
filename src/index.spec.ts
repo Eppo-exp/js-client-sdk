@@ -538,7 +538,13 @@ describe('initialization options', () => {
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
   });
 
-  it.skip('only fetches/does initialization workload once per API key if init is called multiple times concurrently', async () => {
+  it('only fetches/does initialization workload once per API key if init is called multiple times concurrently', async () => {
+    // IMPORTANT NOTE
+    // Initializing the SDK with multiple different SDK Keys is undefined behaviour as the EppoClient is accessed via
+    // `getInstance` which returns a singleton. Initializing with multiple keys is _not yet supported_, so in this test,
+    // we just use the same key over and over. The more intricate parts of configuration loading and storing will
+    // silently break and fail the tests in unexpected ways if we use multiple keys.
+
     let callCount = 0;
 
     global.fetch = jest.fn(() => {
@@ -553,15 +559,15 @@ describe('initialization options', () => {
     const inits: Promise<EppoClient>[] = [];
     [
       'KEY_1',
-      'KEY_2',
       'KEY_1',
-      'KEY_2',
       'KEY_1',
-      'KEY_2',
-      'KEY_3',
       'KEY_1',
-      'KEY_2',
-      'KEY_3',
+      'KEY_1',
+      'KEY_1',
+      'KEY_1',
+      'KEY_1',
+      'KEY_1',
+      'KEY_1',
     ].forEach((varyingAPIKey) => {
       inits.push(
         init({
@@ -580,12 +586,12 @@ describe('initialization options', () => {
     const client = await Promise.race(inits);
     await Promise.all(inits);
 
-    expect(callCount).toBe(3);
+    expect(callCount).toBe(1);
     callCount = 0;
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
 
     const reInits: Promise<EppoClient>[] = [];
-    ['KEY_1', 'KEY_2', 'KEY_3', 'KEY_4'].forEach((varyingAPIKey) => {
+    ['KEY_1', 'KEY_1', 'KEY_1', 'KEY_1'].forEach((varyingAPIKey) => {
       reInits.push(
         init({
           apiKey: varyingAPIKey,
@@ -598,7 +604,7 @@ describe('initialization options', () => {
 
     await Promise.all(reInits);
 
-    expect(callCount).toBe(4);
+    expect(callCount).toBe(1);
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
   });
 

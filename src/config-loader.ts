@@ -13,4 +13,9 @@ export enum ConfigSource {
   NONE,
 }
 
-export type ConfigurationLoadAttempt = Promise<[ConfigSource, ConfigLoaderStatus]>;
+export type ConfigLoadResult = {
+  source: ConfigSource;
+  result: ConfigLoaderStatus;
+};
+
+export type ConfigurationLoadAttempt = Promise<ConfigLoadResult>;
