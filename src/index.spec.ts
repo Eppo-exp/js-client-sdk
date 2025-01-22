@@ -539,6 +539,12 @@ describe('initialization options', () => {
   });
 
   it('only fetches/does initialization workload once per API key if init is called multiple times concurrently', async () => {
+    // IMPORTANT NOTE
+    // Initializing the SDK with multiple different SDK Keys is undefined behaviour as the EppoClient is accessed via
+    // `getInstance` which returns a singleton. Initializing with multiple keys is _not yet supported_, so in this test,
+    // we just use the same key over and over. The more intricate parts of configuration loading and storing will
+    // silently break and fail the tests in unexpected ways if we use multiple keys.
+
     let callCount = 0;
 
     global.fetch = jest.fn(() => {
@@ -553,15 +559,15 @@ describe('initialization options', () => {
     const inits: Promise<EppoClient>[] = [];
     [
       'KEY_1',
-      'KEY_2',
       'KEY_1',
-      'KEY_2',
       'KEY_1',
-      'KEY_2',
-      'KEY_3',
       'KEY_1',
-      'KEY_2',
-      'KEY_3',
+      'KEY_1',
+      'KEY_1',
+      'KEY_1',
+      'KEY_1',
+      'KEY_1',
+      'KEY_1',
     ].forEach((varyingAPIKey) => {
       inits.push(
         init({
@@ -580,12 +586,12 @@ describe('initialization options', () => {
     const client = await Promise.race(inits);
     await Promise.all(inits);
 
-    expect(callCount).toBe(3);
+    expect(callCount).toBe(1);
     callCount = 0;
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
 
     const reInits: Promise<EppoClient>[] = [];
-    ['KEY_1', 'KEY_2', 'KEY_3', 'KEY_4'].forEach((varyingAPIKey) => {
+    ['KEY_1', 'KEY_1', 'KEY_1', 'KEY_1'].forEach((varyingAPIKey) => {
       reInits.push(
         init({
           apiKey: varyingAPIKey,
@@ -598,7 +604,7 @@ describe('initialization options', () => {
 
     await Promise.all(reInits);
 
-    expect(callCount).toBe(4);
+    expect(callCount).toBe(1);
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
   });
 
@@ -764,6 +770,9 @@ describe('initialization options', () => {
     expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
   });
 
+  // This test sets up the EppoClient to fail to load a configuration.
+  // If init is told to skip the initial request and there is no persistent store with data,
+  // the client throws an error (unless throwOnFailedInitialization = false).
   it('skips initial request', async () => {
     let callCount = 0;
 
@@ -780,6 +789,7 @@ describe('initialization options', () => {
     await init({
       apiKey,
       baseUrl,
+      throwOnFailedInitialization: false,
       assignmentLogger: mockLogger,
       skipInitialRequest: true,
     });
@@ -1137,6 +1147,69 @@ describe('initialization options', () => {
       );
     });
   });
+
+  describe('advanced initialization conditions', () => {
+    it('skips the fetch and uses the persistent store when unexpired', async () => {
+      // This test sets up a case where the persistent store has unexpired entries, but fails to load them into memory
+      // before the fetching code checks to see whether the entries are expired. In this case, the fetch can abort but
+      // we want the initialization routine to now wait for the config to finish loading.
+      const entriesPromise = new DeferredPromise<Record<string, Flag>>();
+
+      const mockStore: IAsyncStore<Flag> = {
+        isInitialized() {
+          return false; // mock that entries have not been save from a fetch.
+        },
+        async isExpired() {
+          return false; // prevents a fetch
+        },
+        async entries() {
+          return entriesPromise.promise;
+        },
+        async setEntries(entries) {
+          // pass
+        },
+      };
+
+      let callCount = 0;
+      const mockStoreEntries = { flags: {} } as unknown as Record<string, Flag>;
+      global.fetch = jest.fn(() => {
+        callCount++;
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ flags: mockStoreEntries }),
+        });
+      }) as jest.Mock;
+
+      const mockLogger = td.object<IAssignmentLogger>();
+      let clientInitialized = false;
+      const initPromise = init({
+        apiKey,
+        baseUrl,
+        persistentStore: mockStore,
+        forceReinitialize: true,
+        assignmentLogger: mockLogger,
+      }).then((client) => {
+        clientInitialized = true;
+        return client;
+      });
+
+      expect(callCount).toBe(0);
+      expect(clientInitialized).toBe(false);
+
+      // Complete the "load from cache"
+      if (entriesPromise.resolve) {
+        entriesPromise.resolve(mockConfigResponse.flags);
+      } else {
+        throw 'Error running test';
+      }
+
+      // Await so it can finish its initialization before this test proceeds
+      const client = await initPromise;
+      expect(callCount).toBe(0);
+      expect(client.getStringAssignment(flagKey, 'subject', {}, 'default-value')).toBe('control');
+    });
+  });
 });
 
 describe('getConfigUrl function', () => {
@@ -1331,7 +1404,7 @@ describe('EppoClient config', () => {
       return Promise.resolve({
         ok: true,
         status: 200,
-        json: () => Promise.resolve({}),
+        json: () => Promise.resolve({ flags: {} }),
       });
     }) as jest.Mock;
     const client = await init({
@@ -1378,3 +1451,20 @@ describe('EppoClient config', () => {
     });
   });
 });
+
+/**
+ * A wrapper for a promise which allows for later resolution.
+ */
+class DeferredPromise<T> {
+  promise: Promise<T>;
+  resolve?: (value: PromiseLike<T> | T) => void;
+  reject?: (reason?: never) => void;
+  constructor() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    this.promise = new Promise<T>((resolve, reject) => {
+      self.resolve = resolve;
+      self.reject = reject;
+    });
+  }
+}
