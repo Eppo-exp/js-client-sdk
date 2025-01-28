@@ -90,14 +90,13 @@ export function getTestAssignments(
     assignment: string | boolean | number | object;
   }[] = [];
   for (const subject of testCase.subjects) {
-    const assignment =
-      assignmentFn(
-        testCase.flag,
-        subject.subjectKey,
-        subject.subjectAttributes,
-        testCase.defaultValue,
-        obfuscated,
-      ) || testCase.defaultValue; // Fallback to defaultValue if null
+    const assignment = assignmentFn(
+      testCase.flag,
+      subject.subjectKey,
+      subject.subjectAttributes,
+      testCase.defaultValue,
+      obfuscated,
+    );
     assignments.push({ subject: subject, assignment: assignment });
   }
   return assignments;
