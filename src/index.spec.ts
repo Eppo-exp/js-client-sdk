@@ -1419,6 +1419,22 @@ describe('offlinePrecomputedInit', () => {
       { times: 1 },
     );
   });
+
+  it('deduplicates assignment logging', () => {
+    const client = offlinePrecomputedInit({
+      precomputedConfiguration,
+      assignmentLogger: mockLogger,
+    });
+    expect(td.explain(mockLogger.logAssignment).callCount).toBe(0);
+    client.getStringAssignment('string-flag', 'default');
+    expect(td.explain(mockLogger.logAssignment).callCount).toBe(1);
+    client.getStringAssignment('string-flag', 'default');
+    expect(td.explain(mockLogger.logAssignment).callCount).toBe(1);
+    expect(td.explain(mockLogger.logAssignment).calls[0]?.args[0]).toMatchObject({
+      subject: 'test-subject-key',
+      featureFlag: 'string-flag',
+    });
+  });
 });
 
 describe('EppoClient config', () => {
