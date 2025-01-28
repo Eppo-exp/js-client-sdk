@@ -358,7 +358,7 @@ describe('EppoJSClient E2E test', () => {
         const client = getInstance();
 
         const typeAssignmentFunctions = {
-          [VariationType.BOOLEAN]: client.getBoolAssignment.bind(client),
+          [VariationType.BOOLEAN]: client.getBooleanAssignment.bind(client),
           [VariationType.NUMERIC]: client.getNumericAssignment.bind(client),
           [VariationType.INTEGER]: client.getIntegerAssignment.bind(client),
           [VariationType.STRING]: client.getStringAssignment.bind(client),
