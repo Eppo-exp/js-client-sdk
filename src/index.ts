@@ -460,6 +460,8 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
         },
       );
       instance.setOverridesStore(overridesStore);
+    } else {
+      instance.unsetOverridesStore();
     }
 
     // instantiate and init assignment cache
@@ -773,6 +775,8 @@ export async function precomputedInit(
       },
     );
     EppoPrecomputedJSClient.instance.setOverridesStore(overridesStore);
+  } else {
+    EppoPrecomputedJSClient.instance.unsetOverridesStore();
   }
 
   EppoPrecomputedJSClient.instance.setAssignmentLogger(config.assignmentLogger);
@@ -886,6 +890,8 @@ export function offlinePrecomputedInit(
         },
       );
       EppoPrecomputedJSClient.instance.setOverridesStore(overridesStore);
+    } else {
+      EppoPrecomputedJSClient.instance.unsetOverridesStore();
     }
 
     if (config.assignmentLogger) {
