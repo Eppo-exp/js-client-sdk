@@ -1513,6 +1513,7 @@ describe('enableOverrides', () => {
   } as unknown as Record<'flags', Record<string, Flag>>;
 
   beforeEach(() => {
+    EppoPrecomputedJSClient.initialized = false;
     global.fetch = jest.fn(() => {
       return Promise.resolve({
         ok: true,
@@ -1569,7 +1570,7 @@ describe('enableOverrides', () => {
     expect(assignment).toBe('override-value');
   });
 
-  it('should work with offlineInit when enabled', () => {
+  it('should respect overrides with offlineInit when enabled', () => {
     window.localStorage.setItem(
       'eppo-overrides',
       JSON.stringify({
@@ -1619,5 +1620,99 @@ describe('enableOverrides', () => {
     expect(client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
       'variant-1',
     );
+  });
+
+  it('should respect overrides with precomputed client when enabled', async () => {
+    // Set up override before initializing client
+    window.localStorage.setItem(
+      'eppo-overrides',
+      JSON.stringify({
+        'string-flag': {
+          value: 'override-value',
+          variationType: 'STRING',
+        },
+      }),
+    );
+
+    const client = await precomputedInit({
+      apiKey: 'dummy',
+      baseUrl: 'http://127.0.0.1:4000',
+      assignmentLogger: td.object<IAssignmentLogger>(),
+      enableOverrides: true,
+      precompute: {
+        subjectKey: 'test-subject',
+        subjectAttributes: { attr1: 'value1' },
+      },
+    });
+
+    expect(client.getStringAssignment('string-flag', 'default')).toBe('override-value');
+  });
+
+  it('should ignore overrides with precomputed client when disabled', async () => {
+    // Set up override before initializing client
+    window.localStorage.setItem(
+      'eppo-overrides',
+      JSON.stringify({
+        'string-flag': {
+          value: 'override-value',
+          variationType: 'STRING',
+        },
+      }),
+    );
+
+    const client = await precomputedInit({
+      apiKey: 'dummy',
+      baseUrl: 'http://127.0.0.1:4000',
+      assignmentLogger: td.object<IAssignmentLogger>(),
+      enableOverrides: false,
+      precompute: {
+        subjectKey: 'test-subject',
+        subjectAttributes: { attr1: 'value1' },
+      },
+    });
+
+    expect(client.getStringAssignment('string-flag', 'default')).toBe('default');
+  });
+
+  it('should respect overrides with offlinePrecomputedInit when enabled', () => {
+    // Set up override before initializing client
+    window.localStorage.setItem(
+      'eppo-overrides',
+      JSON.stringify({
+        'string-flag': {
+          value: 'override-value',
+          variationType: 'STRING',
+        },
+      }),
+    );
+
+    const client = offlinePrecomputedInit({
+      precomputedConfiguration: readMockPrecomputedResponse(MOCK_PRECOMPUTED_WIRE_FILE),
+      assignmentLogger: td.object<IAssignmentLogger>(),
+      enableOverrides: true,
+    });
+
+    expect(client.getStringAssignment('string-flag', 'default')).toBe('override-value');
+  });
+
+  it('should ignore overrides with offlinePrecomputedInit when disabled', () => {
+    // Set up override before initializing client
+    window.localStorage.setItem(
+      'eppo-overrides',
+      JSON.stringify({
+        'string-flag': {
+          value: 'override-value',
+          variationType: 'STRING',
+        },
+      }),
+    );
+
+    const client = offlinePrecomputedInit({
+      precomputedConfiguration: readMockPrecomputedResponse(MOCK_PRECOMPUTED_WIRE_FILE),
+      assignmentLogger: td.object<IAssignmentLogger>(),
+      enableOverrides: false,
+    });
+
+    expect(client.getStringAssignment('string-flag', 'default')).toBe('red');
   });
 });
