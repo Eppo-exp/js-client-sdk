@@ -176,6 +176,7 @@ export function init(config: IClientConfig): Promise<EppoClient>;
 
 // @public
 export interface IPrecomputedClientConfig extends IBaseRequestConfig {
+    enableOverrides?: boolean;
     // Warning: (ae-forgotten-export) The symbol "IPrecompute" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
@@ -188,6 +189,8 @@ export interface IPrecomputedClientConfigSync {
     assignmentLogger?: IAssignmentLogger;
     // (undocumented)
     banditLogger?: IBanditLogger;
+    // (undocumented)
+    enableOverrides?: boolean;
     // (undocumented)
     precomputedConfiguration: string;
     // (undocumented)

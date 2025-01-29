@@ -598,8 +598,8 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
       initializationError = initFromFetchError
         ? initFromFetchError
         : initFromConfigStoreError
-        ? initFromConfigStoreError
-        : new Error('Eppo SDK: No configuration source produced a valid configuration');
+          ? initFromConfigStoreError
+          : new Error('Eppo SDK: No configuration source produced a valid configuration');
     }
     applicationLogger.debug('Initialization source', initializationSource);
   } catch (error: unknown) {
@@ -723,6 +723,7 @@ export async function precomputedInit(
     pollAfterSuccessfulInitialization = false,
     pollAfterFailedInitialization = false,
     skipInitialRequest = false,
+    enableOverrides = false,
   } = config;
 
   // Add assignment cache initialization
@@ -761,6 +762,19 @@ export async function precomputedInit(
     banditActions,
   });
 
+  // Set up overrides if enabled
+  if (enableOverrides) {
+    const overridesStore = overridesStorageFactory(
+      {
+        hasWindowLocalStorage: hasWindowLocalStorage(),
+      },
+      {
+        windowLocalStorage: localStorageIfAvailable(),
+      },
+    );
+    EppoPrecomputedJSClient.instance.setOverridesStore(overridesStore);
+  }
+
   EppoPrecomputedJSClient.instance.setAssignmentLogger(config.assignmentLogger);
   if (config.banditLogger) {
     EppoPrecomputedJSClient.instance.setBanditLogger(config.banditLogger);
@@ -789,6 +803,7 @@ export interface IPrecomputedClientConfigSync {
   assignmentLogger?: IAssignmentLogger;
   banditLogger?: IBanditLogger;
   throwOnFailedInitialization?: boolean;
+  enableOverrides?: boolean;
 }
 
 /**
@@ -807,6 +822,7 @@ export function offlinePrecomputedInit(
   config: IPrecomputedClientConfigSync,
 ): EppoPrecomputedClient {
   const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
+  const enableOverrides = config.enableOverrides ?? false;
 
   let configurationWire: IConfigurationWire;
   try {
@@ -858,6 +874,19 @@ export function offlinePrecomputedInit(
       precomputedBanditStore: memoryOnlyPrecomputedBanditStore,
       subject,
     });
+
+    // Set up overrides if enabled
+    if (enableOverrides) {
+      const overridesStore = overridesStorageFactory(
+        {
+          hasWindowLocalStorage: hasWindowLocalStorage(),
+        },
+        {
+          windowLocalStorage: localStorageIfAvailable(),
+        },
+      );
+      EppoPrecomputedJSClient.instance.setOverridesStore(overridesStore);
+    }
 
     if (config.assignmentLogger) {
       EppoPrecomputedJSClient.instance.setAssignmentLogger(config.assignmentLogger);

@@ -101,6 +101,12 @@ interface IPrecompute {
  */
 export interface IPrecomputedClientConfig extends IBaseRequestConfig {
   precompute: IPrecompute;
+
+  /**
+   * Enable the Overrides Store for local flag overrides.
+   * (default: false)
+   */
+  enableOverrides?: boolean;
 }
 
 /**
