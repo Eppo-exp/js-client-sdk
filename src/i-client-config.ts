@@ -6,6 +6,7 @@ import {
   IAssignmentLogger,
   IAsyncStore,
   IBanditLogger,
+  IConfigurationStore,
 } from '@eppo/js-client-sdk-common';
 
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
@@ -103,11 +104,55 @@ export interface IPrecomputedClientConfig extends IBaseRequestConfig {
   precompute: IPrecompute;
 }
 
-/**
- * Configuration for regular client initialization
- * @public
- */
-export interface IClientConfig extends IBaseRequestConfig {
+export type IEventOptions = {
+  eventIngestionConfig?: {
+    /** Number of milliseconds to wait between each batch delivery. Defaults to 10 seconds. */
+    deliveryIntervalMs?: number;
+    /** Minimum amount of milliseconds to wait before retrying a failed delivery. Defaults to 5 seconds */
+    retryIntervalMs?: number;
+    /** Maximum amount of milliseconds to wait before retrying a failed delivery. Defaults to 30 seconds. */
+    maxRetryDelayMs?: number;
+    /** Maximum number of retry attempts before giving up on a batch delivery. Defaults to 3 retries. */
+    maxRetries?: number;
+    /** Maximum number of events to send per delivery request. Defaults to 1000 events. */
+    batchSize?: number;
+    /**
+     * Maximum number of events to queue in memory before starting to drop events.
+     * Note: This is only used if localStorage is not available.
+     * Defaults to 10000 events.
+     */
+    maxQueueSize?: number;
+  };
+};
+
+export type IApiOptions = {
+  sdkKey: string;
+
+  initialConfiguration?: string;
+  baseUrl?: string;
+
+  /**
+   * Force reinitialize the SDK if it is already initialized.
+   */
+  forceReinitialize?: boolean;
+
+  /**
+   * Timeout in milliseconds for the HTTPS request for the experiment configuration. (Default: 5000)
+   */
+  requestTimeoutMs?: number;
+
+  /**
+   * Number of additional times the initial configuration request will be attempted if it fails.
+   * This is the request typically synchronously waited (via await) for completion. A small wait will be
+   * done between requests. (Default: 1)
+   */
+  numInitialRequestRetries?: number;
+
+  /**
+   * Skip the request for new configurations during initialization. (default: false)
+   */
+  skipInitialRequest?: boolean;
+
   /**
    * Throw an error if unable to fetch an initial configuration during initialization. (default: true)
    */
@@ -133,6 +178,21 @@ export interface IClientConfig extends IBaseRequestConfig {
    * - empty: only use the new configuration if the current one is both expired and uninitialized/empty
    */
   updateOnFetch?: ServingStoreUpdateStrategy;
+};
+
+/**
+ * Handy options class for when you want to create an offline client.
+ */
+export class OfflineApiOptions implements IApiOptions {
+  constructor(
+    public readonly sdkKey: string,
+    public readonly initialConfiguration?: string,
+  ) {}
+  public readonly offline = true;
+}
+
+export type IStorageOptions = {
+  flagConfigurationStore?: IConfigurationStore<Flag>;
 
   /**
    * A custom class to use for storing flag configurations.
@@ -140,29 +200,63 @@ export interface IClientConfig extends IBaseRequestConfig {
    * than the default storage provided by the SDK.
    */
   persistentStore?: IAsyncStore<Flag>;
+};
+
+export type IPollingOptions = {
+  /**
+   * Poll for new configurations even if the initial configuration request failed. (default: false)
+   */
+  pollAfterFailedInitialization?: boolean;
 
   /**
-   * Force reinitialize the SDK if it is already initialized.
+   * Poll for new configurations (every `pollingIntervalMs`) after successfully requesting the initial configuration. (default: false)
    */
-  forceReinitialize?: boolean;
+  pollAfterSuccessfulInitialization?: boolean;
 
-  /** Configuration settings for the event dispatcher */
-  eventIngestionConfig?: {
-    /** Number of milliseconds to wait between each batch delivery. Defaults to 10 seconds. */
-    deliveryIntervalMs?: number;
-    /** Minimum amount of milliseconds to wait before retrying a failed delivery. Defaults to 5 seconds */
-    retryIntervalMs?: number;
-    /** Maximum amount of milliseconds to wait before retrying a failed delivery. Defaults to 30 seconds. */
-    maxRetryDelayMs?: number;
-    /** Maximum number of retry attempts before giving up on a batch delivery. Defaults to 3 retries. */
-    maxRetries?: number;
-    /** Maximum number of events to send per delivery request. Defaults to 1000 events. */
-    batchSize?: number;
-    /**
-     * Maximum number of events to queue in memory before starting to drop events.
-     * Note: This is only used if localStorage is not available.
-     * Defaults to 10000 events.
-     */
-    maxQueueSize?: number;
+  /**
+   * Amount of time to wait between API calls to refresh configuration data. Default of 30_000 (30 seconds).
+   */
+  pollingIntervalMs?: number;
+
+  /**
+   * Number of additional times polling for updated configurations will be attempted before giving up.
+   * Polling is done after a successful initial request. Subsequent attempts are done using an exponential
+   * backoff. (Default: 7)
+   */
+  numPollRequestRetries?: number;
+};
+
+export type ILoggers = {
+  /**
+   * Pass a logging implementation to send variation assignments to your data warehouse.
+   */
+  assignmentLogger: IAssignmentLogger;
+
+  /**
+   * Pass a logging implementation to send bandit assignments to your data warehouse.
+   */
+  banditLogger?: IBanditLogger;
+};
+
+/**
+ * Config shape for client v2.
+ */
+export type IClientOptions = IApiOptions &
+  ILoggers &
+  IEventOptions &
+  IStorageOptions &
+  IPollingOptions;
+
+/**
+ * Configuration for regular client initialization
+ * @public
+ */
+export type IClientConfig = Omit<IClientOptions, 'sdkKey' | 'offline'> &
+  Pick<IBaseRequestConfig, 'apiKey'>;
+
+export function convertClientOptionsToClientConfig(options: IClientOptions): IClientConfig {
+  return {
+    ...options,
+    apiKey: options.sdkKey,
   };
 }

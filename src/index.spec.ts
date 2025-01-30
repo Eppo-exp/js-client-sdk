@@ -11,6 +11,7 @@ import {
   EppoClient,
   Flag,
   HybridConfigurationStore,
+  IAssignmentEvent,
   IAsyncStore,
   IPrecomputedConfigurationResponse,
   VariationType,
@@ -29,10 +30,18 @@ import {
   validateTestAssignments,
 } from '../test/testHelpers';
 
-import { IClientConfig } from './i-client-config';
+import {
+  IApiOptions,
+  IClientConfig,
+  IClientOptions,
+  IPollingOptions,
+  IStorageOptions,
+} from './i-client-config';
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 
 import {
+  EppoJSClient,
+  EppoJSClientV2,
   EppoPrecomputedJSClient,
   getConfigUrl,
   getInstance,
@@ -137,6 +146,10 @@ const mockObfuscatedUfcFlagConfig: Flag = {
     [base64Encode('variant-2')]: {
       key: base64Encode('variant-2'),
       value: base64Encode('variant-2'),
+    },
+    [base64Encode('variant-3')]: {
+      key: base64Encode('variant-3'),
+      value: base64Encode('variant-3'),
     },
   },
   allocations: [
@@ -382,6 +395,168 @@ describe('EppoJSClient E2E test', () => {
   });
 });
 
+describe('decoupled initialization', () => {
+  let mockLogger: IAssignmentLogger;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  let init: (config: IClientConfig) => Promise<EppoJSClient>;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  let getInstance: () => EppoJSClient;
+
+  beforeEach(async () => {
+    jest.isolateModules(() => {
+      // Isolate and re-require so that the static instance is reset to its default state
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const reloadedModule = require('./index');
+      init = reloadedModule.init;
+      getInstance = reloadedModule.getInstance;
+    });
+  });
+
+  describe('isolated from the singleton', () => {
+    beforeEach(() => {
+      mockLogger = td.object<IAssignmentLogger>();
+
+      global.fetch = jest.fn(() => {
+        const ufc = { flags: { [obfuscatedFlagKey]: mockObfuscatedUfcFlagConfig } };
+
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(ufc),
+        });
+      }) as jest.Mock;
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+
+    it('should be independent of the singleton', async () => {
+      const apiOptions: IApiOptions = { sdkKey: '<MY SDK KEY>' };
+      const options: IClientOptions = { ...apiOptions, assignmentLogger: mockLogger };
+      const isolatedClient = new EppoJSClientV2(options);
+
+      expect(isolatedClient).not.toEqual(getInstance());
+      await isolatedClient.waitForReady();
+
+      expect(isolatedClient.isInitialized()).toBe(true);
+      expect(isolatedClient.initialized).toBe(true);
+      expect(getInstance().isInitialized()).toBe(false);
+      expect(getInstance().initialized).toBe(false);
+
+      expect(getInstance().getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
+        'default-value',
+      );
+      expect(
+        isolatedClient.getStringAssignment(flagKey, 'subject-10', {}, 'default-value'),
+      ).toEqual('variant-1');
+    });
+    it('initializes on instantiation and notifies when ready', async () => {
+      const apiOptions: IApiOptions = { sdkKey: '<MY SDK KEY>', baseUrl };
+      const options: IClientOptions = { ...apiOptions, assignmentLogger: mockLogger };
+      const client = new EppoJSClientV2(options);
+
+      expect(client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
+        'default-value',
+      );
+
+      await client.waitForReady();
+
+      const assignment = client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value');
+      expect(assignment).toEqual('variant-1');
+    });
+  });
+
+  describe('multiple client instances', () => {
+    const API_KEY_1 = 'my-api-key-1';
+    const API_KEY_2 = 'my-api-key-2';
+    const API_KEY_3 = 'my-api-key-3';
+
+    const commonOptions: Omit<IClientOptions, 'sdkKey'> = {
+      baseUrl,
+      assignmentLogger: mockLogger,
+    };
+
+    let callCount = 0;
+
+    beforeAll(() => {
+      global.fetch = jest.fn((url: string) => {
+        callCount++;
+
+        const urlParams = new URLSearchParams(url.split('?')[1]);
+
+        // Get the value of the apiKey parameter and serve a specific variant.
+        const apiKey = urlParams.get('apiKey');
+
+        // differentiate between the SDK keys by changing the variant that `flagKey` assigns.
+        let variant = 'variant-1';
+        if (apiKey === API_KEY_2) {
+          variant = 'variant-2';
+        } else if (apiKey === API_KEY_3) {
+          variant = 'variant-3';
+        }
+
+        const encodedVariant = base64Encode(variant);
+
+        // deep copy the mock data since we're going to inject a change below.
+        const flagConfig: Flag = JSON.parse(JSON.stringify(mockObfuscatedUfcFlagConfig));
+        // Inject the encoded variant as a single split for the flag's only allocation.
+        flagConfig.allocations[0].splits = [
+          {
+            variationKey: encodedVariant,
+            shards: [],
+          },
+        ];
+
+        const ufc = { flags: { [obfuscatedFlagKey]: flagConfig } };
+
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(ufc),
+        });
+      }) as jest.Mock;
+    });
+    afterAll(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('should operate in parallel', async () => {
+      const singleton = await init({ ...commonOptions, apiKey: API_KEY_1 });
+      expect(singleton.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
+        'variant-1',
+      );
+      expect(callCount).toBe(1);
+
+      const myClient2 = new EppoJSClientV2({ ...commonOptions, sdkKey: API_KEY_2 });
+      await myClient2.waitForReady();
+      expect(callCount).toBe(2);
+
+      expect(singleton.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
+        'variant-1',
+      );
+      expect(myClient2.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
+        'variant-2',
+      );
+
+      const myClient3 = new EppoJSClientV2({ ...commonOptions, sdkKey: API_KEY_3 });
+      await myClient3.waitForReady();
+
+      expect(singleton.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
+        'variant-1',
+      );
+      expect(myClient2.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
+        'variant-2',
+      );
+
+      expect(myClient3.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
+        'variant-3',
+      );
+    });
+  });
+});
+
 describe('sync init', () => {
   it('initializes with flags in obfuscated mode', () => {
     const client = offlineInit({
@@ -422,9 +597,9 @@ describe('initialization options', () => {
   } as unknown as Record<'flags', Record<string, Flag>>;
 
   // eslint-disable-next-line @typescript-eslint/ban-types
-  let init: (config: IClientConfig) => Promise<EppoClient>;
+  let init: (config: IClientConfig) => Promise<EppoJSClient>;
   // eslint-disable-next-line @typescript-eslint/ban-types
-  let getInstance: () => EppoClient;
+  let getInstance: () => EppoJSClient;
 
   beforeEach(async () => {
     jest.isolateModules(() => {
