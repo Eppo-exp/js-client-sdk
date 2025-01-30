@@ -41,7 +41,6 @@ import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 
 import {
   EppoJSClient,
-  EppoJSClientV2,
   EppoPrecomputedJSClient,
   getConfigUrl,
   getInstance,
@@ -431,11 +430,10 @@ describe('decoupled initialization', () => {
       jest.restoreAllMocks();
     });
 
-
     it('should be independent of the singleton', async () => {
       const apiOptions: IApiOptions = { sdkKey: '<MY SDK KEY>' };
       const options: IClientOptions = { ...apiOptions, assignmentLogger: mockLogger };
-      const isolatedClient = new EppoJSClientV2(options);
+      const isolatedClient = new EppoJSClient(options);
 
       expect(isolatedClient).not.toEqual(getInstance());
       await isolatedClient.waitForReady();
@@ -455,7 +453,7 @@ describe('decoupled initialization', () => {
     it('initializes on instantiation and notifies when ready', async () => {
       const apiOptions: IApiOptions = { sdkKey: '<MY SDK KEY>', baseUrl };
       const options: IClientOptions = { ...apiOptions, assignmentLogger: mockLogger };
-      const client = new EppoJSClientV2(options);
+      const client = new EppoJSClient(options);
 
       expect(client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
         'default-value',
@@ -529,7 +527,7 @@ describe('decoupled initialization', () => {
       );
       expect(callCount).toBe(1);
 
-      const myClient2 = new EppoJSClientV2({ ...commonOptions, sdkKey: API_KEY_2 });
+      const myClient2 = new EppoJSClient({ ...commonOptions, sdkKey: API_KEY_2 });
       await myClient2.waitForReady();
       expect(callCount).toBe(2);
 
@@ -540,7 +538,7 @@ describe('decoupled initialization', () => {
         'variant-2',
       );
 
-      const myClient3 = new EppoJSClientV2({ ...commonOptions, sdkKey: API_KEY_3 });
+      const myClient3 = new EppoJSClient({ ...commonOptions, sdkKey: API_KEY_3 });
       await myClient3.waitForReady();
 
       expect(singleton.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(

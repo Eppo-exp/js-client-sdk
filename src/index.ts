@@ -22,12 +22,12 @@ import {
   Subject,
   IBanditLogger,
   IObfuscatedPrecomputedConfigurationResponse,
-  IAssignmentEvent,
 } from '@eppo/js-client-sdk-common';
 import { getMD5Hash } from '@eppo/js-client-sdk-common/dist/obfuscation';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
 import HybridAssignmentCache from './cache/hybrid-assignment-cache';
+import { clientOptionsToParameters, EppoClientParameters } from './client-options-converter';
 import {
   ConfigLoaderStatus,
   ConfigLoadResult,
@@ -92,6 +92,7 @@ export {
 export { ChromeStorageEngine } from './chrome-storage-engine';
 
 // Instantiate the configuration store with memory-only implementation.
+// For use only with the singleton instance.
 const flagConfigurationStore = configurationStorageFactory({
   forceMemoryOnly: true,
 });
@@ -105,14 +106,57 @@ const memoryOnlyPrecomputedBanditsStore = precomputedBanditStoreFactory();
  * @public
  */
 export class EppoJSClient extends EppoClient {
-  // Ensure that the client is instantiated during class loading.
-  // Use an empty memory-only configuration store until the `init` method is called,
-  // to avoid serving stale data to the user.
+  private readonly readyPromise: Promise<void>;
+  private readyPromiseResolver: (() => void) | null = null;
+
   public static instance = new EppoJSClient({
     flagConfigurationStore,
     isObfuscated: true,
   });
   initialized = false;
+
+  constructor(optionsOrConfig: EppoClientParameters | IClientOptions) {
+    const v2Constructor = 'sdkKey' in optionsOrConfig;
+
+    super(
+      v2Constructor
+        ? clientOptionsToParameters(
+            optionsOrConfig, // The IClientOptions wrapper
+            optionsOrConfig.flagConfigurationStore ?? // create a new, memory only FCS if none was provided
+              configurationStorageFactory({
+                forceMemoryOnly: true,
+              }),
+            optionsOrConfig.eventIngestionConfig // Create an Event Dispatcher if Event Ingestion config was provided.
+              ? newEventDispatcher(optionsOrConfig.sdkKey, optionsOrConfig.eventIngestionConfig)
+              : undefined,
+          ) // "New" construction technique; isolated instance.
+        : (optionsOrConfig as EppoClientParameters), // Legacy instantiation of singleton.
+    );
+
+    if (!v2Constructor) {
+      // Original constructor path; passthrough to super is above.
+      // `waitForReady` is a new API we need to graft onto the old way of constructing first and initializing later.
+
+      // Create a promise that will be resolved when EppoJSClient.initializeClient() is called
+      this.readyPromise = new Promise((resolve) => {
+        this.readyPromiseResolver = resolve;
+      });
+    } else {
+      this.readyPromise = explicitInit(
+        convertClientOptionsToClientConfig(optionsOrConfig),
+        this,
+      ).then(() => {
+        return;
+      });
+    }
+  }
+
+  public waitForReady(): Promise<void> {
+    if (!this.readyPromise) {
+      return Promise.resolve();
+    }
+    return this.readyPromise;
+  }
 
   public getStringAssignment(
     flagKey: string,
@@ -265,38 +309,51 @@ export class EppoJSClient extends EppoClient {
 
   private ensureInitialized() {
     if (!this.initialized) {
-      // TODO: check super.isinitialized?
+      // TODO: check super.isInitialized?
       applicationLogger.warn('Eppo SDK assignment requested before init() completed');
     }
   }
-}
 
-/**
- * Non-managed implementation of the Eppo JS Client.
- *
- * Users of this class will need to manage their instance of `EppoJSClient` with their favourite
- * flavour of dependency injections instead of using the exported function `getInstance()`.
- */
-export class EppoJSClientV2 extends EppoJSClient {
-  private readonly readyPromise: Promise<void>;
+  /**
+   * Tracks pending initialization. After an initialization completes, the value is removed from the map.
+   */
+  private static initializationPromise: Promise<EppoJSClient> | null = null;
 
-  constructor(options: IClientOptions) {
-    const flagConfigurationStore = configurationStorageFactory({
-      forceMemoryOnly: true,
-    });
+  /**
+   * This method is part of a bridge from using a singleton to independent instances. More specifically, it exists so
+   * that the init method can access the private field, `readyResolver`. It should not be called by any
+   * methods other than the `init` method. There are limited guards in place; the behaviour if called inappropriately
+   * is undefined.
+   *
+   * It also keeps code that relies on internal details of EppoJSClient colocated in the class.
+   *
+   * @internal
+   *
+   * @param client
+   * @param config
+   */
+  static async initializeClient(
+    client: EppoJSClient,
+    config: IClientConfig,
+  ): Promise<EppoJSClient> {
+    validation.validateNotBlank(config.apiKey, 'API key required');
 
-    super({
-      flagConfigurationStore,
-      isObfuscated: true,
-    });
+    // If there is already an init in progress for this apiKey, return that.
+    if (!EppoJSClient.initializationPromise) {
+      EppoJSClient.initializationPromise = explicitInit(config, client).then((client) => {
+        // Resolve the ready promise if it exists
+        if (client.readyPromiseResolver) {
+          client.readyPromiseResolver();
+          client.readyPromiseResolver = null;
+        }
+        return client;
+      });
+    }
 
-    this.readyPromise = explicitInit(convertClientOptionsToClientConfig(options), this).then(() => {
-      return;
-    });
-  }
+    const readyClient = await EppoJSClient.initializationPromise;
+    EppoJSClient.initializationPromise = null;
 
-  public waitForReady(): Promise<void> {
-    return this.readyPromise;
+    return readyClient;
   }
 }
 
@@ -380,35 +437,25 @@ export function offlineInit(config: IClientConfigSync, instance?: EppoJSClient):
 }
 
 /**
- * Tracks pending initialization. After an initialization completes, the value is removed from the map.
- */
-let initializationPromise: Promise<EppoClient> | null = null;
-
-/**
  * Initializes the Eppo client with configuration parameters.
  * This method should be called once on application startup.
  * If an initialization is in process, calling `init` will return the in-progress
  * `Promise<EppoClient>`. Once the initialization completes, calling `init` again will kick off the
  * initialization routine (if `forceReinitialization` is `true`).
+ *
+ *
+ * @deprecated
+ * Use `new EppoJSClient(options)` instead of `init` or `initializeClient`. These will be removed in v4
+ *
  * @param config - client configuration
  * @public
  */
 export async function init(config: IClientConfig): Promise<EppoClient> {
-  validation.validateNotBlank(config.apiKey, 'API key required');
-
-  // If there is already an init in progress for this apiKey, return that.
-  if (!initializationPromise) {
-    initializationPromise = explicitInit(config);
-  }
-
-  const client = await initializationPromise;
-  initializationPromise = null;
-  return client;
+  return EppoJSClient.initializeClient(getInstance(), config);
 }
 
-async function explicitInit(config: IClientConfig, instance?: EppoJSClient): Promise<EppoClient> {
+async function explicitInit(config: IClientConfig, instance: EppoJSClient): Promise<EppoJSClient> {
   validation.validateNotBlank(config.apiKey, 'API key required');
-  instance = instance ?? getInstance();
   let initializationError: Error | undefined;
   const {
     apiKey,
@@ -889,7 +936,7 @@ export function getPrecomputedInstance(): EppoPrecomputedClient {
   return EppoPrecomputedJSClient.instance;
 }
 
-function newEventDispatcher(
+export function newEventDispatcher(
   sdkKey: string,
   config: IClientConfig['eventIngestionConfig'] = {},
 ): EventDispatcher {
