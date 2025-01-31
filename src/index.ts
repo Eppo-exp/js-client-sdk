@@ -21,13 +21,12 @@ import {
   IConfigurationWire,
   Subject,
   IBanditLogger,
-  IObfuscatedPrecomputedConfigurationResponse,
+  IObfuscatedPrecomputedConfigurationResponse, buildStorageKeySuffix, EppoClientParameters,
 } from '@eppo/js-client-sdk-common';
-import SparkMD5 from 'spark-md5';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
 import HybridAssignmentCache from './cache/hybrid-assignment-cache';
-import { clientOptionsToParameters, EppoClientParameters } from './client-options-converter';
+import { clientOptionsToParameters } from './client-options-converter';
 import {
   ConfigLoaderStatus,
   ConfigLoadResult,
@@ -355,17 +354,6 @@ export class EppoJSClient extends EppoClient {
 
     return readyClient;
   }
-}
-
-/**
- * Builds a storage key suffix from an API key.
- * @param apiKey - The API key to build the suffix from
- * @returns A string suffix for storage keys
- * @public
- */
-export function buildStorageKeySuffix(apiKey: string): string {
-  // Note that we use the last 8 characters of hashed API key to create per-API key persistent storages and caches
-  return new SparkMD5().append(apiKey).end().slice(-8);
 }
 
 /**

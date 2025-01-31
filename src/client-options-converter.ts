@@ -1,6 +1,6 @@
 import {
   BanditParameters,
-  BanditVariation,
+  BanditVariation, EppoClientParameters,
   EventDispatcher,
   Flag,
   FlagConfigurationRequestParameters,
@@ -10,17 +10,6 @@ import {
 
 import { IClientOptions } from './i-client-config';
 import { sdkName, sdkVersion } from './sdk-data';
-
-export type EppoClientParameters = {
-  // Dispatcher for arbitrary, application-level events (not to be confused with Eppo specific assignment
-  // or bandit events). These events are application-specific and captures by EppoClient#track API.
-  eventDispatcher?: EventDispatcher;
-  flagConfigurationStore: IConfigurationStore<Flag | ObfuscatedFlag>;
-  banditVariationConfigurationStore?: IConfigurationStore<BanditVariation[]>;
-  banditModelConfigurationStore?: IConfigurationStore<BanditParameters>;
-  configurationRequestParameters?: FlagConfigurationRequestParameters;
-  isObfuscated?: boolean;
-};
 
 /**
  * Converts IClientOptions to EppoClientParameters
