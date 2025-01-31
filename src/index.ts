@@ -48,9 +48,14 @@ import BrowserNetworkStatusListener from './events/browser-network-status-listen
 import LocalStorageBackedNamedEventQueue from './events/local-storage-backed-named-event-queue';
 import {
   convertClientOptionsToClientConfig,
+  IApiOptions,
   IClientConfig,
   IClientOptions,
+  IEventOptions,
+  ILoggers,
+  IPollingOptions,
   IPrecomputedClientConfig,
+  IStorageOptions,
 } from './i-client-config';
 import { sdkName, sdkVersion } from './sdk-data';
 
@@ -70,7 +75,16 @@ export interface IClientConfigSync {
   throwOnFailedInitialization?: boolean;
 }
 
-export { IClientConfig, IPrecomputedClientConfig };
+export {
+  IClientConfig,
+  IPrecomputedClientConfig,
+  IClientOptions,
+  IApiOptions,
+  ILoggers,
+  IEventOptions,
+  IStorageOptions,
+  IPollingOptions,
+};
 
 // Export the common types and classes from the SDK.
 export {
