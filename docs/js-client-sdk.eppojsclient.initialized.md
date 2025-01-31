@@ -7,5 +7,5 @@
 **Signature:**
 
 ```typescript
-static initialized: boolean;
+initialized: boolean;
 ```

@@ -13,6 +13,40 @@ export declare class EppoJSClient extends EppoClient
 ```
 **Extends:** EppoClient
 
+## Constructors
+
+<table><thead><tr><th>
+
+Constructor
+
+
+</th><th>
+
+Modifiers
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[(constructor)(optionsOrConfig)](./js-client-sdk.eppojsclient._constructor_.md)
+
+
+</td><td>
+
+
+</td><td>
+
+Constructs a new instance of the `EppoJSClient` class
+
+
+</td></tr>
+</tbody></table>
+
 ## Properties
 
 <table><thead><tr><th>
@@ -42,8 +76,6 @@ Description
 
 
 </td><td>
-
-`static`
 
 
 </td><td>
@@ -253,6 +285,18 @@ Description
 <tr><td>
 
 [getStringAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue)](./js-client-sdk.eppojsclient.getstringassignmentdetails.md)
+
+
+</td><td>
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[waitForReady()](./js-client-sdk.eppojsclient.waitforready.md)
 
 
 </td><td>

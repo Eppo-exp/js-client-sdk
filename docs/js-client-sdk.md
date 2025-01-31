@@ -120,13 +120,22 @@ Used to access a singleton SDK precomputed client instance. Use the method after
 
 </td><td>
 
-Initializes the Eppo client with configuration parameters. This method should be called once on application startup.
+Initializes the Eppo client with configuration parameters. This method should be called once on application startup. If an initialization is in process, calling `init` will return the in-progress `Promise<EppoClient>`<!-- -->. Once the initialization completes, calling `init` again will kick off the initialization routine (if `forceReinitialization` is `true`<!-- -->).
 
 
 </td></tr>
 <tr><td>
 
-[offlineInit(config)](./js-client-sdk.offlineinit.md)
+[newEventDispatcher(sdkKey, config)](./js-client-sdk.neweventdispatcher.md)
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
+
+[offlineInit(config, instance)](./js-client-sdk.offlineinit.md)
 
 
 </td><td>
@@ -182,17 +191,6 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[IClientConfig](./js-client-sdk.iclientconfig.md)
-
-
-</td><td>
-
-Configuration for regular client initialization
-
-
-</td></tr>
-<tr><td>
-
 [IClientConfigSync](./js-client-sdk.iclientconfigsync.md)
 
 
@@ -223,6 +221,32 @@ Configuration for Eppo precomputed client initialization
 Configuration parameters for initializing the Eppo precomputed client.
 
 This interface is used for cases where precomputed assignments are available from an external process that can bootstrap the SDK client.
+
+
+</td></tr>
+</tbody></table>
+
+## Type Aliases
+
+<table><thead><tr><th>
+
+Type Alias
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[IClientConfig](./js-client-sdk.iclientconfig.md)
+
+
+</td><td>
+
+Configuration for regular client initialization
 
 
 </td></tr>
