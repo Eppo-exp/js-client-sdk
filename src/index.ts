@@ -177,9 +177,6 @@ export class EppoJSClient extends EppoClient {
   }
 
   public waitForReady(): Promise<void> {
-    if (!this.readyPromise) {
-      return Promise.resolve();
-    }
     return this.readyPromise;
   }
 
