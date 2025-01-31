@@ -22,10 +22,13 @@ import {
   Subject,
   IBanditLogger,
   IObfuscatedPrecomputedConfigurationResponse,
+  buildStorageKeySuffix,
+  EppoClientParameters,
 } from '@eppo/js-client-sdk-common';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
 import HybridAssignmentCache from './cache/hybrid-assignment-cache';
+import { clientOptionsToEppoClientParameters } from './client-options-converter';
 import {
   ConfigLoaderStatus,
   ConfigLoadResult,
@@ -43,7 +46,17 @@ import {
 } from './configuration-factory';
 import BrowserNetworkStatusListener from './events/browser-network-status-listener';
 import LocalStorageBackedNamedEventQueue from './events/local-storage-backed-named-event-queue';
-import { IClientConfig, IPrecomputedClientConfig } from './i-client-config';
+import {
+  convertClientOptionsToClientConfig,
+  IApiOptions,
+  IClientConfig,
+  IClientOptions,
+  IEventOptions,
+  ILoggers,
+  IPollingOptions,
+  IPrecomputedClientConfig,
+  IStorageOptions,
+} from './i-client-config';
 import { sdkName, sdkVersion } from './sdk-data';
 
 /**
@@ -62,7 +75,16 @@ export interface IClientConfigSync {
   throwOnFailedInitialization?: boolean;
 }
 
-export { IClientConfig, IPrecomputedClientConfig };
+export {
+  IClientConfig,
+  IPrecomputedClientConfig,
+  IClientOptions,
+  IApiOptions,
+  ILoggers,
+  IEventOptions,
+  IStorageOptions,
+  IPollingOptions,
+};
 
 // Export the common types and classes from the SDK.
 export {
@@ -85,6 +107,7 @@ export {
 export { ChromeStorageEngine } from './chrome-storage-engine';
 
 // Instantiate the configuration store with memory-only implementation.
+// For use only with the singleton instance.
 const flagConfigurationStore = configurationStorageFactory({
   forceMemoryOnly: true,
 });
@@ -98,14 +121,64 @@ const memoryOnlyPrecomputedBanditsStore = precomputedBanditStoreFactory();
  * @public
  */
 export class EppoJSClient extends EppoClient {
-  // Ensure that the client is instantiated during class loading.
-  // Use an empty memory-only configuration store until the `init` method is called,
-  // to avoid serving stale data to the user.
+  /**
+   * Resolved when the client is initialized
+   * @private
+   */
+  private readonly readyPromise: Promise<void>;
+
+  /**
+   * Used when the client is initialized from outside the constructor, namely, from the `init` or
+   * `EppoJSClient.initializeClient` methods.
+   * @private
+   */
+  private readyPromiseResolver: (() => void) | null = null;
+
   public static instance = new EppoJSClient({
     flagConfigurationStore,
     isObfuscated: true,
   });
-  public static initialized = false;
+  initialized = false;
+
+  constructor(optionsOrConfig: EppoClientParameters | IClientOptions) {
+    const v2Constructor = 'sdkKey' in optionsOrConfig;
+
+    super(
+      v2Constructor
+        ? clientOptionsToEppoClientParameters(
+            optionsOrConfig, // The IClientOptions wrapper
+            optionsOrConfig.flagConfigurationStore ?? // create a new, memory only FCS if none was provided
+              configurationStorageFactory({
+                forceMemoryOnly: true,
+              }),
+            optionsOrConfig.eventIngestionConfig // Create an Event Dispatcher if Event Ingestion config was provided.
+              ? newEventDispatcher(optionsOrConfig.sdkKey, optionsOrConfig.eventIngestionConfig)
+              : undefined,
+          ) // "New" construction technique; isolated instance.
+        : (optionsOrConfig as EppoClientParameters), // Legacy instantiation of singleton.
+    );
+
+    if (!v2Constructor) {
+      // Original constructor path; passthrough to super is above.
+      // `waitForReady` is a new API we need to graft onto the old way of constructing first and initializing later.
+
+      // Create a promise that will be resolved when EppoJSClient.initializeClient() is called
+      this.readyPromise = new Promise((resolve) => {
+        this.readyPromiseResolver = resolve;
+      });
+    } else {
+      this.readyPromise = explicitInit(
+        convertClientOptionsToClientConfig(optionsOrConfig),
+        this,
+      ).then(() => {
+        return;
+      });
+    }
+  }
+
+  public waitForReady(): Promise<void> {
+    return this.readyPromise;
+  }
 
   public getStringAssignment(
     flagKey: string,
@@ -113,7 +186,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: string,
   ): string {
-    EppoJSClient.ensureInitialized();
+    this.ensureInitialized();
     return super.getStringAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
@@ -123,7 +196,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: string,
   ): IAssignmentDetails<string> {
-    EppoJSClient.ensureInitialized();
+    this.ensureInitialized();
     return super.getStringAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
@@ -145,7 +218,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: boolean,
   ): boolean {
-    EppoJSClient.ensureInitialized();
+    this.ensureInitialized();
     return super.getBooleanAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
@@ -155,7 +228,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: boolean,
   ): IAssignmentDetails<boolean> {
-    EppoJSClient.ensureInitialized();
+    this.ensureInitialized();
     return super.getBooleanAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
@@ -165,7 +238,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: number,
   ): number {
-    EppoJSClient.ensureInitialized();
+    this.ensureInitialized();
     return super.getIntegerAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
@@ -175,7 +248,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: number,
   ): IAssignmentDetails<number> {
-    EppoJSClient.ensureInitialized();
+    this.ensureInitialized();
     return super.getIntegerAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
@@ -185,7 +258,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: number,
   ): number {
-    EppoJSClient.ensureInitialized();
+    this.ensureInitialized();
     return super.getNumericAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
@@ -195,7 +268,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: number,
   ): IAssignmentDetails<number> {
-    EppoJSClient.ensureInitialized();
+    this.ensureInitialized();
     return super.getNumericAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
@@ -205,7 +278,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: object,
   ): object {
-    EppoJSClient.ensureInitialized();
+    this.ensureInitialized();
     return super.getJSONAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
@@ -215,7 +288,7 @@ export class EppoJSClient extends EppoClient {
     subjectAttributes: Record<string, AttributeType>,
     defaultValue: object,
   ): IAssignmentDetails<object> {
-    EppoJSClient.ensureInitialized();
+    this.ensureInitialized();
     return super.getJSONAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
   }
 
@@ -226,7 +299,7 @@ export class EppoJSClient extends EppoClient {
     actions: BanditActions,
     defaultValue: string,
   ): Omit<IAssignmentDetails<string>, 'evaluationDetails'> {
-    EppoJSClient.ensureInitialized();
+    this.ensureInitialized();
     return super.getBanditAction(flagKey, subjectKey, subjectAttributes, actions, defaultValue);
   }
 
@@ -237,7 +310,7 @@ export class EppoJSClient extends EppoClient {
     actions: BanditActions,
     defaultValue: string,
   ): IAssignmentDetails<string> {
-    EppoJSClient.ensureInitialized();
+    this.ensureInitialized();
     return super.getBanditActionDetails(
       flagKey,
       subjectKey,
@@ -252,26 +325,58 @@ export class EppoJSClient extends EppoClient {
     subjectKey: string,
     subjectAttributes: Record<string, AttributeType>,
   ): T {
-    EppoJSClient.ensureInitialized();
+    this.ensureInitialized();
     return super.getExperimentContainerEntry(flagExperiment, subjectKey, subjectAttributes);
   }
 
-  private static ensureInitialized() {
-    if (!EppoJSClient.initialized) {
+  private ensureInitialized() {
+    if (!this.initialized) {
+      // TODO: check super.isInitialized?
       applicationLogger.warn('Eppo SDK assignment requested before init() completed');
     }
   }
-}
 
-/**
- * Builds a storage key suffix from an API key.
- * @param apiKey - The API key to build the suffix from
- * @returns A string suffix for storage keys
- * @public
- */
-export function buildStorageKeySuffix(apiKey: string): string {
-  // Note that we use the first 8 characters of the API key to create per-API key persistent storages and caches
-  return apiKey.replace(/\W/g, '').substring(0, 8);
+  /**
+   * Tracks pending initialization. After an initialization completes, the value is removed from the map.
+   */
+  private static initializationPromise: Promise<EppoJSClient> | null = null;
+
+  /**
+   * This method is part of a bridge from using a singleton to independent instances. More specifically, it exists so
+   * that the init method can access the private field, `readyResolver`. It should not be called by any
+   * methods other than the `init` method. There are limited guards in place; the behaviour if called inappropriately
+   * is undefined.
+   *
+   * It also keeps code that relies on internal details of EppoJSClient colocated in the class.
+   *
+   * @internal
+   *
+   * @param client
+   * @param config
+   */
+  static async initializeClient(
+    client: EppoJSClient,
+    config: IClientConfig,
+  ): Promise<EppoJSClient> {
+    validation.validateNotBlank(config.apiKey, 'API key required');
+
+    // If there is already an init in progress for this apiKey, return that.
+    if (!EppoJSClient.initializationPromise) {
+      EppoJSClient.initializationPromise = explicitInit(config, client).then((client) => {
+        // Resolve the ready promise if it exists
+        if (client.readyPromiseResolver) {
+          client.readyPromiseResolver();
+          client.readyPromiseResolver = null;
+        }
+        return client;
+      });
+    }
+
+    const readyClient = await EppoJSClient.initializationPromise;
+    EppoJSClient.initializationPromise = null;
+
+    return readyClient;
+  }
 }
 
 /**
@@ -287,6 +392,8 @@ export function buildStorageKeySuffix(apiKey: string): string {
  * @public
  */
 export function offlineInit(config: IClientConfigSync): EppoClient {
+  const instance = getInstance();
+
   const isObfuscated = config.isObfuscated ?? false;
   const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
 
@@ -299,19 +406,19 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
       .catch((err) =>
         applicationLogger.warn('Error setting flags for memory-only configuration store', err),
       );
-    EppoJSClient.instance.setFlagConfigurationStore(memoryOnlyConfigurationStore);
+    instance.setFlagConfigurationStore(memoryOnlyConfigurationStore);
 
     // Allow the caller to override the default obfuscated mode, which is false
     // since the purpose of this method is to bootstrap the SDK from an external source,
     // which is likely a server that has not-obfuscated flag values.
-    EppoJSClient.instance.setIsObfuscated(isObfuscated);
+    instance.setIsObfuscated(isObfuscated);
 
     if (config.assignmentLogger) {
-      EppoJSClient.instance.setAssignmentLogger(config.assignmentLogger);
+      instance.setAssignmentLogger(config.assignmentLogger);
     }
 
     if (config.banditLogger) {
-      EppoJSClient.instance.setBanditLogger(config.banditLogger);
+      instance.setBanditLogger(config.banditLogger);
     }
 
     // There is no SDK key in the offline context.
@@ -325,7 +432,7 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
       storageKeySuffix,
       forceMemoryOnly: true,
     });
-    EppoJSClient.instance.useCustomAssignmentCache(assignmentCache);
+    instance.useCustomAssignmentCache(assignmentCache);
   } catch (error) {
     applicationLogger.warn(
       'Eppo SDK encountered an error initializing, assignment calls will return the default value and not be logged',
@@ -335,14 +442,9 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
     }
   }
 
-  EppoJSClient.initialized = true;
-  return EppoJSClient.instance;
+  instance.initialized = true;
+  return instance;
 }
-
-/**
- * Tracks pending initialization. After an initialization completes, the value is removed from the map.
- */
-let initializationPromise: Promise<EppoClient> | null = null;
 
 /**
  * Initializes the Eppo client with configuration parameters.
@@ -350,26 +452,21 @@ let initializationPromise: Promise<EppoClient> | null = null;
  * If an initialization is in process, calling `init` will return the in-progress
  * `Promise<EppoClient>`. Once the initialization completes, calling `init` again will kick off the
  * initialization routine (if `forceReinitialization` is `true`).
+ *
+ *
+ * @deprecated
+ * Use `new EppoJSClient(options)` instead of `init` or `initializeClient`. These will be removed in v4
+ *
  * @param config - client configuration
  * @public
  */
 export async function init(config: IClientConfig): Promise<EppoClient> {
-  validation.validateNotBlank(config.apiKey, 'API key required');
-
-  // If there is already an init in progress for this apiKey, return that.
-  if (!initializationPromise) {
-    initializationPromise = explicitInit(config);
-  }
-
-  const client = await initializationPromise;
-  initializationPromise = null;
-  return client;
+  return EppoJSClient.initializeClient(getInstance(), config);
 }
 
-async function explicitInit(config: IClientConfig): Promise<EppoClient> {
+async function explicitInit(config: IClientConfig, instance: EppoJSClient): Promise<EppoJSClient> {
   validation.validateNotBlank(config.apiKey, 'API key required');
   let initializationError: Error | undefined;
-  const instance = EppoJSClient.instance;
   const {
     apiKey,
     persistentStore,
@@ -386,13 +483,15 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
     skipInitialRequest = false,
     eventIngestionConfig,
   } = config;
+
   try {
-    if (EppoJSClient.initialized) {
+    if (instance.initialized) {
+      // TODO: check super.isInitialized.
       if (forceReinitialize) {
         applicationLogger.warn(
           'Eppo SDK is already initialized, reinitializing since forceReinitialize is true.',
         );
-        EppoJSClient.initialized = false;
+        instance.initialized = false;
       } else {
         applicationLogger.warn(
           'Eppo SDK is already initialized, skipping reinitialization since forceReinitialize is false.',
@@ -587,7 +686,7 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
     }
   }
 
-  EppoJSClient.initialized = true;
+  instance.initialized = true;
   return instance;
 }
 
@@ -597,7 +696,7 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
  * @returns a singleton client instance
  * @public
  */
-export function getInstance(): EppoClient {
+export function getInstance(): EppoJSClient {
   return EppoJSClient.instance;
 }
 
@@ -659,7 +758,7 @@ export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
   }
 
   private static getAssignmentInitializationCheck() {
-    if (!EppoJSClient.initialized) {
+    if (!EppoPrecomputedJSClient.initialized) {
       applicationLogger.warn('Eppo SDK assignment requested before init() completed');
     }
   }

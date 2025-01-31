@@ -6,6 +6,7 @@ import {
   IAssignmentLogger,
   IAsyncStore,
   IBanditLogger,
+  IConfigurationStore,
 } from '@eppo/js-client-sdk-common';
 
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
@@ -104,10 +105,41 @@ export interface IPrecomputedClientConfig extends IBaseRequestConfig {
 }
 
 /**
- * Configuration for regular client initialization
- * @public
+ * Base options for the EppoClient SDK
  */
-export interface IClientConfig extends IBaseRequestConfig {
+export type IApiOptions = {
+  /**
+   * Your key for accessing Eppo through the Eppo SDK.
+   */
+  sdkKey: string;
+
+  /**
+   * Override the endpoint the SDK uses to load configuration.
+   */
+  baseUrl?: string;
+
+  /**
+   * Force reinitialize the SDK if it is already initialized.
+   */
+  forceReinitialize?: boolean;
+
+  /**
+   * Timeout in milliseconds for the HTTPS request for the experiment configuration. (Default: 5000)
+   */
+  requestTimeoutMs?: number;
+
+  /**
+   * Number of additional times the initial configuration request will be attempted if it fails.
+   * This is the request typically synchronously waited (via await) for completion. A small wait will be
+   * done between requests. (Default: 1)
+   */
+  numInitialRequestRetries?: number;
+
+  /**
+   * Skip the request for new configurations during initialization. (default: false)
+   */
+  skipInitialRequest?: boolean;
+
   /**
    * Throw an error if unable to fetch an initial configuration during initialization. (default: true)
    */
@@ -134,19 +166,11 @@ export interface IClientConfig extends IBaseRequestConfig {
    */
   updateOnFetch?: ServingStoreUpdateStrategy;
 
-  /**
-   * A custom class to use for storing flag configurations.
-   * This is useful for cases where you want to use a different storage mechanism
-   * than the default storage provided by the SDK.
-   */
-  persistentStore?: IAsyncStore<Flag>;
+  // TODO: Add initial config (stringified IConfigurationWire) here.
+};
 
-  /**
-   * Force reinitialize the SDK if it is already initialized.
-   */
-  forceReinitialize?: boolean;
 
-  /** Configuration settings for the event dispatcher */
+export type IEventOptions = {
   eventIngestionConfig?: {
     /** Number of milliseconds to wait between each batch delivery. Defaults to 10 seconds. */
     deliveryIntervalMs?: number;
@@ -164,5 +188,78 @@ export interface IClientConfig extends IBaseRequestConfig {
      * Defaults to 10000 events.
      */
     maxQueueSize?: number;
+  };
+};
+
+export type IStorageOptions = {
+  /**
+   * Custom implementation of the flag configuration store for advanced use-cases.
+   */
+  flagConfigurationStore?: IConfigurationStore<Flag>;
+
+  /**
+   * A custom class to use for storing flag configurations.
+   * This is useful for cases where you want to use a different storage mechanism
+   * than the default storage provided by the SDK.
+   */
+  persistentStore?: IAsyncStore<Flag>;
+};
+
+export type IPollingOptions = {
+  /**
+   * Poll for new configurations even if the initial configuration request failed. (default: false)
+   */
+  pollAfterFailedInitialization?: boolean;
+
+  /**
+   * Poll for new configurations (every `pollingIntervalMs`) after successfully requesting the initial configuration. (default: false)
+   */
+  pollAfterSuccessfulInitialization?: boolean;
+
+  /**
+   * Amount of time to wait between API calls to refresh configuration data. Default of 30_000 (30 seconds).
+   */
+  pollingIntervalMs?: number;
+
+  /**
+   * Number of additional times polling for updated configurations will be attempted before giving up.
+   * Polling is done after a successful initial request. Subsequent attempts are done using an exponential
+   * backoff. (Default: 7)
+   */
+  numPollRequestRetries?: number;
+};
+
+export type ILoggers = {
+  /**
+   * Pass a logging implementation to send variation assignments to your data warehouse.
+   */
+  assignmentLogger: IAssignmentLogger;
+
+  /**
+   * Pass a logging implementation to send bandit assignments to your data warehouse.
+   */
+  banditLogger?: IBanditLogger;
+};
+
+/**
+ * Config shape for client v2.
+ */
+export type IClientOptions = IApiOptions &
+  ILoggers &
+  IEventOptions &
+  IStorageOptions &
+  IPollingOptions;
+
+/**
+ * Configuration for regular client initialization
+ * @public
+ */
+export type IClientConfig = Omit<IClientOptions, 'sdkKey' | 'offline'> &
+  Pick<IBaseRequestConfig, 'apiKey'>; // Could also just use `& IBaseRequestConfig` here instead of picking just `apiKey`.
+
+export function convertClientOptionsToClientConfig(options: IClientOptions): IClientConfig {
+  return {
+    ...options,
+    apiKey: options.sdkKey,
   };
 }

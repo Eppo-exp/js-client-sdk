@@ -13,7 +13,7 @@ This method should be called once on application startup.
 **Signature:**
 
 ```typescript
-export declare function offlineInit(config: IClientConfigSync): EppoClient;
+export declare function offlineInit(config: IClientConfigSync, instance?: EppoJSClient): EppoClient;
 ```
 
 ## Parameters
@@ -47,6 +47,22 @@ config
 </td><td>
 
 client configuration
+
+
+</td></tr>
+<tr><td>
+
+instance
+
+
+</td><td>
+
+[EppoJSClient](./js-client-sdk.eppojsclient.md)
+
+
+</td><td>
+
+_(Optional)_ an EppoJSClient instance to bootstrap.
 
 
 </td></tr>
