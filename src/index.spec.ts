@@ -1282,6 +1282,8 @@ describe('EppoPrecomputedJSClient E2E test', () => {
   });
 
   it('logs assignments correctly', () => {
+    const mockAssignmentCache = td.object<AssignmentCache>();
+    globalClient.useCustomAssignmentCache(mockAssignmentCache);
     // Reset the mock logger before this test
     mockLogger = td.object<IAssignmentLogger>();
     globalClient.setAssignmentLogger(mockLogger);
@@ -1308,6 +1310,24 @@ describe('EppoPrecomputedJSClient E2E test', () => {
       variation: 'variation-124',
       subjectAttributes: { attr1: 'value1' },
       format: 'PRECOMPUTED',
+    });
+  });
+
+  it('deduplicates assignment logging', () => {
+    // Reset the mock logger and assignment cache before this test
+    const mockLogger = td.object<IAssignmentLogger>();
+    globalClient.useNonExpiringInMemoryAssignmentCache();
+    globalClient.setAssignmentLogger(mockLogger);
+
+    expect(td.explain(mockLogger.logAssignment).callCount).toEqual(0);
+    globalClient.getStringAssignment('string-flag', 'default');
+    expect(td.explain(mockLogger.logAssignment).callCount).toEqual(1);
+    globalClient.getStringAssignment('string-flag', 'default');
+    expect(td.explain(mockLogger.logAssignment).callCount).toEqual(1);
+
+    expect(td.explain(mockLogger.logAssignment).calls[0]?.args[0]).toMatchObject({
+      featureFlag: 'string-flag',
+      subject: 'test-subject',
     });
   });
 });
@@ -1395,6 +1415,22 @@ describe('offlinePrecomputedInit', () => {
       applicationLogger.warn(td.matchers.contains('Precomputed client is being re-initialized.')),
       { times: 1 },
     );
+  });
+
+  it('deduplicates assignment logging', () => {
+    const client = offlinePrecomputedInit({
+      precomputedConfiguration,
+      assignmentLogger: mockLogger,
+    });
+    expect(td.explain(mockLogger.logAssignment).callCount).toBe(0);
+    client.getStringAssignment('string-flag', 'default');
+    expect(td.explain(mockLogger.logAssignment).callCount).toBe(1);
+    client.getStringAssignment('string-flag', 'default');
+    expect(td.explain(mockLogger.logAssignment).callCount).toBe(1);
+    expect(td.explain(mockLogger.logAssignment).calls[0]?.args[0]).toMatchObject({
+      subject: 'test-subject-key',
+      featureFlag: 'string-flag',
+    });
   });
 });
 

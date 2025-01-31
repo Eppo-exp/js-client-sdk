@@ -694,6 +694,16 @@ export async function precomputedInit(
     skipInitialRequest = false,
   } = config;
 
+  // Add assignment cache initialization
+  const storageKeySuffix = buildStorageKeySuffix(apiKey);
+  const assignmentCache = assignmentCacheFactory({
+    chromeStorage: chromeStorageIfAvailable(),
+    storageKeySuffix,
+  });
+  if (assignmentCache instanceof HybridAssignmentCache) {
+    await assignmentCache.init();
+  }
+
   // Set up parameters for requesting updated configurations
   const requestParameters: PrecomputedFlagsRequestParameters = {
     apiKey,
@@ -724,6 +734,7 @@ export async function precomputedInit(
   if (config.banditLogger) {
     EppoPrecomputedJSClient.instance.setBanditLogger(config.banditLogger);
   }
+  EppoPrecomputedJSClient.instance.useCustomAssignmentCache(assignmentCache);
   await EppoPrecomputedJSClient.instance.fetchPrecomputedFlags();
 
   EppoPrecomputedJSClient.initialized = true;
@@ -804,6 +815,13 @@ export function offlinePrecomputedInit(
     };
 
     shutdownEppoPrecomputedClient();
+
+    // Add memory-only assignment cache for offline mode
+    const assignmentCache = assignmentCacheFactory({
+      storageKeySuffix: 'offline',
+      forceMemoryOnly: true,
+    });
+
     EppoPrecomputedJSClient.instance = new EppoPrecomputedJSClient({
       precomputedFlagStore: memoryOnlyPrecomputedStore,
       precomputedBanditStore: memoryOnlyPrecomputedBanditStore,
@@ -816,6 +834,7 @@ export function offlinePrecomputedInit(
     if (config.banditLogger) {
       EppoPrecomputedJSClient.instance.setBanditLogger(config.banditLogger);
     }
+    EppoPrecomputedJSClient.instance.useCustomAssignmentCache(assignmentCache);
   } catch (error) {
     applicationLogger.warn(
       '[Eppo SDK] Encountered an error initializing precomputed client, assignment calls will return the default value and not be logged',
