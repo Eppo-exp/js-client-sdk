@@ -104,31 +104,18 @@ export interface IPrecomputedClientConfig extends IBaseRequestConfig {
   precompute: IPrecompute;
 }
 
-export type IEventOptions = {
-  eventIngestionConfig?: {
-    /** Number of milliseconds to wait between each batch delivery. Defaults to 10 seconds. */
-    deliveryIntervalMs?: number;
-    /** Minimum amount of milliseconds to wait before retrying a failed delivery. Defaults to 5 seconds */
-    retryIntervalMs?: number;
-    /** Maximum amount of milliseconds to wait before retrying a failed delivery. Defaults to 30 seconds. */
-    maxRetryDelayMs?: number;
-    /** Maximum number of retry attempts before giving up on a batch delivery. Defaults to 3 retries. */
-    maxRetries?: number;
-    /** Maximum number of events to send per delivery request. Defaults to 1000 events. */
-    batchSize?: number;
-    /**
-     * Maximum number of events to queue in memory before starting to drop events.
-     * Note: This is only used if localStorage is not available.
-     * Defaults to 10000 events.
-     */
-    maxQueueSize?: number;
-  };
-};
-
+/**
+ * Base options for the EppoClient SDK
+ */
 export type IApiOptions = {
+  /**
+   * Your key for accessing Eppo through the Eppo SDK.
+   */
   sdkKey: string;
 
-  initialConfiguration?: string;
+  /**
+   * Override the endpoint the SDK uses to load configuration.
+   */
   baseUrl?: string;
 
   /**
@@ -178,20 +165,39 @@ export type IApiOptions = {
    * - empty: only use the new configuration if the current one is both expired and uninitialized/empty
    */
   updateOnFetch?: ServingStoreUpdateStrategy;
+
+  /**
+   * A configuration string to bootstrap the client without having to make a network fetch.
+   */
+  initialConfiguration: string;
 };
 
-/**
- * Handy options class for when you want to create an offline client.
- */
-export class OfflineApiOptions implements IApiOptions {
-  constructor(
-    public readonly sdkKey: string,
-    public readonly initialConfiguration?: string,
-  ) {}
-  public readonly offline = true;
-}
+
+export type IEventOptions = {
+  eventIngestionConfig?: {
+    /** Number of milliseconds to wait between each batch delivery. Defaults to 10 seconds. */
+    deliveryIntervalMs?: number;
+    /** Minimum amount of milliseconds to wait before retrying a failed delivery. Defaults to 5 seconds */
+    retryIntervalMs?: number;
+    /** Maximum amount of milliseconds to wait before retrying a failed delivery. Defaults to 30 seconds. */
+    maxRetryDelayMs?: number;
+    /** Maximum number of retry attempts before giving up on a batch delivery. Defaults to 3 retries. */
+    maxRetries?: number;
+    /** Maximum number of events to send per delivery request. Defaults to 1000 events. */
+    batchSize?: number;
+    /**
+     * Maximum number of events to queue in memory before starting to drop events.
+     * Note: This is only used if localStorage is not available.
+     * Defaults to 10000 events.
+     */
+    maxQueueSize?: number;
+  };
+};
 
 export type IStorageOptions = {
+  /**
+   * Custom implementation of the flag configuration store for advanced use-cases.
+   */
   flagConfigurationStore?: IConfigurationStore<Flag>;
 
   /**
