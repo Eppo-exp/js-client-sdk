@@ -946,7 +946,7 @@ export function getPrecomputedInstance(): EppoPrecomputedClient {
   return EppoPrecomputedJSClient.instance;
 }
 
-export function newEventDispatcher(
+function newEventDispatcher(
   sdkKey: string,
   config: IClientConfig['eventIngestionConfig'] = {},
 ): EventDispatcher {
