@@ -388,12 +388,11 @@ export class EppoJSClient extends EppoClient {
  * This method should be called once on application startup.
  *
  * @param config - client configuration
- * @param instance an EppoJSClient instance to bootstrap.
  * @returns a singleton client instance
  * @public
  */
-export function offlineInit(config: IClientConfigSync, instance?: EppoJSClient): EppoClient {
-  instance = instance ?? getInstance();
+export function offlineInit(config: IClientConfigSync): EppoClient {
+  const instance = getInstance();
 
   const isObfuscated = config.isObfuscated ?? false;
   const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
