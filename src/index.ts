@@ -23,7 +23,7 @@ import {
   IBanditLogger,
   IObfuscatedPrecomputedConfigurationResponse,
 } from '@eppo/js-client-sdk-common';
-import { getMD5Hash } from '@eppo/js-client-sdk-common/dist/obfuscation';
+import SparkMD5 from 'spark-md5';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
 import HybridAssignmentCache from './cache/hybrid-assignment-cache';
@@ -365,7 +365,7 @@ export class EppoJSClient extends EppoClient {
  */
 export function buildStorageKeySuffix(apiKey: string): string {
   // Note that we use the last 8 characters of hashed API key to create per-API key persistent storages and caches
-  return getMD5Hash(apiKey).slice(-8);
+  return new SparkMD5().append(apiKey).end().slice(-8);
 }
 
 /**
