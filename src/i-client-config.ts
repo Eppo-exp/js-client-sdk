@@ -166,10 +166,7 @@ export type IApiOptions = {
    */
   updateOnFetch?: ServingStoreUpdateStrategy;
 
-  /**
-   * A configuration string to bootstrap the client without having to make a network fetch.
-   */
-  initialConfiguration: string;
+  // TODO: Add initial config (stringified IConfigurationWire) here.
 };
 
 
