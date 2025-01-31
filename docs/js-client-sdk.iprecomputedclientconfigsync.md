@@ -96,6 +96,25 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
+[overridesStorageKey?](./js-client-sdk.iprecomputedclientconfigsync.overridesstoragekey.md)
+
+
+</td><td>
+
+
+</td><td>
+
+string
+
+
+</td><td>
+
+_(Optional)_
+
+
+</td></tr>
+<tr><td>
+
 [precomputedConfiguration](./js-client-sdk.iprecomputedclientconfigsync.precomputedconfiguration.md)
 
 

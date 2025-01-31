@@ -1715,4 +1715,42 @@ describe('enableOverrides', () => {
 
     expect(client.getStringAssignment('string-flag', 'default')).toBe('red');
   });
+
+  it('should respect custom overridesStorageKey', async () => {
+    const customStorageKey = 'custom-eppo-overrides';
+
+    // Set up override with custom storage key
+    window.localStorage.setItem(
+      customStorageKey,
+      JSON.stringify({
+        'test-flag': {
+          value: 'override-value',
+          variationType: 'STRING',
+        },
+      }),
+    );
+
+    // Set up override with default storage key - should be ignored
+    window.localStorage.setItem(
+      'eppo-overrides',
+      JSON.stringify({
+        'test-flag': {
+          value: 'different-value',
+          variationType: 'STRING',
+        },
+      }),
+    );
+
+    const client = await init({
+      apiKey: 'test-api-key',
+      assignmentLogger: td.object<IAssignmentLogger>(),
+      enableOverrides: true,
+      overridesStorageKey: customStorageKey,
+      forceReinitialize: true,
+    });
+
+    // Should use override from custom storage key
+    const assignment = client.getStringAssignment('test-flag', 'subject-1', {}, 'default-value');
+    expect(assignment).toBe('override-value');
+  });
 });

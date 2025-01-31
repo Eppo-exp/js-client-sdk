@@ -114,6 +114,25 @@ _(Optional)_ Maximum age, in seconds, previously cached values are considered va
 </td></tr>
 <tr><td>
 
+[overridesStorageKey?](./js-client-sdk.iclientconfig.overridesstoragekey.md)
+
+
+</td><td>
+
+
+</td><td>
+
+string
+
+
+</td><td>
+
+_(Optional)_ The key to use for the overrides store.
+
+
+</td></tr>
+<tr><td>
+
 [persistentStore?](./js-client-sdk.iclientconfig.persistentstore.md)
 
 

@@ -130,6 +130,25 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
+[overridesStorageKey?](./js-client-sdk.iclientconfigsync.overridesstoragekey.md)
+
+
+</td><td>
+
+
+</td><td>
+
+string
+
+
+</td><td>
+
+_(Optional)_
+
+
+</td></tr>
+<tr><td>
+
 [throwOnFailedInitialization?](./js-client-sdk.iclientconfigsync.throwonfailedinitialization.md)
 
 
