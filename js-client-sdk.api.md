@@ -148,6 +148,7 @@ export interface IClientConfig extends IBaseRequestConfig {
     };
     forceReinitialize?: boolean;
     maxCacheAgeSeconds?: number;
+    overridesStorageKey?: string;
     persistentStore?: IAsyncStore<Flag>;
     throwOnFailedInitialization?: boolean;
     // Warning: (ae-forgotten-export) The symbol "ServingStoreUpdateStrategy" needs to be exported by the entry point index.d.ts
@@ -168,6 +169,8 @@ export interface IClientConfigSync {
     // (undocumented)
     isObfuscated?: boolean;
     // (undocumented)
+    overridesStorageKey?: string;
+    // (undocumented)
     throwOnFailedInitialization?: boolean;
 }
 
@@ -177,6 +180,7 @@ export function init(config: IClientConfig): Promise<EppoClient>;
 // @public
 export interface IPrecomputedClientConfig extends IBaseRequestConfig {
     enableOverrides?: boolean;
+    overridesStorageKey?: string;
     // Warning: (ae-forgotten-export) The symbol "IPrecompute" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
@@ -191,6 +195,8 @@ export interface IPrecomputedClientConfigSync {
     banditLogger?: IBanditLogger;
     // (undocumented)
     enableOverrides?: boolean;
+    // (undocumented)
+    overridesStorageKey?: string;
     // (undocumented)
     precomputedConfiguration: string;
     // (undocumented)

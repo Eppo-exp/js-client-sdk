@@ -97,13 +97,15 @@ export function overridesStorageFactory(
   },
   {
     windowLocalStorage,
+    storageKey = OVERRIDES_KEY,
   }: {
     windowLocalStorage?: Storage;
+    storageKey?: string;
   } = {},
 ): ISyncStore<Variation> {
   const memoryStore = new MemoryStore<Variation>();
   if (!forceMemoryOnly && hasWindowLocalStorage && windowLocalStorage) {
-    const localStorageContents = windowLocalStorage.getItem(OVERRIDES_KEY);
+    const localStorageContents = windowLocalStorage.getItem(storageKey);
     if (localStorageContents) {
       const parsedContents = JSON.parse(localStorageContents);
       memoryStore.setEntries(parsedContents);

@@ -63,6 +63,8 @@ export interface IClientConfigSync {
   throwOnFailedInitialization?: boolean;
 
   enableOverrides?: boolean;
+
+  overridesStorageKey?: string;
 }
 
 export { IClientConfig, IPrecomputedClientConfig };
@@ -311,6 +313,7 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
         },
         {
           windowLocalStorage: localStorageIfAvailable(),
+          storageKey: config.overridesStorageKey,
         },
       );
 
@@ -404,6 +407,7 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
     skipInitialRequest = false,
     eventIngestionConfig,
     enableOverrides,
+    overridesStorageKey,
   } = config;
   try {
     if (EppoJSClient.initialized) {
@@ -457,6 +461,7 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
         },
         {
           windowLocalStorage: localStorageIfAvailable(),
+          storageKey: overridesStorageKey,
         },
       );
       instance.setOverridesStore(overridesStore);
@@ -726,6 +731,7 @@ export async function precomputedInit(
     pollAfterFailedInitialization = false,
     skipInitialRequest = false,
     enableOverrides = false,
+    overridesStorageKey,
   } = config;
 
   // Add assignment cache initialization
@@ -772,6 +778,7 @@ export async function precomputedInit(
       },
       {
         windowLocalStorage: localStorageIfAvailable(),
+        storageKey: overridesStorageKey,
       },
     );
     EppoPrecomputedJSClient.instance.setOverridesStore(overridesStore);
@@ -808,6 +815,7 @@ export interface IPrecomputedClientConfigSync {
   banditLogger?: IBanditLogger;
   throwOnFailedInitialization?: boolean;
   enableOverrides?: boolean;
+  overridesStorageKey?: string;
 }
 
 /**
@@ -887,6 +895,7 @@ export function offlinePrecomputedInit(
         },
         {
           windowLocalStorage: localStorageIfAvailable(),
+          storageKey: config.overridesStorageKey,
         },
       );
       EppoPrecomputedJSClient.instance.setOverridesStore(overridesStore);

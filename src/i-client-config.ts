@@ -107,6 +107,11 @@ export interface IPrecomputedClientConfig extends IBaseRequestConfig {
    * (default: false)
    */
   enableOverrides?: boolean;
+
+  /**
+   * The key to use for the overrides store.
+   */
+  overridesStorageKey?: string;
 }
 
 /**
@@ -177,4 +182,9 @@ export interface IClientConfig extends IBaseRequestConfig {
    * (default: false)
    */
   enableOverrides?: boolean;
+
+  /**
+   * The key to use for the overrides store.
+   */
+  overridesStorageKey?: string;
 }
