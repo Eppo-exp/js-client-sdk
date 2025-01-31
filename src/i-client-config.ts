@@ -258,7 +258,7 @@ export type IClientOptions = IApiOptions &
  * @public
  */
 export type IClientConfig = Omit<IClientOptions, 'sdkKey' | 'offline'> &
-  Pick<IBaseRequestConfig, 'apiKey'>;
+  Pick<IBaseRequestConfig, 'apiKey'>; // Could also just use `& IBaseRequestConfig` here instead of picking just `apiKey`.
 
 export function convertClientOptionsToClientConfig(options: IClientOptions): IClientConfig {
   return {

@@ -1,11 +1,8 @@
 import {
-  BanditParameters,
-  BanditVariation, EppoClientParameters,
+  EppoClientParameters,
   EventDispatcher,
   Flag,
-  FlagConfigurationRequestParameters,
   IConfigurationStore,
-  ObfuscatedFlag,
 } from '@eppo/js-client-sdk-common';
 
 import { IClientOptions } from './i-client-config';
@@ -15,7 +12,7 @@ import { sdkName, sdkVersion } from './sdk-data';
  * Converts IClientOptions to EppoClientParameters
  * @internal
  */
-export function clientOptionsToParameters(
+export function clientOptionsToEppoClientParameters(
   options: IClientOptions,
   flagConfigurationStore: IConfigurationStore<Flag>,
   eventDispatcher?: EventDispatcher,

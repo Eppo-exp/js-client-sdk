@@ -6,7 +6,7 @@ import {
 } from '@eppo/js-client-sdk-common';
 import * as td from 'testdouble';
 
-import { clientOptionsToParameters } from './client-options-converter';
+import { clientOptionsToEppoClientParameters } from './client-options-converter';
 import { IClientOptions } from './i-client-config';
 import { sdkName, sdkVersion } from './sdk-data';
 
@@ -20,7 +20,7 @@ describe('clientOptionsToParameters', () => {
       assignmentLogger: { logAssignment: jest.fn() },
     };
 
-    const result = clientOptionsToParameters(options, mockStore);
+    const result = clientOptionsToEppoClientParameters(options, mockStore);
 
     expect(result.isObfuscated).toBe(true);
     expect(result.flagConfigurationStore).toBeDefined();
@@ -46,7 +46,7 @@ describe('clientOptionsToParameters', () => {
       assignmentLogger: { logAssignment: jest.fn() },
     };
 
-    const result = clientOptionsToParameters(options, mockStore);
+    const result = clientOptionsToEppoClientParameters(options, mockStore);
 
     expect(result.flagConfigurationStore).toBe(mockStore);
   });
@@ -58,7 +58,7 @@ describe('clientOptionsToParameters', () => {
     };
     const mockDispatcher: EventDispatcher = td.object<EventDispatcher>();
 
-    const result = clientOptionsToParameters(options, mockStore, mockDispatcher);
+    const result = clientOptionsToEppoClientParameters(options, mockStore, mockDispatcher);
 
     expect(result.eventDispatcher).toBeDefined();
   });
@@ -73,7 +73,7 @@ describe('clientOptionsToParameters', () => {
       skipInitialRequest: true,
     };
 
-    const result = clientOptionsToParameters(options, mockStore);
+    const result = clientOptionsToEppoClientParameters(options, mockStore);
 
     expect(result.configurationRequestParameters).toMatchObject({
       pollingIntervalMs: 30000,
@@ -92,7 +92,7 @@ describe('clientOptionsToParameters', () => {
       numPollRequestRetries: 2,
     };
 
-    const result = clientOptionsToParameters(options, mockStore);
+    const result = clientOptionsToEppoClientParameters(options, mockStore);
 
     expect(result.configurationRequestParameters).toMatchObject({
       requestTimeoutMs: 5000,
@@ -107,7 +107,7 @@ describe('clientOptionsToParameters', () => {
       assignmentLogger: { logAssignment: jest.fn() },
     };
 
-    const result = clientOptionsToParameters(options, mockStore);
+    const result = clientOptionsToEppoClientParameters(options, mockStore);
 
     expect(result.configurationRequestParameters).toMatchObject({
       baseUrl: undefined,
@@ -124,7 +124,7 @@ describe('clientOptionsToParameters', () => {
       assignmentLogger: { logAssignment: jest.fn() },
     };
 
-    const result = clientOptionsToParameters(options, mockStore);
+    const result = clientOptionsToEppoClientParameters(options, mockStore);
 
     expect(result.configurationRequestParameters).toMatchObject({
       sdkName,

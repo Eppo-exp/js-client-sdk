@@ -21,12 +21,14 @@ import {
   IConfigurationWire,
   Subject,
   IBanditLogger,
-  IObfuscatedPrecomputedConfigurationResponse, buildStorageKeySuffix, EppoClientParameters,
+  IObfuscatedPrecomputedConfigurationResponse,
+  buildStorageKeySuffix,
+  EppoClientParameters,
 } from '@eppo/js-client-sdk-common';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
 import HybridAssignmentCache from './cache/hybrid-assignment-cache';
-import { clientOptionsToParameters } from './client-options-converter';
+import { clientOptionsToEppoClientParameters } from './client-options-converter';
 import {
   ConfigLoaderStatus,
   ConfigLoadResult,
@@ -105,7 +107,17 @@ const memoryOnlyPrecomputedBanditsStore = precomputedBanditStoreFactory();
  * @public
  */
 export class EppoJSClient extends EppoClient {
+  /**
+   * Resolved when the client is initialized
+   * @private
+   */
   private readonly readyPromise: Promise<void>;
+
+  /**
+   * Used when the client is initialized from outside the constructor, namely, from the `init` or
+   * `EppoJSClient.initializeClient` methods.
+   * @private
+   */
   private readyPromiseResolver: (() => void) | null = null;
 
   public static instance = new EppoJSClient({
@@ -119,7 +131,7 @@ export class EppoJSClient extends EppoClient {
 
     super(
       v2Constructor
-        ? clientOptionsToParameters(
+        ? clientOptionsToEppoClientParameters(
             optionsOrConfig, // The IClientOptions wrapper
             optionsOrConfig.flagConfigurationStore ?? // create a new, memory only FCS if none was provided
               configurationStorageFactory({
