@@ -1316,10 +1316,7 @@ describe('EppoPrecomputedJSClient E2E test', () => {
   it('deduplicates assignment logging', () => {
     // Reset the mock logger and assignment cache before this test
     const mockLogger = td.object<IAssignmentLogger>();
-    const mockAssignmentCache = td.object<AssignmentCache>();
-    td.when(mockAssignmentCache.has(td.matchers.anything())).thenReturn(false, true);
-    td.when(mockAssignmentCache.set(td.matchers.anything())).thenReturn();
-    globalClient.useCustomAssignmentCache(mockAssignmentCache);
+    globalClient.useNonExpiringInMemoryAssignmentCache();
     globalClient.setAssignmentLogger(mockLogger);
 
     expect(td.explain(mockLogger.logAssignment).callCount).toEqual(0);
