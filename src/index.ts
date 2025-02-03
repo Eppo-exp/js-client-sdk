@@ -40,7 +40,7 @@ import {
   hasWindowLocalStorage,
   localStorageIfAvailable,
   precomputedBanditStoreFactory,
-  overridesStorageFactory,
+  overrideStorageFactory,
 } from './configuration-factory';
 import BrowserNetworkStatusListener from './events/browser-network-status-listener';
 import LocalStorageBackedNamedEventQueue from './events/local-storage-backed-named-event-queue';
@@ -307,7 +307,7 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
     EppoJSClient.instance.setFlagConfigurationStore(memoryOnlyConfigurationStore);
 
     if (enableOverrides) {
-      const overridesStore = overridesStorageFactory(
+      const overrideStore = overrideStorageFactory(
         {
           hasWindowLocalStorage: hasWindowLocalStorage(),
         },
@@ -317,9 +317,9 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
         },
       );
 
-      EppoJSClient.instance.setOverridesStore(overridesStore);
+      EppoJSClient.instance.setOverrideStore(overrideStore);
     } else {
-      EppoJSClient.instance.unsetOverridesStore();
+      EppoJSClient.instance.unsetOverrideStore();
     }
 
     // Allow the caller to override the default obfuscated mode, which is false
@@ -455,7 +455,7 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
     instance.setFlagConfigurationStore(configurationStore);
 
     if (enableOverrides) {
-      const overridesStore = overridesStorageFactory(
+      const overrideStore = overrideStorageFactory(
         {
           hasWindowLocalStorage: hasWindowLocalStorage(),
         },
@@ -464,9 +464,9 @@ async function explicitInit(config: IClientConfig): Promise<EppoClient> {
           storageKey: overridesStorageKey,
         },
       );
-      instance.setOverridesStore(overridesStore);
+      instance.setOverrideStore(overrideStore);
     } else {
-      instance.unsetOverridesStore();
+      instance.unsetOverrideStore();
     }
 
     // instantiate and init assignment cache
@@ -772,7 +772,7 @@ export async function precomputedInit(
 
   // Set up overrides if enabled
   if (enableOverrides) {
-    const overridesStore = overridesStorageFactory(
+    const overrideStore = overrideStorageFactory(
       {
         hasWindowLocalStorage: hasWindowLocalStorage(),
       },
@@ -781,9 +781,9 @@ export async function precomputedInit(
         storageKey: overridesStorageKey,
       },
     );
-    EppoPrecomputedJSClient.instance.setOverridesStore(overridesStore);
+    EppoPrecomputedJSClient.instance.setOverrideStore(overrideStore);
   } else {
-    EppoPrecomputedJSClient.instance.unsetOverridesStore();
+    EppoPrecomputedJSClient.instance.unsetOverrideStore();
   }
 
   EppoPrecomputedJSClient.instance.setAssignmentLogger(config.assignmentLogger);
@@ -889,7 +889,7 @@ export function offlinePrecomputedInit(
 
     // Set up overrides if enabled
     if (enableOverrides) {
-      const overridesStore = overridesStorageFactory(
+      const overrideStore = overrideStorageFactory(
         {
           hasWindowLocalStorage: hasWindowLocalStorage(),
         },
@@ -898,9 +898,9 @@ export function offlinePrecomputedInit(
           storageKey: config.overridesStorageKey,
         },
       );
-      EppoPrecomputedJSClient.instance.setOverridesStore(overridesStore);
+      EppoPrecomputedJSClient.instance.setOverrideStore(overrideStore);
     } else {
-      EppoPrecomputedJSClient.instance.unsetOverridesStore();
+      EppoPrecomputedJSClient.instance.unsetOverrideStore();
     }
 
     if (config.assignmentLogger) {

@@ -87,7 +87,7 @@ export function configurationStorageFactory(
   return new MemoryOnlyConfigurationStore();
 }
 
-export function overridesStorageFactory(
+export function overrideStorageFactory(
   {
     hasWindowLocalStorage = false,
     forceMemoryOnly = false,
