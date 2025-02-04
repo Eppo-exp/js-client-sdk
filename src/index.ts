@@ -28,7 +28,6 @@ import {
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
 import HybridAssignmentCache from './cache/hybrid-assignment-cache';
-import { clientOptionsToEppoClientParameters } from './client-options-converter';
 import {
   ConfigLoaderStatus,
   ConfigLoadResult,
@@ -47,10 +46,8 @@ import {
 import BrowserNetworkStatusListener from './events/browser-network-status-listener';
 import LocalStorageBackedNamedEventQueue from './events/local-storage-backed-named-event-queue';
 import {
-  convertClientOptionsToClientConfig,
   IApiOptions,
   IClientConfig,
-  IClientOptions,
   IEventOptions,
   ILoggers,
   IPollingOptions,
@@ -78,7 +75,6 @@ export interface IClientConfigSync {
 export {
   IClientConfig,
   IPrecomputedClientConfig,
-  IClientOptions,
   IApiOptions,
   ILoggers,
   IEventOptions,
@@ -106,12 +102,6 @@ export {
 } from '@eppo/js-client-sdk-common';
 export { ChromeStorageEngine } from './chrome-storage-engine';
 
-// Instantiate the configuration store with memory-only implementation.
-// For use only with the singleton instance.
-const flagConfigurationStore = configurationStorageFactory({
-  forceMemoryOnly: true,
-});
-
 // Instantiate the precomputed flags and bandits stores with memory-only implementation.
 const memoryOnlyPrecomputedFlagsStore = precomputedFlagsStorageFactory();
 const memoryOnlyPrecomputedBanditsStore = precomputedBanditStoreFactory();
@@ -121,63 +111,281 @@ const memoryOnlyPrecomputedBanditsStore = precomputedBanditStoreFactory();
  * @public
  */
 export class EppoJSClient extends EppoClient {
+  public static instance = new EppoJSClient({
+    flagConfigurationStore: configurationStorageFactory({
+      forceMemoryOnly: true,
+    }),
+    isObfuscated: true,
+  });
+
+  constructor(optionsOrConfig: EppoClientParameters) {
+    super(optionsOrConfig);
+
+    // Create a promise that will be resolved when initialization is complete.
+    this.initializedPromise = new Promise((resolve) => {
+      this.initializedPromiseResolver = resolve;
+    });
+  }
+
+  public static buildAndInit(config: IClientConfig): EppoJSClient {
+    const flagConfigurationStore =
+      config.flagConfigurationStore ??
+      configurationStorageFactory({
+        forceMemoryOnly: true,
+      });
+    const client = new EppoJSClient({ flagConfigurationStore });
+    client.init(config);
+    return client;
+  }
+
+  async init(config: IClientConfig): Promise<EppoJSClient> {
+    validation.validateNotBlank(config.apiKey, 'API key required');
+    let initializationError: Error | undefined;
+    const {
+      apiKey,
+      persistentStore,
+      baseUrl,
+      maxCacheAgeSeconds,
+      updateOnFetch,
+      forceReinitialize,
+      requestTimeoutMs,
+      numInitialRequestRetries,
+      numPollRequestRetries,
+      pollingIntervalMs,
+      pollAfterSuccessfulInitialization = false,
+      pollAfterFailedInitialization = false,
+      skipInitialRequest = false,
+      eventIngestionConfig,
+    } = config;
+
+    try {
+      if (this.initialized) {
+        // TODO: check super.isInitialized.
+        if (forceReinitialize) {
+          applicationLogger.warn(
+            'Eppo SDK is already initialized, reinitializing since forceReinitialize is true.',
+          );
+          this.initialized = false;
+        } else {
+          applicationLogger.warn(
+            'Eppo SDK is already initialized, skipping reinitialization since forceReinitialize is false.',
+          );
+          return this;
+        }
+      }
+
+      // If the instance was polling, stop.
+      this.stopPolling();
+      // Set up assignment logger and cache
+      this.setAssignmentLogger(config.assignmentLogger);
+      if (config.banditLogger) {
+        this.setBanditLogger(config.banditLogger);
+      }
+      // Default to obfuscated mode when requesting configuration from the server.
+      this.setIsObfuscated(true);
+
+      const storageKeySuffix = buildStorageKeySuffix(apiKey);
+
+      // Set the configuration store to the desired persistent store, if provided.
+      // Otherwise, the factory method will detect the current environment and instantiate the correct store.
+      const configurationStore = configurationStorageFactory(
+        {
+          maxAgeSeconds: maxCacheAgeSeconds,
+          servingStoreUpdateStrategy: updateOnFetch,
+          persistentStore,
+          hasChromeStorage: hasChromeStorage(),
+          hasWindowLocalStorage: hasWindowLocalStorage(),
+        },
+        {
+          chromeStorage: chromeStorageIfAvailable(),
+          windowLocalStorage: localStorageIfAvailable(),
+          storageKeySuffix,
+        },
+      );
+      this.setFlagConfigurationStore(configurationStore);
+
+      // instantiate and init assignment cache
+      const assignmentCache = assignmentCacheFactory({
+        chromeStorage: chromeStorageIfAvailable(),
+        storageKeySuffix,
+      });
+      if (assignmentCache instanceof HybridAssignmentCache) {
+        await assignmentCache.init();
+      }
+      this.useCustomAssignmentCache(assignmentCache);
+
+      // Set up parameters for requesting updated configurations
+      const requestConfiguration: FlagConfigurationRequestParameters = {
+        apiKey,
+        sdkName,
+        sdkVersion,
+        baseUrl,
+        requestTimeoutMs,
+        numInitialRequestRetries,
+        numPollRequestRetries,
+        pollAfterSuccessfulInitialization,
+        pollAfterFailedInitialization,
+        pollingIntervalMs,
+        throwOnFailedInitialization: true, // always use true here as underlying instance fetch is surrounded by try/catch
+        skipInitialPoll: skipInitialRequest,
+      };
+      this.setConfigurationRequestParameters(requestConfiguration);
+      this.setEventDispatcher(newEventDispatcher(apiKey, eventIngestionConfig));
+
+      // We have two at-bats for initialization: from the configuration store and from fetching
+      // We can resolve the initialization promise as soon as either one succeeds
+      // If there is no persistent store underlying the ConfigurationStore, then there is no race to begin with, as
+      // there is not an async local load to wait for.
+
+      // The definition of a successful configuration load differs for a cached config vs a fetched config.
+      // Specifically, a cached config with no entries is not considered a completed load and will result in
+      // `ConfigLoaderStatus.DID_NOT_PRODUCE` while and empty config from the fetch is considered a valid, `COMPLETED`
+      //  configuration load.
+      let initFromConfigStoreError = undefined;
+      let initFromFetchError = undefined;
+
+      const attemptInitFromConfigStore: ConfigurationLoadAttempt = configurationStore
+        .init()
+        .then(async () => {
+          if (!configurationStore.getKeys().length) {
+            // Consider empty configuration stores invalid
+            applicationLogger.warn('Eppo SDK cached configuration is empty');
+            initFromConfigStoreError = new Error('Configuration store was empty');
+            return ConfigLoaderStatus.DID_NOT_PRODUCE;
+          }
+
+          const cacheIsExpired = await configurationStore.isExpired();
+          if (cacheIsExpired && !config.useExpiredCache) {
+            applicationLogger.warn('Eppo SDK set not to use expired cached configuration');
+            initFromConfigStoreError = new Error('Configuration store was expired');
+            return ConfigLoaderStatus.DID_NOT_PRODUCE;
+          } else if (cacheIsExpired && config.useExpiredCache) {
+            applicationLogger.warn('Eppo SDK config.useExpiredCache is true; using expired cache');
+          }
+
+          return ConfigLoaderStatus.COMPLETED;
+        })
+        .catch((e) => {
+          applicationLogger.warn(
+            'Eppo SDK encountered an error initializing from the configuration store',
+            e,
+          );
+          initFromConfigStoreError = e;
+          return ConfigLoaderStatus.FAILED;
+        })
+        .then((status) => {
+          return { source: ConfigSource.CONFIG_STORE, result: status };
+        });
+
+      // Kick off a remote fetch (and start the poller, if configured to do so).
+      // Before a network fetch is attempted, the `ConfiguratonRequestor` instance will check to see whether the
+      // locally-stored config data is expired. If it is not expired, the network fetch is skipped, and the promise chain
+      // will quickly return. **When data not successfully fetched due to an error, invalid data, or giving up the fetch
+      // because the cache is not expired, the configuration store will not be set as initialized.**
+      const attemptInitFromFetch: ConfigurationLoadAttempt = this.fetchFlagConfigurations()
+        .then(() => {
+          if (configurationStore.isInitialized()) {
+            // If fetch has won the race and the configStore is initialized, that means we have a successful load and the
+            // fetched data was used to init.
+            return ConfigLoaderStatus.COMPLETED;
+          } else {
+            // If the config store is not initialized and the fetch says it is done, that means the fetch did not set any
+            // values into the config store (ex:the cache is not expired or invalid config data was received).
+            // It's important not to set an error here as this state does not mean that an error was encountered.
+            // If the initial cache had not expired, the fetch would be skipped and the config store would report as
+            // uninitialized because only a successful fetch setting the data entries will set the persistent store as
+            // initialized.
+            return ConfigLoaderStatus.DID_NOT_PRODUCE;
+          }
+        })
+        .catch((e) => {
+          applicationLogger.warn('Eppo SDK encountered an error initializing from fetching', e);
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          initFromFetchError = e;
+          return ConfigLoaderStatus.FAILED;
+        })
+        .then((status) => {
+          return { source: ConfigSource.FETCH, result: status };
+        });
+
+      const racers: ConfigurationLoadAttempt[] = [attemptInitFromConfigStore];
+
+      // attemptInitFromFetch will return early and not attempt to fetch if `skipInitialRequest` is `true`.
+      // We could still race it against a load from configuration as the handling logic will see that no config was loaded
+      // into the config store from the remote fetch and return `DID_NOT_PRODUCE`.
+      if (!config.skipInitialRequest) {
+        racers.push(attemptInitFromFetch);
+      }
+      let initializationSource: ConfigSource;
+      const { source: firstSource, result: firstConfigResult } = await Promise.race(racers);
+
+      if (firstConfigResult === ConfigLoaderStatus.COMPLETED) {
+        // First config load successfully produced a configuration
+        initializationSource = firstSource;
+      } else {
+        // First attempt failed or did not produce configuration, but we have a second at bat that will be executed in the scope of the top-level try-catch
+
+        const secondAttempt =
+          firstSource === ConfigSource.FETCH ? attemptInitFromConfigStore : attemptInitFromFetch;
+
+        initializationSource = await secondAttempt.then((resultPair: ConfigLoadResult) => {
+          const { source, result } = resultPair;
+          return result === ConfigLoaderStatus.COMPLETED ? source : ConfigSource.NONE;
+        });
+      }
+
+      if (initializationSource === ConfigSource.NONE) {
+        // Neither config loader produced useful config. Return error, if exists, in order from first to last: fetch, config store, generic.
+        initializationError = initFromFetchError
+          ? initFromFetchError
+          : initFromConfigStoreError
+            ? initFromConfigStoreError
+            : new Error('Eppo SDK: No configuration source produced a valid configuration');
+      }
+      applicationLogger.debug('Initialization source', initializationSource);
+    } catch (error: unknown) {
+      initializationError = error instanceof Error ? error : new Error(String(error));
+    }
+
+    if (initializationError) {
+      applicationLogger.warn(
+        'Eppo SDK was unable to initialize with a configuration, assignment calls will return the default value and not be logged' +
+          (config.pollAfterFailedInitialization
+            ? ' until an experiment configuration is successfully retrieved'
+            : ''),
+      );
+      if (config.throwOnFailedInitialization ?? true) {
+        throw initializationError;
+      }
+    }
+
+    this.initialized = true;
+    this.initializedPromiseResolver();
+    return this;
+  }
+
   /**
    * Resolved when the client is initialized
    * @private
    */
-  private readonly readyPromise: Promise<void>;
+  private readonly initializedPromise: Promise<void>;
 
-  /**
-   * Used when the client is initialized from outside the constructor, namely, from the `init` or
-   * `EppoJSClient.initializeClient` methods.
-   * @private
-   */
-  private readyPromiseResolver: (() => void) | null = null;
-
-  public static instance = new EppoJSClient({
-    flagConfigurationStore,
-    isObfuscated: true,
-  });
   initialized = false;
 
-  constructor(optionsOrConfig: EppoClientParameters | IClientOptions) {
-    const v2Constructor = 'sdkKey' in optionsOrConfig;
+  /**
+   * Resolves the `initializedPromise` when initialization is complete
+   *
+   * Initialization happens outside the constructor, so we can't assign `initializedPromise` to the result
+   * of initialization. Instead, we call the resolver when `init` is complete.
+   * @private
+   */
+  private initializedPromiseResolver: () => void = () => null;
 
-    super(
-      v2Constructor
-        ? clientOptionsToEppoClientParameters(
-            optionsOrConfig, // The IClientOptions wrapper
-            optionsOrConfig.flagConfigurationStore ?? // create a new, memory only FCS if none was provided
-              configurationStorageFactory({
-                forceMemoryOnly: true,
-              }),
-            optionsOrConfig.eventIngestionConfig // Create an Event Dispatcher if Event Ingestion config was provided.
-              ? newEventDispatcher(optionsOrConfig.sdkKey, optionsOrConfig.eventIngestionConfig)
-              : undefined,
-          ) // "New" construction technique; isolated instance.
-        : (optionsOrConfig as EppoClientParameters), // Legacy instantiation of singleton.
-    );
-
-    if (!v2Constructor) {
-      // Original constructor path; passthrough to super is above.
-      // `waitForReady` is a new API we need to graft onto the old way of constructing first and initializing later.
-
-      // Create a promise that will be resolved when EppoJSClient.initializeClient() is called
-      this.readyPromise = new Promise((resolve) => {
-        this.readyPromiseResolver = resolve;
-      });
-    } else {
-      this.readyPromise = explicitInit(
-        convertClientOptionsToClientConfig(optionsOrConfig),
-        this,
-      ).then(() => {
-        return;
-      });
-    }
-  }
-
-  public waitForReady(): Promise<void> {
-    return this.readyPromise;
+  /**
+   * Resolves when the EppoClient has completed its initialization.
+   */
+  public waitForInitialized(): Promise<void> {
+    return this.initializedPromise;
   }
 
   public getStringAssignment(
@@ -335,48 +543,6 @@ export class EppoJSClient extends EppoClient {
       applicationLogger.warn('Eppo SDK assignment requested before init() completed');
     }
   }
-
-  /**
-   * Tracks pending initialization. After an initialization completes, the value is removed from the map.
-   */
-  private static initializationPromise: Promise<EppoJSClient> | null = null;
-
-  /**
-   * This method is part of a bridge from using a singleton to independent instances. More specifically, it exists so
-   * that the init method can access the private field, `readyResolver`. It should not be called by any
-   * methods other than the `init` method. There are limited guards in place; the behaviour if called inappropriately
-   * is undefined.
-   *
-   * It also keeps code that relies on internal details of EppoJSClient colocated in the class.
-   *
-   * @internal
-   *
-   * @param client
-   * @param config
-   */
-  static async initializeClient(
-    client: EppoJSClient,
-    config: IClientConfig,
-  ): Promise<EppoJSClient> {
-    validation.validateNotBlank(config.apiKey, 'API key required');
-
-    // If there is already an init in progress for this apiKey, return that.
-    if (!EppoJSClient.initializationPromise) {
-      EppoJSClient.initializationPromise = explicitInit(config, client).then((client) => {
-        // Resolve the ready promise if it exists
-        if (client.readyPromiseResolver) {
-          client.readyPromiseResolver();
-          client.readyPromiseResolver = null;
-        }
-        return client;
-      });
-    }
-
-    const readyClient = await EppoJSClient.initializationPromise;
-    EppoJSClient.initializationPromise = null;
-
-    return readyClient;
-  }
 }
 
 /**
@@ -447,6 +613,11 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
 }
 
 /**
+ * Tracks pending initialization. After an initialization completes, this value is nulled
+ */
+let initializationPromise: Promise<EppoJSClient> | null = null;
+
+/**
  * Initializes the Eppo client with configuration parameters.
  * This method should be called once on application startup.
  * If an initialization is in process, calling `init` will return the in-progress
@@ -455,239 +626,18 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
  *
  *
  * @deprecated
- * Use `new EppoJSClient(options)` instead of `init` or `initializeClient`. These will be removed in v4
+ * Use `EppoJSClient.createAndInit` instead of `init` and `getInstance`. These will be removed in v4
  *
  * @param config - client configuration
  * @public
  */
 export async function init(config: IClientConfig): Promise<EppoClient> {
-  return EppoJSClient.initializeClient(getInstance(), config);
-}
-
-async function explicitInit(config: IClientConfig, instance: EppoJSClient): Promise<EppoJSClient> {
-  validation.validateNotBlank(config.apiKey, 'API key required');
-  let initializationError: Error | undefined;
-  const {
-    apiKey,
-    persistentStore,
-    baseUrl,
-    maxCacheAgeSeconds,
-    updateOnFetch,
-    forceReinitialize,
-    requestTimeoutMs,
-    numInitialRequestRetries,
-    numPollRequestRetries,
-    pollingIntervalMs,
-    pollAfterSuccessfulInitialization = false,
-    pollAfterFailedInitialization = false,
-    skipInitialRequest = false,
-    eventIngestionConfig,
-  } = config;
-
-  try {
-    if (instance.initialized) {
-      // TODO: check super.isInitialized.
-      if (forceReinitialize) {
-        applicationLogger.warn(
-          'Eppo SDK is already initialized, reinitializing since forceReinitialize is true.',
-        );
-        instance.initialized = false;
-      } else {
-        applicationLogger.warn(
-          'Eppo SDK is already initialized, skipping reinitialization since forceReinitialize is false.',
-        );
-        return instance;
-      }
-    }
-
-    // If any existing instances; ensure they are not polling
-    instance.stopPolling();
-    // Set up assignment logger and cache
-    instance.setAssignmentLogger(config.assignmentLogger);
-    if (config.banditLogger) {
-      instance.setBanditLogger(config.banditLogger);
-    }
-    // Default to obfuscated mode when requesting configuration from the server.
-    instance.setIsObfuscated(true);
-
-    const storageKeySuffix = buildStorageKeySuffix(apiKey);
-
-    // Set the configuration store to the desired persistent store, if provided.
-    // Otherwise, the factory method will detect the current environment and instantiate the correct store.
-    const configurationStore = configurationStorageFactory(
-      {
-        maxAgeSeconds: maxCacheAgeSeconds,
-        servingStoreUpdateStrategy: updateOnFetch,
-        persistentStore,
-        hasChromeStorage: hasChromeStorage(),
-        hasWindowLocalStorage: hasWindowLocalStorage(),
-      },
-      {
-        chromeStorage: chromeStorageIfAvailable(),
-        windowLocalStorage: localStorageIfAvailable(),
-        storageKeySuffix,
-      },
-    );
-    instance.setFlagConfigurationStore(configurationStore);
-
-    // instantiate and init assignment cache
-    const assignmentCache = assignmentCacheFactory({
-      chromeStorage: chromeStorageIfAvailable(),
-      storageKeySuffix,
-    });
-    if (assignmentCache instanceof HybridAssignmentCache) {
-      await assignmentCache.init();
-    }
-    instance.useCustomAssignmentCache(assignmentCache);
-
-    // Set up parameters for requesting updated configurations
-    const requestConfiguration: FlagConfigurationRequestParameters = {
-      apiKey,
-      sdkName,
-      sdkVersion,
-      baseUrl,
-      requestTimeoutMs,
-      numInitialRequestRetries,
-      numPollRequestRetries,
-      pollAfterSuccessfulInitialization,
-      pollAfterFailedInitialization,
-      pollingIntervalMs,
-      throwOnFailedInitialization: true, // always use true here as underlying instance fetch is surrounded by try/catch
-      skipInitialPoll: skipInitialRequest,
-    };
-    instance.setConfigurationRequestParameters(requestConfiguration);
-    instance.setEventDispatcher(newEventDispatcher(apiKey, eventIngestionConfig));
-
-    // We have two at-bats for initialization: from the configuration store and from fetching
-    // We can resolve the initialization promise as soon as either one succeeds
-    // If there is no persistent store underlying the ConfigurationStore, then there is no race to begin with, as
-    // there is not an async local load to wait for.
-
-    // The definition of a successful configuration load differs for a cached config vs a fetched config.
-    // Specifically, a cached config with no entries is not considered a completed load and will result in
-    // `ConfigLoaderStatus.DID_NOT_PRODUCE` while and empty config from the fetch is considered a valid, `COMPLETED`
-    //  configuration load.
-    let initFromConfigStoreError = undefined;
-    let initFromFetchError = undefined;
-
-    const attemptInitFromConfigStore: ConfigurationLoadAttempt = configurationStore
-      .init()
-      .then(async () => {
-        if (!configurationStore.getKeys().length) {
-          // Consider empty configuration stores invalid
-          applicationLogger.warn('Eppo SDK cached configuration is empty');
-          initFromConfigStoreError = new Error('Configuration store was empty');
-          return ConfigLoaderStatus.DID_NOT_PRODUCE;
-        }
-
-        const cacheIsExpired = await configurationStore.isExpired();
-        if (cacheIsExpired && !config.useExpiredCache) {
-          applicationLogger.warn('Eppo SDK set not to use expired cached configuration');
-          initFromConfigStoreError = new Error('Configuration store was expired');
-          return ConfigLoaderStatus.DID_NOT_PRODUCE;
-        } else if (cacheIsExpired && config.useExpiredCache) {
-          applicationLogger.warn('Eppo SDK config.useExpiredCache is true; using expired cache');
-        }
-
-        return ConfigLoaderStatus.COMPLETED;
-      })
-      .catch((e) => {
-        applicationLogger.warn(
-          'Eppo SDK encountered an error initializing from the configuration store',
-          e,
-        );
-        initFromConfigStoreError = e;
-        return ConfigLoaderStatus.FAILED;
-      })
-      .then((status) => {
-        return { source: ConfigSource.CONFIG_STORE, result: status };
-      });
-
-    // Kick off a remote fetch (and start the poller, if configured to do so).
-    // Before a network fetch is attempted, the `ConfiguratonRequestor` instance will check to see whether the
-    // locally-stored config data is expired. If it is not expired, the network fetch is skipped, and the promise chain
-    // will quickly return. **When data not successfully fetched due to an error, invalid data, or giving up the fetch
-    // because the cache is not expired, the configuration store will not be set as initialized.**
-    const attemptInitFromFetch: ConfigurationLoadAttempt = instance
-      .fetchFlagConfigurations()
-      .then(() => {
-        if (configurationStore.isInitialized()) {
-          // If fetch has won the race and the configStore is initialized, that means we have a successful load and the
-          // fetched data was used to init.
-          return ConfigLoaderStatus.COMPLETED;
-        } else {
-          // If the config store is not initialized and the fetch says it is done, that means the fetch did not set any
-          // values into the config store (ex:the cache is not expired or invalid config data was received).
-          // It's important not to set an error here as this state does not mean that an error was encountered.
-          // If the initial cache had not expired, the fetch would be skipped and the config store would report as
-          // uninitialized because only a successful fetch setting the data entries will set the persistent store as
-          // initialized.
-          return ConfigLoaderStatus.DID_NOT_PRODUCE;
-        }
-      })
-      .catch((e) => {
-        applicationLogger.warn('Eppo SDK encountered an error initializing from fetching', e);
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        initFromFetchError = e;
-        return ConfigLoaderStatus.FAILED;
-      })
-      .then((status) => {
-        return { source: ConfigSource.FETCH, result: status };
-      });
-
-    const racers: ConfigurationLoadAttempt[] = [attemptInitFromConfigStore];
-
-    // attemptInitFromFetch will return early and not attempt to fetch if `skipInitialRequest` is `true`.
-    // We could still race it against a load from configuration as the handling logic will see that no config was loaded
-    // into the config store from the remote fetch and return `DID_NOT_PRODUCE`.
-    if (!config.skipInitialRequest) {
-      racers.push(attemptInitFromFetch);
-    }
-    let initializationSource: ConfigSource;
-    const { source: firstSource, result: firstConfigResult } = await Promise.race(racers);
-
-    if (firstConfigResult === ConfigLoaderStatus.COMPLETED) {
-      // First config load successfully produced a configuration
-      initializationSource = firstSource;
-    } else {
-      // First attempt failed or did not produce configuration, but we have a second at bat that will be executed in the scope of the top-level try-catch
-
-      const secondAttempt =
-        firstSource === ConfigSource.FETCH ? attemptInitFromConfigStore : attemptInitFromFetch;
-
-      initializationSource = await secondAttempt.then((resultPair: ConfigLoadResult) => {
-        const { source, result } = resultPair;
-        return result === ConfigLoaderStatus.COMPLETED ? source : ConfigSource.NONE;
-      });
-    }
-
-    if (initializationSource === ConfigSource.NONE) {
-      // Neither config loader produced useful config. Return error, if exists, in order from first to last: fetch, config store, generic.
-      initializationError = initFromFetchError
-        ? initFromFetchError
-        : initFromConfigStoreError
-          ? initFromConfigStoreError
-          : new Error('Eppo SDK: No configuration source produced a valid configuration');
-    }
-    applicationLogger.debug('Initialization source', initializationSource);
-  } catch (error: unknown) {
-    initializationError = error instanceof Error ? error : new Error(String(error));
+  if (initializationPromise === null) {
+    initializationPromise = getInstance().init(config);
   }
-
-  if (initializationError) {
-    applicationLogger.warn(
-      'Eppo SDK was unable to initialize with a configuration, assignment calls will return the default value and not be logged' +
-        (config.pollAfterFailedInitialization
-          ? ' until an experiment configuration is successfully retrieved'
-          : ''),
-    );
-    if (config.throwOnFailedInitialization ?? true) {
-      throw initializationError;
-    }
-  }
-
-  instance.initialized = true;
-  return instance;
+  const client = await initializationPromise;
+  initializationPromise = null;
+  return client;
 }
 
 /**
@@ -695,6 +645,7 @@ async function explicitInit(config: IClientConfig, instance: EppoJSClient): Prom
  * Use the method after calling init() to initialize the client.
  * @returns a singleton client instance
  * @public
+ * @deprecated
  */
 export function getInstance(): EppoJSClient {
   return EppoJSClient.instance;

@@ -11,7 +11,6 @@ import {
   EppoClient,
   Flag,
   HybridConfigurationStore,
-  IAssignmentEvent,
   IAsyncStore,
   IPrecomputedConfigurationResponse,
   VariationType,
@@ -30,13 +29,7 @@ import {
   validateTestAssignments,
 } from '../test/testHelpers';
 
-import {
-  IApiOptions,
-  IClientConfig,
-  IClientOptions,
-  IPollingOptions,
-  IStorageOptions,
-} from './i-client-config';
+import { IApiOptions, IClientConfig } from './i-client-config';
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 
 import {
@@ -431,12 +424,12 @@ describe('decoupled initialization', () => {
     });
 
     it('should be independent of the singleton', async () => {
-      const apiOptions: IApiOptions = { sdkKey: '<MY SDK KEY>' };
-      const options: IClientOptions = { ...apiOptions, assignmentLogger: mockLogger };
-      const isolatedClient = new EppoJSClient(options);
+      const apiOptions: IApiOptions = { apiKey: '<MY SDK KEY>' };
+      const options: IClientConfig = { ...apiOptions, assignmentLogger: mockLogger };
+      const isolatedClient = EppoJSClient.buildAndInit(options);
 
       expect(isolatedClient).not.toEqual(getInstance());
-      await isolatedClient.waitForReady();
+      await isolatedClient.waitForInitialized();
 
       expect(isolatedClient.isInitialized()).toBe(true);
       expect(isolatedClient.initialized).toBe(true);
@@ -451,15 +444,15 @@ describe('decoupled initialization', () => {
       ).toEqual('variant-1');
     });
     it('initializes on instantiation and notifies when ready', async () => {
-      const apiOptions: IApiOptions = { sdkKey: '<MY SDK KEY>', baseUrl };
-      const options: IClientOptions = { ...apiOptions, assignmentLogger: mockLogger };
-      const client = new EppoJSClient(options);
+      const apiOptions: IApiOptions = { apiKey: '<MY SDK KEY>', baseUrl };
+      const options: IClientConfig = { ...apiOptions, assignmentLogger: mockLogger };
+      const client = EppoJSClient.buildAndInit(options);
 
       expect(client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
         'default-value',
       );
 
-      await client.waitForReady();
+      await client.waitForInitialized();
 
       const assignment = client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value');
       expect(assignment).toEqual('variant-1');
@@ -471,7 +464,7 @@ describe('decoupled initialization', () => {
     const API_KEY_2 = 'my-api-key-2';
     const API_KEY_3 = 'my-api-key-3';
 
-    const commonOptions: Omit<IClientOptions, 'sdkKey'> = {
+    const commonOptions: Omit<IClientConfig, 'apiKey'> = {
       baseUrl,
       assignmentLogger: mockLogger,
     };
@@ -527,8 +520,8 @@ describe('decoupled initialization', () => {
       );
       expect(callCount).toBe(1);
 
-      const myClient2 = new EppoJSClient({ ...commonOptions, sdkKey: API_KEY_2 });
-      await myClient2.waitForReady();
+      const myClient2 = EppoJSClient.buildAndInit({ ...commonOptions, apiKey: API_KEY_2 });
+      await myClient2.waitForInitialized();
       expect(callCount).toBe(2);
 
       expect(singleton.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
@@ -538,8 +531,8 @@ describe('decoupled initialization', () => {
         'variant-2',
       );
 
-      const myClient3 = new EppoJSClient({ ...commonOptions, sdkKey: API_KEY_3 });
-      await myClient3.waitForReady();
+      const myClient3 = EppoJSClient.buildAndInit({ ...commonOptions, apiKey: API_KEY_3 });
+      await myClient3.waitForInitialized();
 
       expect(singleton.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
         'variant-1',
@@ -1338,7 +1331,7 @@ describe('initialization options', () => {
         async entries() {
           return entriesPromise.promise;
         },
-        async setEntries(entries) {
+        async setEntries() {
           // pass
         },
       };

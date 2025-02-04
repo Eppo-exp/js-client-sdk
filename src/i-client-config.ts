@@ -111,7 +111,7 @@ export type IApiOptions = {
   /**
    * Your key for accessing Eppo through the Eppo SDK.
    */
-  sdkKey: string;
+  apiKey: string;
 
   /**
    * Override the endpoint the SDK uses to load configuration.
@@ -165,10 +165,7 @@ export type IApiOptions = {
    * - empty: only use the new configuration if the current one is both expired and uninitialized/empty
    */
   updateOnFetch?: ServingStoreUpdateStrategy;
-
-  // TODO: Add initial config (stringified IConfigurationWire) here.
 };
-
 
 export type IEventOptions = {
   eventIngestionConfig?: {
@@ -242,24 +239,11 @@ export type ILoggers = {
 };
 
 /**
- * Config shape for client v2.
+ * Configuration for regular client initialization
+ * @public
  */
-export type IClientOptions = IApiOptions &
+export type IClientConfig = IApiOptions &
   ILoggers &
   IEventOptions &
   IStorageOptions &
   IPollingOptions;
-
-/**
- * Configuration for regular client initialization
- * @public
- */
-export type IClientConfig = Omit<IClientOptions, 'sdkKey' | 'offline'> &
-  Pick<IBaseRequestConfig, 'apiKey'>; // Could also just use `& IBaseRequestConfig` here instead of picking just `apiKey`.
-
-export function convertClientOptionsToClientConfig(options: IClientOptions): IClientConfig {
-  return {
-    ...options,
-    apiKey: options.sdkKey,
-  };
-}
