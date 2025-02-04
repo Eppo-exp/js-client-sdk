@@ -38,6 +38,44 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[enableOverrides?](./js-client-sdk.iprecomputedclientconfig.enableoverrides.md)
+
+
+</td><td>
+
+
+</td><td>
+
+boolean
+
+
+</td><td>
+
+_(Optional)_ Enable the Overrides Store for local flag overrides. (default: false)
+
+
+</td></tr>
+<tr><td>
+
+[overridesStorageKey?](./js-client-sdk.iprecomputedclientconfig.overridesstoragekey.md)
+
+
+</td><td>
+
+
+</td><td>
+
+string
+
+
+</td><td>
+
+_(Optional)_ The key to use for the overrides store.
+
+
+</td></tr>
+<tr><td>
+
 [precompute](./js-client-sdk.iprecomputedclientconfig.precompute.md)
 
 

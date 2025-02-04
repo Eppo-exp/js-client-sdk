@@ -38,6 +38,25 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[enableOverrides?](./js-client-sdk.iclientconfig.enableoverrides.md)
+
+
+</td><td>
+
+
+</td><td>
+
+boolean
+
+
+</td><td>
+
+_(Optional)_ Enable the Overrides Store for local flag overrides. (default: false)
+
+
+</td></tr>
+<tr><td>
+
 [eventIngestionConfig?](./js-client-sdk.iclientconfig.eventingestionconfig.md)
 
 
@@ -90,6 +109,25 @@ number
 </td><td>
 
 _(Optional)_ Maximum age, in seconds, previously cached values are considered valid until new values will be fetched (default: 0)
+
+
+</td></tr>
+<tr><td>
+
+[overridesStorageKey?](./js-client-sdk.iclientconfig.overridesstoragekey.md)
+
+
+</td><td>
+
+
+</td><td>
+
+string
+
+
+</td><td>
+
+_(Optional)_ The key to use for the overrides store.
 
 
 </td></tr>

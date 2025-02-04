@@ -101,6 +101,17 @@ interface IPrecompute {
  */
 export interface IPrecomputedClientConfig extends IBaseRequestConfig {
   precompute: IPrecompute;
+
+  /**
+   * Enable the Overrides Store for local flag overrides.
+   * (default: false)
+   */
+  enableOverrides?: boolean;
+
+  /**
+   * The key to use for the overrides store.
+   */
+  overridesStorageKey?: string;
 }
 
 /**
@@ -165,4 +176,15 @@ export interface IClientConfig extends IBaseRequestConfig {
      */
     maxQueueSize?: number;
   };
+
+  /**
+   * Enable the Overrides Store for local flag overrides.
+   * (default: false)
+   */
+  enableOverrides?: boolean;
+
+  /**
+   * The key to use for the overrides store.
+   */
+  overridesStorageKey?: string;
 }

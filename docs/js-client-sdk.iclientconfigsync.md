@@ -75,6 +75,25 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
+[enableOverrides?](./js-client-sdk.iclientconfigsync.enableoverrides.md)
+
+
+</td><td>
+
+
+</td><td>
+
+boolean
+
+
+</td><td>
+
+_(Optional)_
+
+
+</td></tr>
+<tr><td>
+
 [flagsConfiguration](./js-client-sdk.iclientconfigsync.flagsconfiguration.md)
 
 
@@ -101,6 +120,25 @@ Record&lt;string, Flag \| ObfuscatedFlag&gt;
 </td><td>
 
 boolean
+
+
+</td><td>
+
+_(Optional)_
+
+
+</td></tr>
+<tr><td>
+
+[overridesStorageKey?](./js-client-sdk.iclientconfigsync.overridesstoragekey.md)
+
+
+</td><td>
+
+
+</td><td>
+
+string
 
 
 </td><td>
