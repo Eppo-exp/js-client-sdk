@@ -513,7 +513,7 @@ describe('decoupled initialization', () => {
       jest.restoreAllMocks();
     });
 
-    it('should operate in parallel', async () => {
+    it('should evaluate separate UFCs for each SDK key', async () => {
       const singleton = await init({ ...commonOptions, apiKey: API_KEY_1 });
       expect(singleton.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
         'variant-1',
