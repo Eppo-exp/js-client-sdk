@@ -111,6 +111,9 @@ const memoryOnlyPrecomputedBanditsStore = precomputedBanditStoreFactory();
  * @public
  */
 export class EppoJSClient extends EppoClient {
+  // Ensure that the client is instantiated during class loading.
+  // Use an empty memory-only configuration store until the `init` method is called,
+  // to avoid serving stale data to the user.
   public static instance = new EppoJSClient({
     flagConfigurationStore: configurationStorageFactory({
       forceMemoryOnly: true,
@@ -118,8 +121,8 @@ export class EppoJSClient extends EppoClient {
     isObfuscated: true,
   });
 
-  constructor(optionsOrConfig: EppoClientParameters) {
-    super(optionsOrConfig);
+  constructor(options: EppoClientParameters) {
+    super(options);
 
     // Create a promise that will be resolved when initialization is complete.
     this.initializedPromise = new Promise((resolve) => {
@@ -134,9 +137,19 @@ export class EppoJSClient extends EppoClient {
         forceMemoryOnly: true,
       });
     const client = new EppoJSClient({ flagConfigurationStore });
+
+    // init will resolve the promise that client.waitForInitialized returns.
     client.init(config);
     return client;
   }
+
+  /**
+   * Resolved when the client is initialized
+   * @private
+   */
+  private readonly initializedPromise: Promise<void>;
+
+  initialized = false;
 
   async init(config: IClientConfig): Promise<EppoJSClient> {
     validation.validateNotBlank(config.apiKey, 'API key required');
@@ -160,7 +173,6 @@ export class EppoJSClient extends EppoClient {
 
     try {
       if (this.initialized) {
-        // TODO: check super.isInitialized.
         if (forceReinitialize) {
           applicationLogger.warn(
             'Eppo SDK is already initialized, reinitializing since forceReinitialize is true.',
@@ -365,14 +377,6 @@ export class EppoJSClient extends EppoClient {
   }
 
   /**
-   * Resolved when the client is initialized
-   * @private
-   */
-  private readonly initializedPromise: Promise<void>;
-
-  initialized = false;
-
-  /**
    * Resolves the `initializedPromise` when initialization is complete
    *
    * Initialization happens outside the constructor, so we can't assign `initializedPromise` to the result
@@ -384,7 +388,7 @@ export class EppoJSClient extends EppoClient {
   /**
    * Resolves when the EppoClient has completed its initialization.
    */
-  public waitForInitialized(): Promise<void> {
+  public waitForInitialization(): Promise<void> {
     return this.initializedPromise;
   }
 
@@ -539,7 +543,6 @@ export class EppoJSClient extends EppoClient {
 
   private ensureInitialized() {
     if (!this.initialized) {
-      // TODO: check super.isInitialized?
       applicationLogger.warn('Eppo SDK assignment requested before init() completed');
     }
   }
@@ -622,7 +625,7 @@ let initializationPromise: Promise<EppoJSClient> | null = null;
  * This method should be called once on application startup.
  * If an initialization is in process, calling `init` will return the in-progress
  * `Promise<EppoClient>`. Once the initialization completes, calling `init` again will kick off the
- * initialization routine (if `forceReinitialization` is `true`).
+ * initialization routine (if `forceReinitialize` is `true`).
  *
  *
  * @deprecated

@@ -167,6 +167,7 @@ export type IApiOptions = {
   updateOnFetch?: ServingStoreUpdateStrategy;
 };
 
+/** Configuration settings for the event dispatcher */
 export type IEventOptions = {
   eventIngestionConfig?: {
     /** Number of milliseconds to wait between each batch delivery. Defaults to 10 seconds. */
