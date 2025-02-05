@@ -138,7 +138,7 @@ export class EppoJSClient extends EppoClient {
       });
     const client = new EppoJSClient({ flagConfigurationStore });
 
-    // init will resolve the promise that client.waitForInitialized returns.
+    // init will resolve the promise that client.waitForConfiguration returns.
     client.init(config);
     return client;
   }
