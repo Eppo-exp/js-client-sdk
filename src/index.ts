@@ -159,6 +159,12 @@ export class EppoJSClient extends EppoClient {
     return client;
   }
 
+  /**
+   * Initialize the Eppo Client.
+   *
+   * @internal
+   * @param config
+   */
   async init(config: IClientConfig): Promise<EppoJSClient> {
     validation.validateNotBlank(config.apiKey, 'API key required');
     let initializationError: Error | undefined;
@@ -370,174 +376,61 @@ export class EppoJSClient extends EppoClient {
   }
 
   /**
-   * Resolves the `initializedPromise` when initialization is complete
+   * Initialize the client synchronously, for offline use.
    *
-   * Initialization happens outside the constructor, so we can't assign `initializedPromise` to the result
-   * of initialization. Instead, we call the resolver when `init` is complete.
-   * @private
+   * @internal
+   * @param config
    */
-  private initializedPromiseResolver: () => void = () => null;
+  offlineInit(config: IClientConfigSync) {
+    const isObfuscated = config.isObfuscated ?? false;
+    const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
 
-  /**
-   * Resolves when the EppoClient has completed its initialization.
-   */
-  public waitForInitialization(): Promise<void> {
-    return this.initializedPromise;
-  }
+  try {
+    const memoryOnlyConfigurationStore = configurationStorageFactory({
+      forceMemoryOnly: true,
+    });
+    memoryOnlyConfigurationStore
+      .setEntries(config.flagsConfiguration)
+      .catch((err) =>
+        applicationLogger.warn('Error setting flags for memory-only configuration store', err),
+      );
+    this.setFlagConfigurationStore(memoryOnlyConfigurationStore);
 
-  public getStringAssignment(
-    flagKey: string,
-    subjectKey: string,
-    subjectAttributes: Record<string, AttributeType>,
-    defaultValue: string,
-  ): string {
-    this.ensureInitialized();
-    return super.getStringAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
-  }
+    // Allow the caller to override the default obfuscated mode, which is false
+    // since the purpose of this method is to bootstrap the SDK from an external source,
+    // which is likely a server that has not-obfuscated flag values.
+    this.setIsObfuscated(isObfuscated);
 
-  public getStringAssignmentDetails(
-    flagKey: string,
-    subjectKey: string,
-    subjectAttributes: Record<string, AttributeType>,
-    defaultValue: string,
-  ): IAssignmentDetails<string> {
-    this.ensureInitialized();
-    return super.getStringAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
-  }
-
-  /**
-   * @deprecated Use getBooleanAssignment instead
-   */
-  public getBoolAssignment(
-    flagKey: string,
-    subjectKey: string,
-    subjectAttributes: Record<string, AttributeType>,
-    defaultValue: boolean,
-  ): boolean {
-    return this.getBooleanAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
-  }
-
-  public getBooleanAssignment(
-    flagKey: string,
-    subjectKey: string,
-    subjectAttributes: Record<string, AttributeType>,
-    defaultValue: boolean,
-  ): boolean {
-    this.ensureInitialized();
-    return super.getBooleanAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
-  }
-
-  public getBooleanAssignmentDetails(
-    flagKey: string,
-    subjectKey: string,
-    subjectAttributes: Record<string, AttributeType>,
-    defaultValue: boolean,
-  ): IAssignmentDetails<boolean> {
-    this.ensureInitialized();
-    return super.getBooleanAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
-  }
-
-  public getIntegerAssignment(
-    flagKey: string,
-    subjectKey: string,
-    subjectAttributes: Record<string, AttributeType>,
-    defaultValue: number,
-  ): number {
-    this.ensureInitialized();
-    return super.getIntegerAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
-  }
-
-  public getIntegerAssignmentDetails(
-    flagKey: string,
-    subjectKey: string,
-    subjectAttributes: Record<string, AttributeType>,
-    defaultValue: number,
-  ): IAssignmentDetails<number> {
-    this.ensureInitialized();
-    return super.getIntegerAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
-  }
-
-  public getNumericAssignment(
-    flagKey: string,
-    subjectKey: string,
-    subjectAttributes: Record<string, AttributeType>,
-    defaultValue: number,
-  ): number {
-    this.ensureInitialized();
-    return super.getNumericAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
-  }
-
-  public getNumericAssignmentDetails(
-    flagKey: string,
-    subjectKey: string,
-    subjectAttributes: Record<string, AttributeType>,
-    defaultValue: number,
-  ): IAssignmentDetails<number> {
-    this.ensureInitialized();
-    return super.getNumericAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
-  }
-
-  public getJSONAssignment(
-    flagKey: string,
-    subjectKey: string,
-    subjectAttributes: Record<string, AttributeType>,
-    defaultValue: object,
-  ): object {
-    this.ensureInitialized();
-    return super.getJSONAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
-  }
-
-  public getJSONAssignmentDetails(
-    flagKey: string,
-    subjectKey: string,
-    subjectAttributes: Record<string, AttributeType>,
-    defaultValue: object,
-  ): IAssignmentDetails<object> {
-    this.ensureInitialized();
-    return super.getJSONAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
-  }
-
-  public getBanditAction(
-    flagKey: string,
-    subjectKey: string,
-    subjectAttributes: BanditSubjectAttributes,
-    actions: BanditActions,
-    defaultValue: string,
-  ): Omit<IAssignmentDetails<string>, 'evaluationDetails'> {
-    this.ensureInitialized();
-    return super.getBanditAction(flagKey, subjectKey, subjectAttributes, actions, defaultValue);
-  }
-
-  public getBanditActionDetails(
-    flagKey: string,
-    subjectKey: string,
-    subjectAttributes: BanditSubjectAttributes,
-    actions: BanditActions,
-    defaultValue: string,
-  ): IAssignmentDetails<string> {
-    this.ensureInitialized();
-    return super.getBanditActionDetails(
-      flagKey,
-      subjectKey,
-      subjectAttributes,
-      actions,
-      defaultValue,
-    );
-  }
-
-  public getExperimentContainerEntry<T>(
-    flagExperiment: IContainerExperiment<T>,
-    subjectKey: string,
-    subjectAttributes: Record<string, AttributeType>,
-  ): T {
-    this.ensureInitialized();
-    return super.getExperimentContainerEntry(flagExperiment, subjectKey, subjectAttributes);
-  }
-
-  private ensureInitialized() {
-    if (!this.initialized) {
-      applicationLogger.warn('Eppo SDK assignment requested before init() completed');
+    if (config.assignmentLogger) {
+      this.setAssignmentLogger(config.assignmentLogger);
     }
+
+    if (config.banditLogger) {
+      this.setBanditLogger(config.banditLogger);
+    }
+
+    // There is no SDK key in the offline context.
+    const storageKeySuffix = 'offline';
+
+      // As this is a synchronous initialization,
+      // we are unable to call the async `init` method on the assignment cache
+      // which loads the assignment cache from the browser's storage.
+      // Therefore, there is no purpose trying to use a persistent assignment cache.
+      const assignmentCache = assignmentCacheFactory({
+        storageKeySuffix,
+        forceMemoryOnly: true,
+      });
+      this.useCustomAssignmentCache(assignmentCache);
+    } catch (error) {
+      applicationLogger.warn(
+        'Eppo SDK encountered an error initializing, assignment calls will return the default value and not be logged',
+      );
+      if (throwOnFailedInitialization) {
+        throw error;
+      }
+    }
+
+    this.initialized = true;
   }
 }
 
@@ -555,56 +448,10 @@ export class EppoJSClient extends EppoClient {
  */
 export function offlineInit(config: IClientConfigSync): EppoClient {
   const instance = getInstance();
+  instance.offlineInit(config);
 
-  const isObfuscated = config.isObfuscated ?? false;
-  const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
-
-  try {
-    const memoryOnlyConfigurationStore = configurationStorageFactory({
-      forceMemoryOnly: true,
-    });
-    memoryOnlyConfigurationStore
-      .setEntries(config.flagsConfiguration)
-      .catch((err) =>
-        applicationLogger.warn('Error setting flags for memory-only configuration store', err),
-      );
-    instance.setFlagConfigurationStore(memoryOnlyConfigurationStore);
-
-    // Allow the caller to override the default obfuscated mode, which is false
-    // since the purpose of this method is to bootstrap the SDK from an external source,
-    // which is likely a server that has not-obfuscated flag values.
-    instance.setIsObfuscated(isObfuscated);
-
-    if (config.assignmentLogger) {
-      instance.setAssignmentLogger(config.assignmentLogger);
-    }
-
-    if (config.banditLogger) {
-      instance.setBanditLogger(config.banditLogger);
-    }
-
-    // There is no SDK key in the offline context.
-    const storageKeySuffix = 'offline';
-
-    // As this is a synchronous initialization,
-    // we are unable to call the async `init` method on the assignment cache
-    // which loads the assignment cache from the browser's storage.
-    // Therefore, there is no purpose trying to use a persistent assignment cache.
-    const assignmentCache = assignmentCacheFactory({
-      storageKeySuffix,
-      forceMemoryOnly: true,
-    });
-    instance.useCustomAssignmentCache(assignmentCache);
-  } catch (error) {
-    applicationLogger.warn(
-      'Eppo SDK encountered an error initializing, assignment calls will return the default value and not be logged',
-    );
-    if (throwOnFailedInitialization) {
-      throw error;
-    }
-  }
-
-  // instance.initialized = true;
+  // For backwards compatibility.
+  EppoJSClient.initialized = true;
   return instance;
 }
 
