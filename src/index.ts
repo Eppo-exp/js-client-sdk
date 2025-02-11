@@ -22,8 +22,6 @@ import {
   Subject,
   IBanditLogger,
   IObfuscatedPrecomputedConfigurationResponse,
-  buildStorageKeySuffix,
-  EppoClientParameters,
 } from '@eppo/js-client-sdk-common';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
@@ -115,6 +113,9 @@ export class EppoJSClient extends EppoClient {
   // Ensure that the client is instantiated during class loading.
   // Use an empty memory-only configuration store until the `init` method is called,
   // to avoid serving stale data to the user.
+  /**
+   * @deprecated. use `getInstance()` instead.
+   */
   public static instance = new EppoJSClient({
     flagConfigurationStore: configurationStorageFactory({
       forceMemoryOnly: true,
@@ -128,7 +129,12 @@ export class EppoJSClient extends EppoClient {
    */
   private readonly initializedPromise: Promise<void>;
 
+
+  /**
+   * @deprecated
+   */
   public static initialized = false;
+
   private initialized = false;
 
   private constructor(options: EppoClientParameters) {
@@ -724,7 +730,7 @@ export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
   }
 
   private static getAssignmentInitializationCheck() {
-    if (!EppoPrecomputedJSClient.initialized) {
+    if (!EppoJSClient.initialized) {
       applicationLogger.warn('Eppo SDK assignment requested before init() completed');
     }
   }
