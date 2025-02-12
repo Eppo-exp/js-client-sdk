@@ -160,10 +160,7 @@ export class EppoJSClient extends EppoClient {
   }
 
   /**
-   * Initialize the Eppo Client.
-   *
    * @internal
-   * @param config
    */
   async init(config: IClientConfig): Promise<EppoJSClient> {
     validation.validateNotBlank(config.apiKey, 'API key required');
@@ -376,10 +373,7 @@ export class EppoJSClient extends EppoClient {
   }
 
   /**
-   * Initialize the client synchronously, for offline use.
-   *
    * @internal
-   * @param config
    */
   offlineInit(config: IClientConfigSync) {
     const isObfuscated = config.isObfuscated ?? false;
@@ -452,6 +446,7 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
 
   // For backwards compatibility.
   EppoJSClient.initialized = true;
+
   return instance;
 }
 
