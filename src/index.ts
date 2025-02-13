@@ -274,7 +274,7 @@ export class EppoJSClient extends EppoClient {
   /**
    * @internal
    */
-  async init(config: IClientConfig): Promise<EppoJSClient> {
+  async init(config: Omit<IClientConfig, 'forceReinitialize'>): Promise<EppoJSClient> {
     validation.validateNotBlank(config.apiKey, 'API key required');
     let initializationError: Error | undefined;
 
@@ -284,7 +284,6 @@ export class EppoJSClient extends EppoClient {
       baseUrl,
       maxCacheAgeSeconds,
       updateOnFetch,
-      forceReinitialize,
       requestTimeoutMs,
       numInitialRequestRetries,
       numPollRequestRetries,
@@ -295,20 +294,6 @@ export class EppoJSClient extends EppoClient {
       eventIngestionConfig,
     } = config;
     try {
-      if (this.initialized) {
-        if (forceReinitialize) {
-          applicationLogger.warn(
-            'Eppo SDK is already initialized, reinitializing since forceReinitialize is true.',
-          );
-          this.initialized = false;
-        } else {
-          applicationLogger.warn(
-            'Eppo SDK is already initialized, skipping reinitialization since forceReinitialize is false.',
-          );
-          return this;
-        }
-      }
-
       // If any existing instances; ensure they are not polling
       this.stopPolling();
       // Set up assignment logger and cache
@@ -588,29 +573,28 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
 }
 
 /**
- * Tracks pending initialization. After an initialization completes, the value is set to null.
- */
-let initializationPromise: Promise<EppoJSClient> | null = null;
-
-/**
  * Initializes the Eppo client with configuration parameters.
  * This method should be called once on application startup.
- * If an initialization is in process, calling `init` will return the in-progress
- * `Promise<EppoClient>`. Once the initialization completes, calling `init` again will kick off the
- * initialization routine (if `forceReinitialize` is `true`).
  * @param config - client configuration
  * @public
  */
 export async function init(config: IClientConfig): Promise<EppoJSClient> {
   validation.validateNotBlank(config.apiKey, 'API key required');
   const instance = getInstance();
-  // If there is already an init in progress, return that.
-  if (!initializationPromise) {
-    initializationPromise = instance.init(config);
+
+  if (EppoJSClient.initialized) {
+    if (config.forceReinitialize) {
+      applicationLogger.info(
+        'Eppo SDK is already initialized, reinitializing since forceReinitialize is true.',
+      );
+    } else {
+      applicationLogger.warn(
+        'Eppo SDK is already initialized, skipping reinitialization since forceReinitialize is false.',
+      );
+    }
   }
 
-  const client = await initializationPromise;
-  initializationPromise = null;
+  const client = instance.init(config);
 
   // For backwards compatibility.
   EppoJSClient.initialized = true;
