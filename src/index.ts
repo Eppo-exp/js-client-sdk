@@ -121,6 +121,14 @@ export class EppoJSClient extends EppoClient {
     isObfuscated: true,
   });
 
+  /**
+   * Resolved when the client is initialized
+   * @private
+   */
+  private readonly initializedPromise: Promise<void>;
+
+  initialized = false;
+
   private constructor(options: EppoClientParameters) {
     super(options);
 
@@ -142,14 +150,6 @@ export class EppoJSClient extends EppoClient {
     client.init(config);
     return client;
   }
-
-  /**
-   * Resolved when the client is initialized
-   * @private
-   */
-  private readonly initializedPromise: Promise<void>;
-
-  initialized = false;
 
   async init(config: Omit<IClientConfig, 'forceReinitialize'>): Promise<EppoJSClient> {
     validation.validateNotBlank(config.apiKey, 'API key required');
