@@ -121,7 +121,7 @@ export class EppoJSClient extends EppoClient {
     isObfuscated: true,
   });
 
-  constructor(options: EppoClientParameters) {
+  private constructor(options: EppoClientParameters) {
     super(options);
 
     // Create a promise that will be resolved when initialization is complete.
@@ -151,7 +151,7 @@ export class EppoJSClient extends EppoClient {
 
   initialized = false;
 
-  async init(config: IClientConfig): Promise<EppoJSClient> {
+  async init(config: Omit<IClientConfig, 'forceReinitialize'>): Promise<EppoJSClient> {
     validation.validateNotBlank(config.apiKey, 'API key required');
     let initializationError: Error | undefined;
     const {
@@ -160,7 +160,6 @@ export class EppoJSClient extends EppoClient {
       baseUrl,
       maxCacheAgeSeconds,
       updateOnFetch,
-      forceReinitialize,
       requestTimeoutMs,
       numInitialRequestRetries,
       numPollRequestRetries,
@@ -172,20 +171,6 @@ export class EppoJSClient extends EppoClient {
     } = config;
 
     try {
-      if (this.initialized) {
-        if (forceReinitialize) {
-          applicationLogger.warn(
-            'Eppo SDK is already initialized, reinitializing since forceReinitialize is true.',
-          );
-          this.initialized = false;
-        } else {
-          applicationLogger.warn(
-            'Eppo SDK is already initialized, skipping reinitialization since forceReinitialize is false.',
-          );
-          return this;
-        }
-      }
-
       // If the instance was polling, stop.
       this.stopPolling();
       // Set up assignment logger and cache
@@ -634,10 +619,26 @@ let initializationPromise: Promise<EppoJSClient> | null = null;
  * @param config - client configuration
  * @public
  */
-export async function init(config: IClientConfig): Promise<EppoClient> {
+export async function init(config: IClientConfig): Promise<EppoJSClient> {
   if (initializationPromise === null) {
-    initializationPromise = getInstance().init(config);
+    const singleton = getInstance();
+    if (singleton.initialized) {
+      if (config.forceReinitialize) {
+        applicationLogger.warn(
+          'Eppo SDK is already initialized, reinitializing since forceReinitialize is true.',
+        );
+        singleton.initialized = false;
+      } else {
+        applicationLogger.warn(
+          'Eppo SDK is already initialized, skipping reinitialization since forceReinitialize is false.',
+        );
+        return singleton;
+      }
+    }
+
+    initializationPromise = singleton.init(config);
   }
+
   const client = await initializationPromise;
   initializationPromise = null;
   return client;

@@ -120,6 +120,7 @@ export type IApiOptions = {
 
   /**
    * Force reinitialize the SDK if it is already initialized.
+   * @deprecated use `buildAndInit` to create a fresh client.
    */
   forceReinitialize?: boolean;
 
