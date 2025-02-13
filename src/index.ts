@@ -573,6 +573,11 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
 }
 
 /**
+ * Tracks pending initialization. After an initialization completes, this value is set to null
+ */
+let initializationPromise: Promise<EppoJSClient> | null = null;
+
+/**
  * Initializes the Eppo client with configuration parameters.
  * This method should be called once on application startup.
  * @param config - client configuration
@@ -591,10 +596,20 @@ export async function init(config: IClientConfig): Promise<EppoJSClient> {
       applicationLogger.warn(
         'Eppo SDK is already initialized, skipping reinitialization since forceReinitialize is false.',
       );
+      return instance;
     }
   }
 
-  const client = instance.init(config);
+  if (initializationPromise === null) {
+    initializationPromise = instance.init(config);
+  } else {
+    applicationLogger.warn(
+      'Initialization is already in progress. init should be called only once at application startup.',
+    );
+  }
+
+  const client = await initializationPromise;
+  initializationPromise = null;
 
   // For backwards compatibility.
   EppoJSClient.initialized = true;
