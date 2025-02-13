@@ -4,6 +4,10 @@
 
 ## getInstance() function
 
+> Warning: This API is now obsolete.
+> 
+> 
+
 Used to access a singleton SDK client instance. Use the method after calling init() to initialize the client.
 
 **Signature:**

@@ -9,5 +9,7 @@ Configuration for regular client initialization
 **Signature:**
 
 ```typescript
-export declare type IClientConfig = Omit<IClientOptions, 'sdkKey' | 'offline'> & Pick<IBaseRequestConfig, 'apiKey'>;
+export declare type IClientConfig = IApiOptions & ILoggers & IEventOptions & IStorageOptions & IPollingOptions;
 ```
+**References:** [IApiOptions](./js-client-sdk.iapioptions.md)<!-- -->, [ILoggers](./js-client-sdk.iloggers.md)<!-- -->, [IEventOptions](./js-client-sdk.ieventoptions.md)<!-- -->, [IStorageOptions](./js-client-sdk.istorageoptions.md)<!-- -->, [IPollingOptions](./js-client-sdk.ipollingoptions.md)
+

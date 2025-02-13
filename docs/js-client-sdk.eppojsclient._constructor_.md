@@ -9,7 +9,7 @@ Constructs a new instance of the `EppoJSClient` class
 **Signature:**
 
 ```typescript
-constructor(optionsOrConfig: EppoClientParameters | IClientOptions);
+constructor(options: EppoClientParameters);
 ```
 
 ## Parameters
@@ -32,12 +32,12 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-optionsOrConfig
+options
 
 
 </td><td>
 
-EppoClientParameters \| IClientOptions
+EppoClientParameters
 
 
 </td><td>

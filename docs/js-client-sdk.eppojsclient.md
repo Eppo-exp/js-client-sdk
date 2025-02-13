@@ -33,7 +33,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[(constructor)(optionsOrConfig)](./js-client-sdk.eppojsclient._constructor_.md)
+[(constructor)(options)](./js-client-sdk.eppojsclient._constructor_.md)
 
 
 </td><td>
@@ -127,6 +127,20 @@ Description
 
 </th></tr></thead>
 <tbody><tr><td>
+
+[buildAndInit(config)](./js-client-sdk.eppojsclient.buildandinit.md)
+
+
+</td><td>
+
+`static`
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
 
 [getBanditAction(flagKey, subjectKey, subjectAttributes, actions, defaultValue)](./js-client-sdk.eppojsclient.getbanditaction.md)
 
@@ -296,13 +310,27 @@ Description
 </td></tr>
 <tr><td>
 
-[waitForReady()](./js-client-sdk.eppojsclient.waitforready.md)
+[init(config)](./js-client-sdk.eppojsclient.init.md)
 
 
 </td><td>
 
 
 </td><td>
+
+
+</td></tr>
+<tr><td>
+
+[waitForInitialization()](./js-client-sdk.eppojsclient.waitforinitialization.md)
+
+
+</td><td>
+
+
+</td><td>
+
+Resolves when the EppoClient has completed its initialization.
 
 
 </td></tr>
