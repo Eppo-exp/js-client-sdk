@@ -104,6 +104,8 @@ boolean
 
 </td><td>
 
+@<!-- -->deprecated. use `getInstance()` instead.
+
 
 </td></tr>
 </tbody></table>
