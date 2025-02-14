@@ -29,7 +29,7 @@ import {
   validateTestAssignments,
 } from '../test/testHelpers';
 
-import { IApiOptions, IClientConfig } from './i-client-config';
+import { IApiOptions, IClientConfig, ICompatibilityOptions } from './i-client-config';
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
 
 import {
@@ -509,6 +509,7 @@ describe('decoupled initialization', () => {
         });
       }) as jest.Mock;
     });
+
     afterAll(() => {
       jest.restoreAllMocks();
     });
@@ -588,7 +589,7 @@ describe('initialization options', () => {
   } as unknown as Record<'flags', Record<string, Flag>>;
 
   // eslint-disable-next-line @typescript-eslint/ban-types
-  let init: (config: IClientConfig) => Promise<EppoJSClient>;
+  let init: (config: IClientConfig & ICompatibilityOptions) => Promise<EppoJSClient>;
   // eslint-disable-next-line @typescript-eslint/ban-types
   let getInstance: () => EppoJSClient;
 

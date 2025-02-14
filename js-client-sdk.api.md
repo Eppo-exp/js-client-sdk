@@ -13,7 +13,6 @@ import { BanditActions } from '@eppo/js-client-sdk-common';
 import { BanditSubjectAttributes } from '@eppo/js-client-sdk-common';
 import { ContextAttributes } from '@eppo/js-client-sdk-common';
 import { EppoClient } from '@eppo/js-client-sdk-common';
-import { EppoClientParameters } from '@eppo/js-client-sdk-common';
 import { EppoPrecomputedClient } from '@eppo/js-client-sdk-common';
 import { Flag } from '@eppo/js-client-sdk-common';
 import { FlagKey } from '@eppo/js-client-sdk-common';
@@ -55,7 +54,6 @@ export { ContextAttributes }
 
 // @public
 export class EppoJSClient extends EppoClient {
-    constructor(options: EppoClientParameters);
     // (undocumented)
     static buildAndInit(config: IClientConfig): EppoJSClient;
     // (undocumented)
@@ -130,7 +128,6 @@ export function getPrecomputedInstance(): EppoPrecomputedClient;
 export type IApiOptions = {
     apiKey: string;
     baseUrl?: string;
-    forceReinitialize?: boolean;
     requestTimeoutMs?: number;
     numInitialRequestRetries?: number;
     skipInitialRequest?: boolean;
@@ -187,8 +184,10 @@ export type ILoggers = {
     banditLogger?: IBanditLogger;
 };
 
+// Warning: (ae-forgotten-export) The symbol "ICompatibilityOptions" needs to be exported by the entry point index.d.ts
+//
 // @public @deprecated
-export function init(config: IClientConfig): Promise<EppoClient>;
+export function init(config: IClientConfig & ICompatibilityOptions): Promise<EppoJSClient>;
 
 // @public (undocumented)
 export type IPollingOptions = {
@@ -239,7 +238,7 @@ export function precomputedInit(config: IPrecomputedClientConfig): Promise<EppoP
 
 // Warnings were encountered during analysis:
 //
-// src/i-client-config.ts:167:3 - (ae-forgotten-export) The symbol "ServingStoreUpdateStrategy" needs to be exported by the entry point index.d.ts
+// src/i-client-config.ts:162:3 - (ae-forgotten-export) The symbol "ServingStoreUpdateStrategy" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

@@ -110,6 +110,10 @@ export interface IPrecomputedClientConfig extends IBaseRequestConfig {
 export type IApiOptions = {
   /**
    * Your key for accessing Eppo through the Eppo SDK.
+   *
+   * Some persistent storage mechanisms use this key (hashed) to index saved Eppo configuration data.
+   * It is not advisable to create multiple EppoClient instances with the same API key as they will each make network
+   * call(s) (depending on the other request options in `IApiOptions`) while sharing the same persistent storage.
    */
   apiKey: string;
 
@@ -117,12 +121,6 @@ export type IApiOptions = {
    * Override the endpoint the SDK uses to load configuration.
    */
   baseUrl?: string;
-
-  /**
-   * Force reinitialize the SDK if it is already initialized.
-   * @deprecated use `buildAndInit` to create a fresh client.
-   */
-  forceReinitialize?: boolean;
 
   /**
    * Timeout in milliseconds for the HTTPS request for the experiment configuration. (Default: 5000)
@@ -238,6 +236,17 @@ export type ILoggers = {
    * Pass a logging implementation to send bandit assignments to your data warehouse.
    */
   banditLogger?: IBanditLogger;
+};
+
+/**
+ * Options for backwards compatibility.
+ */
+export type ICompatibilityOptions = {
+  /**
+   * Force reinitialize the SDK if it is already initialized.
+   * @deprecated use `buildAndInit` to create a fresh client.
+   */
+  forceReinitialize?: boolean;
 };
 
 /**
