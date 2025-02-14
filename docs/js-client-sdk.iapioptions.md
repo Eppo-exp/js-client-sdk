@@ -12,7 +12,6 @@ Base options for the EppoClient SDK
 export declare type IApiOptions = {
     apiKey: string;
     baseUrl?: string;
-    forceReinitialize?: boolean;
     requestTimeoutMs?: number;
     numInitialRequestRetries?: number;
     skipInitialRequest?: boolean;

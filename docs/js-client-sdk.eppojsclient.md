@@ -13,40 +13,6 @@ export declare class EppoJSClient extends EppoClient
 ```
 **Extends:** EppoClient
 
-## Constructors
-
-<table><thead><tr><th>
-
-Constructor
-
-
-</th><th>
-
-Modifiers
-
-
-</th><th>
-
-Description
-
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[(constructor)(options)](./js-client-sdk.eppojsclient._constructor_.md)
-
-
-</td><td>
-
-
-</td><td>
-
-Constructs a new instance of the `EppoJSClient` class
-
-
-</td></tr>
-</tbody></table>
-
 ## Properties
 
 <table><thead><tr><th>
@@ -103,8 +69,6 @@ boolean
 
 
 </td><td>
-
-@<!-- -->deprecated. use `getInstance()` instead.
 
 
 </td></tr>
