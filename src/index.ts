@@ -1,12 +1,16 @@
 import {
   ApiEndpoints,
   applicationLogger,
+  AttributeType,
+  BanditActions,
+  BanditSubjectAttributes,
   EppoClient,
   EventDispatcher,
   Flag,
   FlagConfigurationRequestParameters,
   IAssignmentDetails,
   IAssignmentLogger,
+  IContainerExperiment,
   EppoPrecomputedClient,
   PrecomputedFlagsRequestParameters,
   newDefaultEventDispatcher,
@@ -19,7 +23,6 @@ import {
   IBanditLogger,
   IObfuscatedPrecomputedConfigurationResponse,
   EppoClientParameters,
-  buildStorageKeySuffix,
 } from '@eppo/js-client-sdk-common';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
@@ -41,16 +44,7 @@ import {
 } from './configuration-factory';
 import BrowserNetworkStatusListener from './events/browser-network-status-listener';
 import LocalStorageBackedNamedEventQueue from './events/local-storage-backed-named-event-queue';
-import {
-  IApiOptions,
-  IClientConfig,
-  ICompatibilityOptions,
-  IEventOptions,
-  ILoggers,
-  IPollingOptions,
-  IPrecomputedClientConfig,
-  IStorageOptions,
-} from './i-client-config';
+import { IClientConfig, ICompatibilityOptions, IPrecomputedClientConfig } from './i-client-config';
 import { sdkName, sdkVersion } from './sdk-data';
 
 /**
@@ -69,15 +63,7 @@ export interface IClientConfigSync {
   throwOnFailedInitialization?: boolean;
 }
 
-export {
-  IClientConfig,
-  IPrecomputedClientConfig,
-  IApiOptions,
-  ILoggers,
-  IEventOptions,
-  IStorageOptions,
-  IPollingOptions,
-};
+export { IClientConfig, IPrecomputedClientConfig };
 
 // Export the common types and classes from the SDK.
 export {
@@ -99,6 +85,11 @@ export {
 } from '@eppo/js-client-sdk-common';
 export { ChromeStorageEngine } from './chrome-storage-engine';
 
+// Instantiate the configuration store with memory-only implementation.
+const flagConfigurationStore = configurationStorageFactory({
+  forceMemoryOnly: true,
+});
+
 // Instantiate the precomputed flags and bandits stores with memory-only implementation.
 const memoryOnlyPrecomputedFlagsStore = precomputedFlagsStorageFactory();
 const memoryOnlyPrecomputedBanditsStore = precomputedBanditStoreFactory();
@@ -115,11 +106,27 @@ export class EppoJSClient extends EppoClient {
    * @deprecated. use `getInstance()` instead.
    */
   public static instance = new EppoJSClient({
-    flagConfigurationStore: configurationStorageFactory({
-      forceMemoryOnly: true,
-    }),
+    flagConfigurationStore,
     isObfuscated: true,
   });
+
+  /**
+   * @deprecated
+   */
+  public static initialized = false;
+
+  public static buildAndInit(config: IClientConfig): EppoJSClient {
+    const flagConfigurationStore =
+      config.flagConfigurationStore ??
+      configurationStorageFactory({
+        forceMemoryOnly: true,
+      });
+    const client = new EppoJSClient({ flagConfigurationStore });
+
+    // init will resolve the promise that client.waitForConfiguration returns.
+    client.init(config);
+    return client;
+  }
 
   /**
    * Resolved when the client is initialized
@@ -135,11 +142,6 @@ export class EppoJSClient extends EppoClient {
    * @private
    */
   private initializedPromiseResolver: () => void = () => null;
-
-  /**
-   * @deprecated
-   */
-  public static initialized = false;
 
   private initialized = false;
 
@@ -159,25 +161,168 @@ export class EppoJSClient extends EppoClient {
     return this.initializedPromise;
   }
 
-  public static buildAndInit(config: IClientConfig): EppoJSClient {
-    const flagConfigurationStore =
-      config.flagConfigurationStore ??
-      configurationStorageFactory({
-        forceMemoryOnly: true,
-      });
-    const client = new EppoJSClient({ flagConfigurationStore });
+  public getStringAssignment(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, AttributeType>,
+    defaultValue: string,
+  ): string {
+    this.ensureInitialized();
+    return super.getStringAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
 
-    // init will resolve the promise that client.waitForConfiguration returns.
-    client.init(config);
-    return client;
+  public getStringAssignmentDetails(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, AttributeType>,
+    defaultValue: string,
+  ): IAssignmentDetails<string> {
+    this.ensureInitialized();
+    return super.getStringAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
+
+  /**
+   * @deprecated Use getBooleanAssignment instead
+   */
+  public getBoolAssignment(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, AttributeType>,
+    defaultValue: boolean,
+  ): boolean {
+    return this.getBooleanAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
+
+  public getBooleanAssignment(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, AttributeType>,
+    defaultValue: boolean,
+  ): boolean {
+    this.ensureInitialized();
+    return super.getBooleanAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
+
+  public getBooleanAssignmentDetails(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, AttributeType>,
+    defaultValue: boolean,
+  ): IAssignmentDetails<boolean> {
+    this.ensureInitialized();
+    return super.getBooleanAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
+
+  public getIntegerAssignment(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, AttributeType>,
+    defaultValue: number,
+  ): number {
+    this.ensureInitialized();
+    return super.getIntegerAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
+
+  public getIntegerAssignmentDetails(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, AttributeType>,
+    defaultValue: number,
+  ): IAssignmentDetails<number> {
+    this.ensureInitialized();
+    return super.getIntegerAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
+
+  public getNumericAssignment(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, AttributeType>,
+    defaultValue: number,
+  ): number {
+    this.ensureInitialized();
+    return super.getNumericAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
+
+  public getNumericAssignmentDetails(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, AttributeType>,
+    defaultValue: number,
+  ): IAssignmentDetails<number> {
+    this.ensureInitialized();
+    return super.getNumericAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
+
+  public getJSONAssignment(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, AttributeType>,
+    defaultValue: object,
+  ): object {
+    this.ensureInitialized();
+    return super.getJSONAssignment(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
+
+  public getJSONAssignmentDetails(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: Record<string, AttributeType>,
+    defaultValue: object,
+  ): IAssignmentDetails<object> {
+    this.ensureInitialized();
+    return super.getJSONAssignmentDetails(flagKey, subjectKey, subjectAttributes, defaultValue);
+  }
+
+  public getBanditAction(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: BanditSubjectAttributes,
+    actions: BanditActions,
+    defaultValue: string,
+  ): Omit<IAssignmentDetails<string>, 'evaluationDetails'> {
+    this.ensureInitialized();
+    return super.getBanditAction(flagKey, subjectKey, subjectAttributes, actions, defaultValue);
+  }
+
+  public getBanditActionDetails(
+    flagKey: string,
+    subjectKey: string,
+    subjectAttributes: BanditSubjectAttributes,
+    actions: BanditActions,
+    defaultValue: string,
+  ): IAssignmentDetails<string> {
+    this.ensureInitialized();
+    return super.getBanditActionDetails(
+      flagKey,
+      subjectKey,
+      subjectAttributes,
+      actions,
+      defaultValue,
+    );
+  }
+
+  public getExperimentContainerEntry<T>(
+    flagExperiment: IContainerExperiment<T>,
+    subjectKey: string,
+    subjectAttributes: Record<string, AttributeType>,
+  ): T {
+    this.ensureInitialized();
+    return super.getExperimentContainerEntry(flagExperiment, subjectKey, subjectAttributes);
+  }
+
+  private ensureInitialized() {
+    if (!this.initialized) {
+      applicationLogger.warn('Eppo SDK assignment requested before init() completed');
+    }
   }
 
   /**
    * @internal
    */
-  async init(config: IClientConfig): Promise<EppoJSClient> {
+  async init(config: Omit<IClientConfig, 'forceReinitialize'>): Promise<EppoJSClient> {
     validation.validateNotBlank(config.apiKey, 'API key required');
     let initializationError: Error | undefined;
+
     const {
       apiKey,
       persistentStore,
@@ -193,9 +338,8 @@ export class EppoJSClient extends EppoClient {
       skipInitialRequest = false,
       eventIngestionConfig,
     } = config;
-
     try {
-      // If the instance was polling, stop.
+      // If any existing instances; ensure they are not polling
       this.stopPolling();
       // Set up assignment logger and cache
       this.setAssignmentLogger(config.assignmentLogger);
@@ -442,6 +586,17 @@ export class EppoJSClient extends EppoClient {
 }
 
 /**
+ * Builds a storage key suffix from an API key.
+ * @param apiKey - The API key to build the suffix from
+ * @returns A string suffix for storage keys
+ * @public
+ */
+export function buildStorageKeySuffix(apiKey: string): string {
+  // Note that we use the first 8 characters of the API key to create per-API key persistent storages and caches
+  return apiKey.replace(/\W/g, '').substring(0, 8);
+}
+
+/**
  * Initializes the Eppo client with configuration parameters.
  *
  * The purpose is for use-cases where the configuration is available from an external process
@@ -464,21 +619,13 @@ export function offlineInit(config: IClientConfigSync): EppoClient {
 }
 
 /**
- * Tracks pending initialization. After an initialization completes, this value is nulled
+ * Tracks pending initialization. After an initialization completes, this value is set to null
  */
 let initializationPromise: Promise<EppoJSClient> | null = null;
 
 /**
  * Initializes the Eppo client with configuration parameters.
  * This method should be called once on application startup.
- * If an initialization is in process, calling `init` will return the in-progress
- * `Promise<EppoClient>`. Once the initialization completes, calling `init` again will kick off the
- * initialization routine (if `forceReinitialize` is `true`).
- *
- *
- * @deprecated
- * Use `EppoJSClient.createAndInit` instead of `init` and `getInstance`. These will be removed in v4
- *
  * @param config - client configuration
  * @public
  */
@@ -521,7 +668,6 @@ export async function init(config: IClientConfig & ICompatibilityOptions): Promi
  * Use the method after calling init() to initialize the client.
  * @returns a singleton client instance
  * @public
- * @deprecated
  */
 export function getInstance(): EppoJSClient {
   return EppoJSClient.instance;
