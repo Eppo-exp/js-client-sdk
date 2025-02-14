@@ -429,12 +429,10 @@ describe('decoupled initialization', () => {
       const isolatedClient = EppoJSClient.buildAndInit(options);
 
       expect(isolatedClient).not.toEqual(getInstance());
-      await isolatedClient.waitForInitialization();
+      await isolatedClient.waitForConfiguration();
 
       expect(isolatedClient.isInitialized()).toBe(true);
-      expect(isolatedClient.initialized).toBe(true);
       expect(getInstance().isInitialized()).toBe(false);
-      expect(getInstance().initialized).toBe(false);
 
       expect(getInstance().getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
         'default-value',
@@ -452,7 +450,7 @@ describe('decoupled initialization', () => {
         'default-value',
       );
 
-      await client.waitForInitialization();
+      await client.waitForConfiguration();
 
       const assignment = client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value');
       expect(assignment).toEqual('variant-1');
@@ -522,7 +520,7 @@ describe('decoupled initialization', () => {
       expect(callCount).toBe(1);
 
       const myClient2 = EppoJSClient.buildAndInit({ ...commonOptions, apiKey: API_KEY_2 });
-      await myClient2.waitForInitialization();
+      await myClient2.waitForConfiguration();
       expect(callCount).toBe(2);
 
       expect(singleton.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
@@ -533,7 +531,7 @@ describe('decoupled initialization', () => {
       );
 
       const myClient3 = EppoJSClient.buildAndInit({ ...commonOptions, apiKey: API_KEY_3 });
-      await myClient3.waitForInitialization();
+      await myClient3.waitForConfiguration();
 
       expect(singleton.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
         'variant-1',

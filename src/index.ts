@@ -1,16 +1,12 @@
 import {
   ApiEndpoints,
   applicationLogger,
-  AttributeType,
-  BanditActions,
-  BanditSubjectAttributes,
   EppoClient,
   EventDispatcher,
   Flag,
   FlagConfigurationRequestParameters,
   IAssignmentDetails,
   IAssignmentLogger,
-  IContainerExperiment,
   EppoPrecomputedClient,
   PrecomputedFlagsRequestParameters,
   newDefaultEventDispatcher,
@@ -22,6 +18,8 @@ import {
   Subject,
   IBanditLogger,
   IObfuscatedPrecomputedConfigurationResponse,
+  EppoClientParameters,
+  buildStorageKeySuffix,
 } from '@eppo/js-client-sdk-common';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
@@ -129,6 +127,14 @@ export class EppoJSClient extends EppoClient {
    */
   private readonly initializedPromise: Promise<void>;
 
+  /**
+   * Resolves the `initializedPromise` when initialization is complete
+   *
+   * Initialization happens outside the constructor, so we can't assign `initializedPromise` to the result
+   * of initialization. Instead, we call the resolver when `init` is complete.
+   * @private
+   */
+  private initializedPromiseResolver: () => void = () => null;
 
   /**
    * @deprecated
@@ -144,6 +150,13 @@ export class EppoJSClient extends EppoClient {
     this.initializedPromise = new Promise((resolve) => {
       this.initializedPromiseResolver = resolve;
     });
+  }
+
+  /**
+   * Resolves when the EppoClient has completed its initialization.
+   */
+  public waitForConfiguration(): Promise<void> {
+    return this.initializedPromise;
   }
 
   public static buildAndInit(config: IClientConfig): EppoJSClient {
@@ -379,32 +392,32 @@ export class EppoJSClient extends EppoClient {
     const isObfuscated = config.isObfuscated ?? false;
     const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
 
-  try {
-    const memoryOnlyConfigurationStore = configurationStorageFactory({
-      forceMemoryOnly: true,
-    });
-    memoryOnlyConfigurationStore
-      .setEntries(config.flagsConfiguration)
-      .catch((err) =>
-        applicationLogger.warn('Error setting flags for memory-only configuration store', err),
-      );
-    this.setFlagConfigurationStore(memoryOnlyConfigurationStore);
+    try {
+      const memoryOnlyConfigurationStore = configurationStorageFactory({
+        forceMemoryOnly: true,
+      });
+      memoryOnlyConfigurationStore
+        .setEntries(config.flagsConfiguration)
+        .catch((err) =>
+          applicationLogger.warn('Error setting flags for memory-only configuration store', err),
+        );
+      this.setFlagConfigurationStore(memoryOnlyConfigurationStore);
 
-    // Allow the caller to override the default obfuscated mode, which is false
-    // since the purpose of this method is to bootstrap the SDK from an external source,
-    // which is likely a server that has not-obfuscated flag values.
-    this.setIsObfuscated(isObfuscated);
+      // Allow the caller to override the default obfuscated mode, which is false
+      // since the purpose of this method is to bootstrap the SDK from an external source,
+      // which is likely a server that has not-obfuscated flag values.
+      this.setIsObfuscated(isObfuscated);
 
-    if (config.assignmentLogger) {
-      this.setAssignmentLogger(config.assignmentLogger);
-    }
+      if (config.assignmentLogger) {
+        this.setAssignmentLogger(config.assignmentLogger);
+      }
 
-    if (config.banditLogger) {
-      this.setBanditLogger(config.banditLogger);
-    }
+      if (config.banditLogger) {
+        this.setBanditLogger(config.banditLogger);
+      }
 
-    // There is no SDK key in the offline context.
-    const storageKeySuffix = 'offline';
+      // There is no SDK key in the offline context.
+      const storageKeySuffix = 'offline';
 
       // As this is a synchronous initialization,
       // we are unable to call the async `init` method on the assignment cache
