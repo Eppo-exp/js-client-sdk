@@ -22,7 +22,6 @@ import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
 import { IAsyncStore } from '@eppo/js-client-sdk-common';
 import { IBanditEvent } from '@eppo/js-client-sdk-common';
 import { IBanditLogger } from '@eppo/js-client-sdk-common';
-import { IConfigurationStore } from '@eppo/js-client-sdk-common';
 import { IContainerExperiment } from '@eppo/js-client-sdk-common';
 import { ObfuscatedFlag } from '@eppo/js-client-sdk-common';
 
@@ -33,6 +32,9 @@ export { AttributeType }
 export { BanditActions }
 
 export { BanditSubjectAttributes }
+
+// @public
+export function buildStorageKeySuffix(apiKey: string): string;
 
 // Warning: (ae-forgotten-export) The symbol "IStringStorageEngine" needs to be exported by the entry point index.d.ts
 //
@@ -54,8 +56,6 @@ export { ContextAttributes }
 
 // @public
 export class EppoJSClient extends EppoClient {
-    // (undocumented)
-    static buildAndInit(config: IClientConfig): EppoJSClient;
     // (undocumented)
     getBanditAction(flagKey: string, subjectKey: string, subjectAttributes: BanditSubjectAttributes, actions: BanditActions, defaultValue: string): Omit<IAssignmentDetails<string>, 'evaluationDetails'>;
     // (undocumented)
@@ -84,13 +84,13 @@ export class EppoJSClient extends EppoClient {
     getStringAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: string): string;
     // (undocumented)
     getStringAssignmentDetails(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: string): IAssignmentDetails<string>;
-    // (undocumented)
-    init(config: IClientConfig): Promise<EppoJSClient>;
-    // (undocumented)
-    initialized: boolean;
-    // (undocumented)
+    // @internal (undocumented)
+    init(config: Omit<IClientConfig, 'forceReinitialize'>): Promise<EppoJSClient>;
+    // @deprecated (undocumented)
+    static initialized: boolean;
     static instance: EppoJSClient;
-    waitForInitialization(): Promise<void>;
+    // @internal (undocumented)
+    offlineInit(config: IClientConfigSync): void;
 }
 
 // @public
@@ -118,24 +118,11 @@ export { Flag }
 // @public
 export function getConfigUrl(apiKey: string, baseUrl?: string): URL;
 
-// @public @deprecated
+// @public
 export function getInstance(): EppoJSClient;
 
 // @public
 export function getPrecomputedInstance(): EppoPrecomputedClient;
-
-// @public
-export type IApiOptions = {
-    apiKey: string;
-    baseUrl?: string;
-    requestTimeoutMs?: number;
-    numInitialRequestRetries?: number;
-    skipInitialRequest?: boolean;
-    throwOnFailedInitialization?: boolean;
-    maxCacheAgeSeconds?: number;
-    useExpiredCache?: boolean;
-    updateOnFetch?: ServingStoreUpdateStrategy;
-};
 
 export { IAssignmentDetails }
 
@@ -149,8 +136,26 @@ export { IBanditEvent }
 
 export { IBanditLogger }
 
+// Warning: (ae-forgotten-export) The symbol "IBaseRequestConfig" needs to be exported by the entry point index.d.ts
+//
 // @public
-export type IClientConfig = IApiOptions & ILoggers & IEventOptions & IStorageOptions & IPollingOptions;
+export interface IClientConfig extends IBaseRequestConfig {
+    eventIngestionConfig?: {
+        deliveryIntervalMs?: number;
+        retryIntervalMs?: number;
+        maxRetryDelayMs?: number;
+        maxRetries?: number;
+        batchSize?: number;
+        maxQueueSize?: number;
+    };
+    forceReinitialize?: boolean;
+    maxCacheAgeSeconds?: number;
+    persistentStore?: IAsyncStore<Flag>;
+    throwOnFailedInitialization?: boolean;
+    // Warning: (ae-forgotten-export) The symbol "ServingStoreUpdateStrategy" needs to be exported by the entry point index.d.ts
+    updateOnFetch?: ServingStoreUpdateStrategy;
+    useExpiredCache?: boolean;
+}
 
 // @public
 export interface IClientConfigSync {
@@ -166,39 +171,9 @@ export interface IClientConfigSync {
     throwOnFailedInitialization?: boolean;
 }
 
-// @public (undocumented)
-export type IEventOptions = {
-    eventIngestionConfig?: {
-        deliveryIntervalMs?: number;
-        retryIntervalMs?: number;
-        maxRetryDelayMs?: number;
-        maxRetries?: number;
-        batchSize?: number;
-        maxQueueSize?: number;
-    };
-};
+// @public
+export function init(config: IClientConfig): Promise<EppoJSClient>;
 
-// @public (undocumented)
-export type ILoggers = {
-    assignmentLogger: IAssignmentLogger;
-    banditLogger?: IBanditLogger;
-};
-
-// Warning: (ae-forgotten-export) The symbol "ICompatibilityOptions" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated
-export function init(config: IClientConfig & ICompatibilityOptions): Promise<EppoJSClient>;
-
-// @public (undocumented)
-export type IPollingOptions = {
-    pollAfterFailedInitialization?: boolean;
-    pollAfterSuccessfulInitialization?: boolean;
-    pollingIntervalMs?: number;
-    numPollRequestRetries?: number;
-};
-
-// Warning: (ae-forgotten-export) The symbol "IBaseRequestConfig" needs to be exported by the entry point index.d.ts
-//
 // @public
 export interface IPrecomputedClientConfig extends IBaseRequestConfig {
     // Warning: (ae-forgotten-export) The symbol "IPrecompute" needs to be exported by the entry point index.d.ts
@@ -219,12 +194,6 @@ export interface IPrecomputedClientConfigSync {
     throwOnFailedInitialization?: boolean;
 }
 
-// @public (undocumented)
-export type IStorageOptions = {
-    flagConfigurationStore?: IConfigurationStore<Flag>;
-    persistentStore?: IAsyncStore<Flag>;
-};
-
 export { ObfuscatedFlag }
 
 // @public
@@ -235,10 +204,6 @@ export function offlinePrecomputedInit(config: IPrecomputedClientConfigSync): Ep
 
 // @public
 export function precomputedInit(config: IPrecomputedClientConfig): Promise<EppoPrecomputedClient>;
-
-// Warnings were encountered during analysis:
-//
-// src/i-client-config.ts:162:3 - (ae-forgotten-export) The symbol "ServingStoreUpdateStrategy" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

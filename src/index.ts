@@ -23,6 +23,7 @@ import {
   IBanditLogger,
   IObfuscatedPrecomputedConfigurationResponse,
   EppoClientParameters,
+  buildStorageKeySuffix,
 } from '@eppo/js-client-sdk-common';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
@@ -586,17 +587,6 @@ export class EppoJSClient extends EppoClient {
 }
 
 /**
- * Builds a storage key suffix from an API key.
- * @param apiKey - The API key to build the suffix from
- * @returns A string suffix for storage keys
- * @public
- */
-export function buildStorageKeySuffix(apiKey: string): string {
-  // Note that we use the first 8 characters of the API key to create per-API key persistent storages and caches
-  return apiKey.replace(/\W/g, '').substring(0, 8);
-}
-
-/**
  * Initializes the Eppo client with configuration parameters.
  *
  * The purpose is for use-cases where the configuration is available from an external process
@@ -626,6 +616,7 @@ let initializationPromise: Promise<EppoJSClient> | null = null;
 /**
  * Initializes the Eppo client with configuration parameters.
  * This method should be called once on application startup.
+ * @deprecated
  * @param config - client configuration
  * @public
  */
@@ -666,6 +657,7 @@ export async function init(config: IClientConfig & ICompatibilityOptions): Promi
 /**
  * Used to access a singleton SDK client instance.
  * Use the method after calling init() to initialize the client.
+ * @deprecated
  * @returns a singleton client instance
  * @public
  */
