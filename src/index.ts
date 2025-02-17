@@ -109,9 +109,6 @@ export class EppoJSClient extends EppoClient {
     isObfuscated: true,
   });
 
-  /**
-   * @deprecated
-   */
   public static initialized = false;
 
   private initialized = false;
