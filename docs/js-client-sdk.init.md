@@ -4,7 +4,7 @@
 
 ## init() function
 
-Initializes the Eppo client with configuration parameters. This method should be called once on application startup.
+Initializes the Eppo client with configuration parameters. This method should be called once on application startup. If an initialization is in process, calling `init` will return the in-progress `Promise<EppoClient>`<!-- -->. Once the initialization completes, calling `init` again will kick off the initialization routine (if `forceReinitialization` is `true`<!-- -->).
 
 **Signature:**
 
