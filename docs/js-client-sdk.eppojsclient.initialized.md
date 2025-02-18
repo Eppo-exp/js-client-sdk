@@ -4,8 +4,12 @@
 
 ## EppoJSClient.initialized property
 
+> Warning: This API is now obsolete.
+> 
+> 
+
 **Signature:**
 
 ```typescript
-initialized: boolean;
+static initialized: boolean;
 ```

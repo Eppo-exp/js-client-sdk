@@ -109,7 +109,7 @@ Used to access a singleton SDK precomputed client instance. Use the method after
 
 </td><td>
 
-Initializes the Eppo client with configuration parameters. This method should be called once on application startup. If an initialization is in process, calling `init` will return the in-progress `Promise<EppoClient>`<!-- -->. Once the initialization completes, calling `init` again will kick off the initialization routine (if `forceReinitialize` is `true`<!-- -->).
+Initializes the Eppo client with configuration parameters. This method should be called once on application startup.
 
 
 </td></tr>
@@ -221,59 +221,12 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[IApiOptions](./js-client-sdk.iapioptions.md)
-
-
-</td><td>
-
-Base options for the EppoClient SDK
-
-
-</td></tr>
-<tr><td>
-
 [IClientConfig](./js-client-sdk.iclientconfig.md)
 
 
 </td><td>
 
 Configuration for regular client initialization
-
-
-</td></tr>
-<tr><td>
-
-[IEventOptions](./js-client-sdk.ieventoptions.md)
-
-
-</td><td>
-
-
-</td></tr>
-<tr><td>
-
-[ILoggers](./js-client-sdk.iloggers.md)
-
-
-</td><td>
-
-
-</td></tr>
-<tr><td>
-
-[IPollingOptions](./js-client-sdk.ipollingoptions.md)
-
-
-</td><td>
-
-
-</td></tr>
-<tr><td>
-
-[IStorageOptions](./js-client-sdk.istorageoptions.md)
-
-
-</td><td>
 
 
 </td></tr>

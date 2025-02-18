@@ -43,6 +43,8 @@ Description
 
 </td><td>
 
+`static`
+
 
 </td><td>
 
@@ -69,6 +71,8 @@ boolean
 
 
 </td><td>
+
+@<!-- -->deprecated. use `getInstance()` instead.
 
 
 </td></tr>
@@ -276,19 +280,7 @@ Description
 </td></tr>
 <tr><td>
 
-[init(config)](./js-client-sdk.eppojsclient.init.md)
-
-
-</td><td>
-
-
-</td><td>
-
-
-</td></tr>
-<tr><td>
-
-[waitForInitialization()](./js-client-sdk.eppojsclient.waitforinitialization.md)
+[waitForConfiguration()](./js-client-sdk.eppojsclient.waitforconfiguration.md)
 
 
 </td><td>

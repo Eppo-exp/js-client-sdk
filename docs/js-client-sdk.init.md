@@ -4,12 +4,7 @@
 
 ## init() function
 
-> Warning: This API is now obsolete.
-> 
-> Use `EppoJSClient.createAndInit` instead of `init` and `getInstance`<!-- -->. These will be removed in v4
-> 
-
-Initializes the Eppo client with configuration parameters. This method should be called once on application startup. If an initialization is in process, calling `init` will return the in-progress `Promise<EppoClient>`<!-- -->. Once the initialization completes, calling `init` again will kick off the initialization routine (if `forceReinitialize` is `true`<!-- -->).
+Initializes the Eppo client with configuration parameters. This method should be called once on application startup.
 
 **Signature:**
 
