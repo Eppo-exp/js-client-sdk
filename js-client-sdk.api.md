@@ -84,10 +84,13 @@ export class EppoJSClient extends EppoClient {
     getStringAssignment(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: string): string;
     // (undocumented)
     getStringAssignmentDetails(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: string): IAssignmentDetails<string>;
+    // @internal (undocumented)
+    init(config: Omit<IClientConfig, 'forceReinitialize'>): Promise<EppoJSClient>;
     // (undocumented)
     static initialized: boolean;
-    // (undocumented)
     static instance: EppoJSClient;
+    // @internal (undocumented)
+    offlineInit(config: IClientConfigSync): void;
 }
 
 // @public
@@ -116,7 +119,7 @@ export { Flag }
 export function getConfigUrl(apiKey: string, baseUrl?: string): URL;
 
 // @public
-export function getInstance(): EppoClient;
+export function getInstance(): EppoJSClient;
 
 // @public
 export function getPrecomputedInstance(): EppoPrecomputedClient;
@@ -169,7 +172,7 @@ export interface IClientConfigSync {
 }
 
 // @public
-export function init(config: IClientConfig): Promise<EppoClient>;
+export function init(config: IClientConfig): Promise<EppoJSClient>;
 
 // @public
 export interface IPrecomputedClientConfig extends IBaseRequestConfig {
