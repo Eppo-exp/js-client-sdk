@@ -140,6 +140,7 @@ export { IBanditLogger }
 //
 // @public
 export interface IClientConfig extends IBaseRequestConfig {
+    enableOverrides?: boolean;
     eventIngestionConfig?: {
         deliveryIntervalMs?: number;
         retryIntervalMs?: number;
@@ -150,6 +151,7 @@ export interface IClientConfig extends IBaseRequestConfig {
     };
     forceReinitialize?: boolean;
     maxCacheAgeSeconds?: number;
+    overridesStorageKey?: string;
     persistentStore?: IAsyncStore<Flag>;
     throwOnFailedInitialization?: boolean;
     // Warning: (ae-forgotten-export) The symbol "ServingStoreUpdateStrategy" needs to be exported by the entry point index.d.ts
@@ -164,9 +166,13 @@ export interface IClientConfigSync {
     // (undocumented)
     banditLogger?: IBanditLogger;
     // (undocumented)
+    enableOverrides?: boolean;
+    // (undocumented)
     flagsConfiguration: Record<string, Flag | ObfuscatedFlag>;
     // (undocumented)
     isObfuscated?: boolean;
+    // (undocumented)
+    overridesStorageKey?: string;
     // (undocumented)
     throwOnFailedInitialization?: boolean;
 }
@@ -176,6 +182,8 @@ export function init(config: IClientConfig): Promise<EppoJSClient>;
 
 // @public
 export interface IPrecomputedClientConfig extends IBaseRequestConfig {
+    enableOverrides?: boolean;
+    overridesStorageKey?: string;
     // Warning: (ae-forgotten-export) The symbol "IPrecompute" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
@@ -188,6 +196,10 @@ export interface IPrecomputedClientConfigSync {
     assignmentLogger?: IAssignmentLogger;
     // (undocumented)
     banditLogger?: IBanditLogger;
+    // (undocumented)
+    enableOverrides?: boolean;
+    // (undocumented)
+    overridesStorageKey?: string;
     // (undocumented)
     precomputedConfiguration: string;
     // (undocumented)
