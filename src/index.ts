@@ -108,8 +108,9 @@ export class EppoJSClient extends EppoClient {
   // Ensure that the client is instantiated during class loading.
   // Use an empty memory-only configuration store until the `init` method is called,
   // to avoid serving stale data to the user.
+
   /**
-   * @deprecated. use `getInstance()` instead.
+   * @deprecated use `getInstance()` instead.
    */
   public static instance = new EppoJSClient({
     flagConfigurationStore,

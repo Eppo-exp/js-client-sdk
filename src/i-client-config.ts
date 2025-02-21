@@ -302,7 +302,6 @@ export type OverridesConfig = {
  * const eventOptions: IEventOptions = { ... };
  *
  * const eppoClient = init({...apiOptions, ...loggerOptions, ...eventOptions});
- *
  * @public
  */
 export type IClientConfig = IApiOptions &

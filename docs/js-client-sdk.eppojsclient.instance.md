@@ -4,7 +4,10 @@
 
 ## EppoJSClient.instance property
 
-@<!-- -->deprecated. use `getInstance()` instead.
+> Warning: This API is now obsolete.
+> 
+> use `getInstance()` instead.
+> 
 
 **Signature:**
 
