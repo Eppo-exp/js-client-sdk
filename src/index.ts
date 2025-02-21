@@ -527,8 +527,8 @@ export class EppoJSClient extends EppoClient {
         initializationError = initFromFetchError
           ? initFromFetchError
           : initFromConfigStoreError
-          ? initFromConfigStoreError
-          : new Error('Eppo SDK: No configuration source produced a valid configuration');
+            ? initFromConfigStoreError
+            : new Error('Eppo SDK: No configuration source produced a valid configuration');
       }
       applicationLogger.debug('Initialization source', initializationSource);
     } catch (error: unknown) {
