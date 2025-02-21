@@ -116,9 +116,6 @@ export class EppoJSClient extends EppoClient {
     isObfuscated: true,
   });
 
-  /**
-   * @deprecated
-   */
   public static initialized = false;
 
   private initialized = false;
@@ -695,7 +692,6 @@ export async function init(config: IClientConfig & ICompatibilityOptions): Promi
 /**
  * Used to access a singleton SDK client instance.
  * Use the method after calling init() to initialize the client.
- * @deprecated
  * @returns a singleton client instance
  * @public
  */
