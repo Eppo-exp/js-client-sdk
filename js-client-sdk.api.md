@@ -86,7 +86,7 @@ export class EppoJSClient extends EppoClient {
     getStringAssignmentDetails(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: string): IAssignmentDetails<string>;
     // @internal (undocumented)
     init(config: Omit<IClientConfig, 'forceReinitialize'>): Promise<EppoJSClient>;
-    // (undocumented)
+    // @deprecated (undocumented)
     static initialized: boolean;
     // @deprecated (undocumented)
     static instance: EppoJSClient;

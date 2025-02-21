@@ -117,6 +117,9 @@ export class EppoJSClient extends EppoClient {
     isObfuscated: true,
   });
 
+  /**
+   * @deprecated use `instance.isInitialized()` instead.
+   */
   public static initialized = false;
 
   private initialized = false;

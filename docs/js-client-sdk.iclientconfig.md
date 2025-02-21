@@ -6,13 +6,13 @@
 
 Configuration for regular client initialization Create your initialization options object as one large object:
 
-<code> const options { apiKey = 'MY SDK KEY', assignmentLogger, maxCacheAgeSeconds = 30, } </code>
+const options { apiKey = 'MY SDK KEY', assignmentLogger, maxCacheAgeSeconds = 30, }
 
 OR, build separate objects for your config and destructure them at call to `init`<!-- -->.
 
-<code> const apiOptions: IApiOptions = { apiKey = 'MY SDK KEY'<!-- -->}<!-- -->; const loggerOptions: ILoggerOptions = {<!-- -->assignmentLogger, banditLogger<!-- -->}<!-- -->; const eventOptions: IEventOptions = { ... }<!-- -->;
+const apiOptions: IApiOptions = { apiKey = 'MY SDK KEY'<!-- -->}<!-- -->; const loggerOptions: ILoggerOptions = {<!-- -->assignmentLogger, banditLogger<!-- -->}<!-- -->; const eventOptions: IEventOptions = { ... }<!-- -->;
 
-const eppoClient = init(<!-- -->{<!-- -->...apiOptions, ...loggerOptions, ...eventOptions<!-- -->}<!-- -->); </code>
+const eppoClient = init(<!-- -->{<!-- -->...apiOptions, ...loggerOptions, ...eventOptions<!-- -->}<!-- -->);
 
 **Signature:**
 
