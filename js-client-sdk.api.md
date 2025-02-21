@@ -142,9 +142,10 @@ export { IBanditLogger }
 // Warning: (ae-forgotten-export) The symbol "IEventOptions" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "IStorageOptions" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "IPollingOptions" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "OverridesConfig" needs to be exported by the entry point index.d.ts
 //
 // @public
-export type IClientConfig = IApiOptions & ILoggers & IEventOptions & IStorageOptions & IPollingOptions;
+export type IClientConfig = IApiOptions & ILoggers & IEventOptions & IStorageOptions & IPollingOptions & OverridesConfig;
 
 // @public
 export interface IClientConfigSync {
@@ -153,9 +154,13 @@ export interface IClientConfigSync {
     // (undocumented)
     banditLogger?: IBanditLogger;
     // (undocumented)
+    enableOverrides?: boolean;
+    // (undocumented)
     flagsConfiguration: Record<string, Flag | ObfuscatedFlag>;
     // (undocumented)
     isObfuscated?: boolean;
+    // (undocumented)
+    overridesStorageKey?: string;
     // (undocumented)
     throwOnFailedInitialization?: boolean;
 }
@@ -169,6 +174,8 @@ export function init(config: IClientConfig & ICompatibilityOptions): Promise<Epp
 //
 // @public
 export interface IPrecomputedClientConfig extends IBaseRequestConfig {
+    enableOverrides?: boolean;
+    overridesStorageKey?: string;
     // Warning: (ae-forgotten-export) The symbol "IPrecompute" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
@@ -181,6 +188,10 @@ export interface IPrecomputedClientConfigSync {
     assignmentLogger?: IAssignmentLogger;
     // (undocumented)
     banditLogger?: IBanditLogger;
+    // (undocumented)
+    enableOverrides?: boolean;
+    // (undocumented)
+    overridesStorageKey?: string;
     // (undocumented)
     precomputedConfiguration: string;
     // (undocumented)

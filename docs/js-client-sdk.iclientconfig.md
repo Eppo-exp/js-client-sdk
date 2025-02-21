@@ -9,5 +9,5 @@ Configuration for regular client initialization
 **Signature:**
 
 ```typescript
-export declare type IClientConfig = IApiOptions & ILoggers & IEventOptions & IStorageOptions & IPollingOptions;
+export declare type IClientConfig = IApiOptions & ILoggers & IEventOptions & IStorageOptions & IPollingOptions & OverridesConfig;
 ```

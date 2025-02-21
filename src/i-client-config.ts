@@ -102,6 +102,17 @@ interface IPrecompute {
  */
 export interface IPrecomputedClientConfig extends IBaseRequestConfig {
   precompute: IPrecompute;
+
+  /**
+   * Enable the Overrides Store for local flag overrides.
+   * (default: false)
+   */
+  enableOverrides?: boolean;
+
+  /**
+   * The key to use for the overrides store.
+   */
+  overridesStorageKey?: string;
 }
 
 /**
@@ -249,6 +260,19 @@ export type ICompatibilityOptions = {
   forceReinitialize?: boolean;
 };
 
+export type OverridesConfig = {
+  /**
+   * Enable the Overrides Store for local flag overrides.
+   * (default: false)
+   */
+  enableOverrides?: boolean;
+
+  /**
+   * The key to use for the overrides store.
+   */
+  overridesStorageKey?: string;
+};
+
 /**
  * Configuration for regular client initialization
  * @public
@@ -257,4 +281,5 @@ export type IClientConfig = IApiOptions &
   ILoggers &
   IEventOptions &
   IStorageOptions &
-  IPollingOptions;
+  IPollingOptions &
+  OverridesConfig;
