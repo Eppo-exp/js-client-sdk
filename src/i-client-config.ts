@@ -177,6 +177,9 @@ export type IApiOptions = {
   updateOnFetch?: ServingStoreUpdateStrategy;
 };
 
+/**
+ * Wrapper for configuration settings for the event dispatcher
+ */
 export type IEventOptions = {
   /** Configuration settings for the event dispatcher */
   eventIngestionConfig?: {
@@ -199,6 +202,9 @@ export type IEventOptions = {
   };
 };
 
+/**
+ * Custom storage instances.
+ */
 export type IStorageOptions = {
   /**
    * Custom implementation of the flag configuration store for advanced use-cases.
@@ -213,6 +219,9 @@ export type IStorageOptions = {
   persistentStore?: IAsyncStore<Flag>;
 };
 
+/**
+ * Configure periodic loading of the Eppo configration from the API server.
+ */
 export type IPollingOptions = {
   /**
    * Poll for new configurations even if the initial configuration request failed. (default: false)
@@ -237,6 +246,9 @@ export type IPollingOptions = {
   numPollRequestRetries?: number;
 };
 
+/**
+ * Loggers used by the Eppo Client when assignment are made (and bandit actions are selected).
+ */
 export type ILoggers = {
   /**
    * Pass a logging implementation to send variation assignments to your data warehouse.
@@ -275,6 +287,22 @@ export type OverridesConfig = {
 
 /**
  * Configuration for regular client initialization
+ * Create your initialization options object as one large object:
+ *
+ * const options {
+ *   apiKey = 'MY SDK KEY',
+ *   assignmentLogger,
+ *   maxCacheAgeSeconds = 30,
+ * }
+ *
+ * OR, build separate objects for your config and destructure them at call to `init`.
+ *
+ * const apiOptions: IApiOptions = { apiKey = 'MY SDK KEY'};
+ * const loggerOptions: ILoggerOptions = {assignmentLogger, banditLogger};
+ * const eventOptions: IEventOptions = { ... };
+ *
+ * const eppoClient = init({...apiOptions, ...loggerOptions, ...eventOptions});
+ *
  * @public
  */
 export type IClientConfig = IApiOptions &
