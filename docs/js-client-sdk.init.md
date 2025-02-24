@@ -9,7 +9,7 @@ Initializes the Eppo client with configuration parameters. This method should be
 **Signature:**
 
 ```typescript
-export declare function init(config: IClientConfig): Promise<EppoJSClient>;
+export declare function init(config: IClientConfig & ICompatibilityOptions): Promise<EppoJSClient>;
 ```
 
 ## Parameters
@@ -37,7 +37,7 @@ config
 
 </td><td>
 
-[IClientConfig](./js-client-sdk.iclientconfig.md)
+[IClientConfig](./js-client-sdk.iclientconfig.md) &amp; ICompatibilityOptions
 
 
 </td><td>

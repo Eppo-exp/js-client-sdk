@@ -4,6 +4,11 @@
 
 ## EppoJSClient.initialized property
 
+> Warning: This API is now obsolete.
+> 
+> use `instance.isInitialized()` instead.
+> 
+
 **Signature:**
 
 ```typescript

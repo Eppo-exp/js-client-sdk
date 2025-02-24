@@ -22,6 +22,8 @@ import {
   Subject,
   IBanditLogger,
   IObfuscatedPrecomputedConfigurationResponse,
+  EppoClientParameters,
+  buildStorageKeySuffix,
 } from '@eppo/js-client-sdk-common';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
@@ -44,7 +46,7 @@ import {
 } from './configuration-factory';
 import BrowserNetworkStatusListener from './events/browser-network-status-listener';
 import LocalStorageBackedNamedEventQueue from './events/local-storage-backed-named-event-queue';
-import { IClientConfig, IPrecomputedClientConfig } from './i-client-config';
+import { IClientConfig, ICompatibilityOptions, IPrecomputedClientConfig } from './i-client-config';
 import { sdkName, sdkVersion } from './sdk-data';
 
 /**
@@ -106,17 +108,63 @@ export class EppoJSClient extends EppoClient {
   // Ensure that the client is instantiated during class loading.
   // Use an empty memory-only configuration store until the `init` method is called,
   // to avoid serving stale data to the user.
+
   /**
-   * @deprecated. use `getInstance()` instead.
+   * @deprecated use `getInstance()` instead.
    */
   public static instance = new EppoJSClient({
     flagConfigurationStore,
     isObfuscated: true,
   });
 
+  /**
+   * @deprecated use `instance.isInitialized()` instead.
+   */
   public static initialized = false;
 
   private initialized = false;
+
+  public static buildAndInit(config: IClientConfig): EppoJSClient {
+    const flagConfigurationStore =
+      config.flagConfigurationStore ??
+      configurationStorageFactory({
+        forceMemoryOnly: true,
+      });
+    const client = new EppoJSClient({ flagConfigurationStore });
+
+    // init will resolve the promise that client.waitForConfiguration returns.
+    client.init(config);
+    return client;
+  }
+
+  /**
+   * Resolved when the client is initialized
+   */
+  private readonly initPromise: Promise<void>;
+
+  /**
+   * Resolves the `initPromise` when initialization is complete
+   *
+   * Initialization happens outside the constructor, so we can't assign `initPromise` to the result
+   * of initialization. Instead, we call the resolver when `init` is complete.
+   */
+  private initPromiseResolver: () => void = () => null;
+
+  private constructor(options: EppoClientParameters) {
+    super(options);
+
+    // Create a promise that will be resolved when initialization is complete.
+    this.initPromise = new Promise((resolve) => {
+      this.initPromiseResolver = resolve;
+    });
+  }
+
+  /**
+   * Resolves when the EppoClient has completed its initialization.
+   */
+  public waitForConfiguration(): Promise<void> {
+    return this.initPromise;
+  }
 
   public getStringAssignment(
     flagKey: string,
@@ -478,8 +526,8 @@ export class EppoJSClient extends EppoClient {
         initializationError = initFromFetchError
           ? initFromFetchError
           : initFromConfigStoreError
-          ? initFromConfigStoreError
-          : new Error('Eppo SDK: No configuration source produced a valid configuration');
+            ? initFromConfigStoreError
+            : new Error('Eppo SDK: No configuration source produced a valid configuration');
       }
       applicationLogger.debug('Initialization source', initializationSource);
     } catch (error: unknown) {
@@ -499,6 +547,7 @@ export class EppoJSClient extends EppoClient {
     }
 
     this.initialized = true;
+    this.initPromiseResolver();
     return this;
   }
 
@@ -576,17 +625,6 @@ export class EppoJSClient extends EppoClient {
 }
 
 /**
- * Builds a storage key suffix from an API key.
- * @param apiKey - The API key to build the suffix from
- * @returns A string suffix for storage keys
- * @public
- */
-export function buildStorageKeySuffix(apiKey: string): string {
-  // Note that we use the first 8 characters of the API key to create per-API key persistent storages and caches
-  return apiKey.replace(/\W/g, '').substring(0, 8);
-}
-
-/**
  * Initializes the Eppo client with configuration parameters.
  *
  * The purpose is for use-cases where the configuration is available from an external process
@@ -619,7 +657,7 @@ let initializationPromise: Promise<EppoJSClient> | null = null;
  * @param config - client configuration
  * @public
  */
-export async function init(config: IClientConfig): Promise<EppoJSClient> {
+export async function init(config: IClientConfig & ICompatibilityOptions): Promise<EppoJSClient> {
   validation.validateNotBlank(config.apiKey, 'API key required');
   const instance = getInstance();
 

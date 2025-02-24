@@ -22,6 +22,7 @@ import { IAssignmentLogger } from '@eppo/js-client-sdk-common';
 import { IAsyncStore } from '@eppo/js-client-sdk-common';
 import { IBanditEvent } from '@eppo/js-client-sdk-common';
 import { IBanditLogger } from '@eppo/js-client-sdk-common';
+import { IConfigurationStore } from '@eppo/js-client-sdk-common';
 import { IContainerExperiment } from '@eppo/js-client-sdk-common';
 import { ObfuscatedFlag } from '@eppo/js-client-sdk-common';
 
@@ -32,9 +33,6 @@ export { AttributeType }
 export { BanditActions }
 
 export { BanditSubjectAttributes }
-
-// @public
-export function buildStorageKeySuffix(apiKey: string): string;
 
 // Warning: (ae-forgotten-export) The symbol "IStringStorageEngine" needs to be exported by the entry point index.d.ts
 //
@@ -56,6 +54,8 @@ export { ContextAttributes }
 
 // @public
 export class EppoJSClient extends EppoClient {
+    // (undocumented)
+    static buildAndInit(config: IClientConfig): EppoJSClient;
     // (undocumented)
     getBanditAction(flagKey: string, subjectKey: string, subjectAttributes: BanditSubjectAttributes, actions: BanditActions, defaultValue: string): Omit<IAssignmentDetails<string>, 'evaluationDetails'>;
     // (undocumented)
@@ -86,11 +86,13 @@ export class EppoJSClient extends EppoClient {
     getStringAssignmentDetails(flagKey: string, subjectKey: string, subjectAttributes: Record<string, AttributeType>, defaultValue: string): IAssignmentDetails<string>;
     // @internal (undocumented)
     init(config: Omit<IClientConfig, 'forceReinitialize'>): Promise<EppoJSClient>;
-    // (undocumented)
+    // @deprecated (undocumented)
     static initialized: boolean;
+    // @deprecated (undocumented)
     static instance: EppoJSClient;
     // @internal (undocumented)
     offlineInit(config: IClientConfigSync): void;
+    waitForConfiguration(): Promise<void>;
 }
 
 // @public
@@ -136,28 +138,15 @@ export { IBanditEvent }
 
 export { IBanditLogger }
 
-// Warning: (ae-forgotten-export) The symbol "IBaseRequestConfig" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "IApiOptions" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ILoggers" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "IEventOptions" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "IStorageOptions" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "IPollingOptions" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "OverridesConfig" needs to be exported by the entry point index.d.ts
 //
 // @public
-export interface IClientConfig extends IBaseRequestConfig {
-    enableOverrides?: boolean;
-    eventIngestionConfig?: {
-        deliveryIntervalMs?: number;
-        retryIntervalMs?: number;
-        maxRetryDelayMs?: number;
-        maxRetries?: number;
-        batchSize?: number;
-        maxQueueSize?: number;
-    };
-    forceReinitialize?: boolean;
-    maxCacheAgeSeconds?: number;
-    overridesStorageKey?: string;
-    persistentStore?: IAsyncStore<Flag>;
-    throwOnFailedInitialization?: boolean;
-    // Warning: (ae-forgotten-export) The symbol "ServingStoreUpdateStrategy" needs to be exported by the entry point index.d.ts
-    updateOnFetch?: ServingStoreUpdateStrategy;
-    useExpiredCache?: boolean;
-}
+export type IClientConfig = IApiOptions & ILoggers & IEventOptions & IStorageOptions & IPollingOptions & OverridesConfig;
 
 // @public
 export interface IClientConfigSync {
@@ -177,9 +166,13 @@ export interface IClientConfigSync {
     throwOnFailedInitialization?: boolean;
 }
 
+// Warning: (ae-forgotten-export) The symbol "ICompatibilityOptions" needs to be exported by the entry point index.d.ts
+//
 // @public
-export function init(config: IClientConfig): Promise<EppoJSClient>;
+export function init(config: IClientConfig & ICompatibilityOptions): Promise<EppoJSClient>;
 
+// Warning: (ae-forgotten-export) The symbol "IBaseRequestConfig" needs to be exported by the entry point index.d.ts
+//
 // @public
 export interface IPrecomputedClientConfig extends IBaseRequestConfig {
     enableOverrides?: boolean;

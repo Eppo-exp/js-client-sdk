@@ -72,8 +72,6 @@ boolean
 
 </td><td>
 
-@<!-- -->deprecated. use `getInstance()` instead.
-
 
 </td></tr>
 </tbody></table>
@@ -97,6 +95,20 @@ Description
 
 </th></tr></thead>
 <tbody><tr><td>
+
+[buildAndInit(config)](./js-client-sdk.eppojsclient.buildandinit.md)
+
+
+</td><td>
+
+`static`
+
+
+</td><td>
+
+
+</td></tr>
+<tr><td>
 
 [getBanditAction(flagKey, subjectKey, subjectAttributes, actions, defaultValue)](./js-client-sdk.eppojsclient.getbanditaction.md)
 
@@ -261,6 +273,20 @@ Description
 
 
 </td><td>
+
+
+</td></tr>
+<tr><td>
+
+[waitForConfiguration()](./js-client-sdk.eppojsclient.waitforconfiguration.md)
+
+
+</td><td>
+
+
+</td><td>
+
+Resolves when the EppoClient has completed its initialization.
 
 
 </td></tr>

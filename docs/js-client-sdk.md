@@ -71,17 +71,6 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[buildStorageKeySuffix(apiKey)](./js-client-sdk.buildstoragekeysuffix.md)
-
-
-</td><td>
-
-Builds a storage key suffix from an API key.
-
-
-</td></tr>
-<tr><td>
-
 [getConfigUrl(apiKey, baseUrl)](./js-client-sdk.getconfigurl.md)
 
 
@@ -182,17 +171,6 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[IClientConfig](./js-client-sdk.iclientconfig.md)
-
-
-</td><td>
-
-Configuration for regular client initialization
-
-
-</td></tr>
-<tr><td>
-
 [IClientConfigSync](./js-client-sdk.iclientconfigsync.md)
 
 
@@ -223,6 +201,40 @@ Configuration for Eppo precomputed client initialization
 Configuration parameters for initializing the Eppo precomputed client.
 
 This interface is used for cases where precomputed assignments are available from an external process that can bootstrap the SDK client.
+
+
+</td></tr>
+</tbody></table>
+
+## Type Aliases
+
+<table><thead><tr><th>
+
+Type Alias
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[IClientConfig](./js-client-sdk.iclientconfig.md)
+
+
+</td><td>
+
+Configuration for regular client initialization Create your initialization options object as one large object:
+
+const options { apiKey = 'MY SDK KEY', assignmentLogger, maxCacheAgeSeconds = 30, }
+
+OR, build separate objects for your config and destructure them at call to `init`<!-- -->.
+
+const apiOptions: IApiOptions = { apiKey = 'MY SDK KEY'<!-- -->}<!-- -->; const loggerOptions: ILoggerOptions = {<!-- -->assignmentLogger, banditLogger<!-- -->}<!-- -->; const eventOptions: IEventOptions = { ... }<!-- -->;
+
+const eppoClient = init(<!-- -->{<!-- -->...apiOptions, ...loggerOptions, ...eventOptions<!-- -->}<!-- -->);
 
 
 </td></tr>
