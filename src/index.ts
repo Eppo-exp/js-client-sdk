@@ -148,14 +148,14 @@ export class EppoJSClient extends EppoClient {
    * Initialization happens outside the constructor, so we can't assign `initPromise` to the result
    * of initialization. Instead, we call the resolver when `init` is complete.
    */
-  private initializedPromiseResolver: () => void = () => null;
+  private initPromiseResolver: () => void = () => null;
 
   private constructor(options: EppoClientParameters) {
     super(options);
 
     // Create a promise that will be resolved when initialization is complete.
     this.initPromise = new Promise((resolve) => {
-      this.initializedPromiseResolver = resolve;
+      this.initPromiseResolver = resolve;
     });
   }
 
@@ -547,7 +547,7 @@ export class EppoJSClient extends EppoClient {
     }
 
     this.initialized = true;
-    this.initializedPromiseResolver();
+    this.initPromiseResolver();
     return this;
   }
 
