@@ -22,6 +22,7 @@ import {
   Subject,
   IBanditLogger,
   IObfuscatedPrecomputedConfigurationResponse,
+  FormatEnum,
 } from '@eppo/js-client-sdk-common';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
@@ -304,8 +305,6 @@ export class EppoJSClient extends EppoClient {
       if (config.banditLogger) {
         this.setBanditLogger(config.banditLogger);
       }
-      // Default to obfuscated mode when requesting configuration from the server.
-      this.setIsObfuscated(true);
 
       const storageKeySuffix = buildStorageKeySuffix(apiKey);
 
@@ -325,6 +324,7 @@ export class EppoJSClient extends EppoClient {
           storageKeySuffix,
         },
       );
+      configurationStore.setFormat(FormatEnum.CLIENT);
       this.setFlagConfigurationStore(configurationStore);
 
       if (enableOverrides) {
@@ -478,8 +478,8 @@ export class EppoJSClient extends EppoClient {
         initializationError = initFromFetchError
           ? initFromFetchError
           : initFromConfigStoreError
-          ? initFromConfigStoreError
-          : new Error('Eppo SDK: No configuration source produced a valid configuration');
+            ? initFromConfigStoreError
+            : new Error('Eppo SDK: No configuration source produced a valid configuration');
       }
       applicationLogger.debug('Initialization source', initializationSource);
     } catch (error: unknown) {
@@ -540,7 +540,7 @@ export class EppoJSClient extends EppoClient {
       // Allow the caller to override the default obfuscated mode, which is false
       // since the purpose of this method is to bootstrap the SDK from an external source,
       // which is likely a server that has not-obfuscated flag values.
-      this.setIsObfuscated(isObfuscated);
+      memoryOnlyConfigurationStore.setFormat(isObfuscated ? FormatEnum.CLIENT : FormatEnum.SERVER);
 
       if (config.assignmentLogger) {
         this.setAssignmentLogger(config.assignmentLogger);

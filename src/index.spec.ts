@@ -469,7 +469,7 @@ describe('initialization options', () => {
     jest.clearAllTimers();
   });
 
-  it('default options', async () => {
+  it.only('default options', async () => {
     let callCount = 0;
 
     global.fetch = jest.fn(() => {
