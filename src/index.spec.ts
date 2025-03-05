@@ -10,6 +10,7 @@ import {
   constants,
   EppoClient,
   Flag,
+  FormatEnum,
   HybridConfigurationStore,
   IAsyncStore,
   IPrecomputedConfigurationResponse,
@@ -184,7 +185,7 @@ describe('EppoJSClient E2E test', () => {
 
   beforeAll(async () => {
     global.fetch = jest.fn(() => {
-      const ufc = readMockUfcResponse(MOCK_UFC_RESPONSE_FILE);
+      const ufc = readMockUfcResponse(OBFUSCATED_MOCK_UFC_RESPONSE_FILE);
 
       return Promise.resolve({
         ok: true,
@@ -416,6 +417,7 @@ describe('initialization options', () => {
 
   const maxRetryDelay = DEFAULT_POLL_INTERVAL_MS * POLL_JITTER_PCT;
   const mockConfigResponse = {
+    format: FormatEnum.CLIENT,
     flags: {
       [obfuscatedFlagKey]: mockObfuscatedUfcFlagConfig,
     },
@@ -1015,6 +1017,7 @@ describe('initialization options', () => {
               status: 200,
               json: () =>
                 Promise.resolve({
+                  format: 'CLIENT',
                   flags: {
                     [md5Hash(flagKey)]: mockObfuscatedUfcFlagConfig,
                   },
