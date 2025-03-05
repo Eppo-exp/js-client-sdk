@@ -99,6 +99,13 @@ const flagConfigurationStore = configurationStorageFactory({
 const memoryOnlyPrecomputedFlagsStore = precomputedFlagsStorageFactory();
 const memoryOnlyPrecomputedBanditsStore = precomputedBanditStoreFactory();
 
+export const NO_OP_EVENT_DISPATCHER: EventDispatcher = {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  attachContext: () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  dispatch: () => {},
+};
+
 /**
  * Client for assigning experiment variations.
  * @public
@@ -983,11 +990,15 @@ function newEventDispatcher(
   const {
     batchSize = 1_000,
     deliveryIntervalMs = 10_000,
-    retryIntervalMs = 5_000,
-    maxRetryDelayMs = 30_000,
-    maxRetries = 3,
+    disabled = false,
     maxQueueSize = 10_000,
+    maxRetries = 3,
+    maxRetryDelayMs = 30_000,
+    retryIntervalMs = 5_000,
   } = config;
+  if (disabled) {
+    return NO_OP_EVENT_DISPATCHER;
+  }
   const eventQueue = hasWindowLocalStorage()
     ? new LocalStorageBackedNamedEventQueue<Event>('events')
     : new BoundedEventQueue<Event>('events', [], maxQueueSize);

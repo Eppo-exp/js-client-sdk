@@ -40,6 +40,7 @@ import {
   getPrecomputedInstance,
   IAssignmentLogger,
   init,
+  NO_OP_EVENT_DISPATCHER,
   offlineInit,
   offlinePrecomputedInit,
   precomputedInit,
@@ -1755,5 +1756,33 @@ describe('enableOverrides', () => {
     // Should use override from custom storage key
     const assignment = client.getStringAssignment('test-flag', 'subject-1', {}, 'default-value');
     expect(assignment).toBe('override-value');
+  });
+
+  describe('eventIngestionConfig', () => {
+    it('should not be used if eventIngestionConfig.disabled is true', async () => {
+      const client = await init({
+        apiKey,
+        baseUrl: `http://127.0.0.1`,
+        assignmentLogger: td.object<IAssignmentLogger>(),
+        forceReinitialize: true,
+        eventIngestionConfig: {
+          disabled: true,
+        },
+      });
+      expect(client['eventDispatcher']).toEqual(NO_OP_EVENT_DISPATCHER);
+    });
+
+    it('should be used if eventIngestionConfig.disabled is false', async () => {
+      const client = await init({
+        apiKey,
+        baseUrl: `http://127.0.0.1`,
+        assignmentLogger: td.object<IAssignmentLogger>(),
+        forceReinitialize: true,
+        eventIngestionConfig: {
+          disabled: false,
+        },
+      });
+      expect(client['eventDispatcher']).not.toEqual(NO_OP_EVENT_DISPATCHER);
+    });
   });
 });
