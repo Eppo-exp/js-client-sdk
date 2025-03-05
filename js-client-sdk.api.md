@@ -88,6 +88,7 @@ export class EppoJSClient extends EppoClient {
     init(config: Omit<IClientConfig, 'forceReinitialize'>): Promise<EppoJSClient>;
     // (undocumented)
     static initialized: boolean;
+    // @deprecated (undocumented)
     static instance: EppoJSClient;
     // @internal (undocumented)
     offlineInit(config: IClientConfigSync): void;

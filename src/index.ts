@@ -4,24 +4,25 @@ import {
   AttributeType,
   BanditActions,
   BanditSubjectAttributes,
+  BoundedEventQueue,
   EppoClient,
+  EppoPrecomputedClient,
+  Event,
   EventDispatcher,
   Flag,
   FlagConfigurationRequestParameters,
+  FormatEnum,
   IAssignmentDetails,
   IAssignmentLogger,
+  IBanditLogger,
+  IConfigurationWire,
   IContainerExperiment,
-  EppoPrecomputedClient,
-  PrecomputedFlagsRequestParameters,
+  IObfuscatedPrecomputedConfigurationResponse,
   newDefaultEventDispatcher,
   ObfuscatedFlag,
-  BoundedEventQueue,
-  validation,
-  Event,
-  IConfigurationWire,
+  PrecomputedFlagsRequestParameters,
   Subject,
-  IBanditLogger,
-  IObfuscatedPrecomputedConfigurationResponse,
+  validation,
 } from '@eppo/js-client-sdk-common';
 
 import { assignmentCacheFactory } from './cache/assignment-cache-factory';
@@ -35,12 +36,12 @@ import {
 import {
   chromeStorageIfAvailable,
   configurationStorageFactory,
-  precomputedFlagsStorageFactory,
   hasChromeStorage,
   hasWindowLocalStorage,
   localStorageIfAvailable,
-  precomputedBanditStoreFactory,
   overrideStorageFactory,
+  precomputedBanditStoreFactory,
+  precomputedFlagsStorageFactory,
 } from './configuration-factory';
 import BrowserNetworkStatusListener from './events/browser-network-status-listener';
 import LocalStorageBackedNamedEventQueue from './events/local-storage-backed-named-event-queue';
@@ -107,7 +108,7 @@ export class EppoJSClient extends EppoClient {
   // Use an empty memory-only configuration store until the `init` method is called,
   // to avoid serving stale data to the user.
   /**
-   * @deprecated. use `getInstance()` instead.
+   * @deprecated Use `getInstance()` instead.
    */
   public static instance = new EppoJSClient({
     flagConfigurationStore,
@@ -325,6 +326,14 @@ export class EppoJSClient extends EppoClient {
           storageKeySuffix,
         },
       );
+
+      // Client-side config should be obfuscated by default.
+      // This has the effect of casting any entries stored in the persistent store as obfuscated.
+      // We do this because we don't store any metadata in the persistent store and can make the assumption that entries
+      // in the persistent store are obfuscated since the reason behind obfuscation is to obfuscate any data stored on a
+      // user device.
+      this.setIsObfuscated(true); // Use deprecated method to silence warning logs.
+      configurationStore.setFormat(FormatEnum.CLIENT);
       this.setFlagConfigurationStore(configurationStore);
 
       if (enableOverrides) {
@@ -478,8 +487,8 @@ export class EppoJSClient extends EppoClient {
         initializationError = initFromFetchError
           ? initFromFetchError
           : initFromConfigStoreError
-          ? initFromConfigStoreError
-          : new Error('Eppo SDK: No configuration source produced a valid configuration');
+            ? initFromConfigStoreError
+            : new Error('Eppo SDK: No configuration source produced a valid configuration');
       }
       applicationLogger.debug('Initialization source', initializationSource);
     } catch (error: unknown) {
@@ -514,6 +523,7 @@ export class EppoJSClient extends EppoClient {
       const memoryOnlyConfigurationStore = configurationStorageFactory({
         forceMemoryOnly: true,
       });
+      memoryOnlyConfigurationStore.setFormat(isObfuscated ? FormatEnum.CLIENT : FormatEnum.SERVER);
       memoryOnlyConfigurationStore
         .setEntries(config.flagsConfiguration)
         .catch((err) =>
