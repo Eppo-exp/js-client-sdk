@@ -78,6 +78,7 @@ export {
   IAsyncStore,
   Flag,
   ObfuscatedFlag,
+  EppoAssignmentLogger,
 
   // Bandits
   IBanditLogger,

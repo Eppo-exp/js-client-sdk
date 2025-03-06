@@ -14,6 +14,7 @@ import { BanditSubjectAttributes } from '@eppo/js-client-sdk-common';
 import { ContextAttributes } from '@eppo/js-client-sdk-common';
 import { EppoClient } from '@eppo/js-client-sdk-common';
 import { EppoPrecomputedClient } from '@eppo/js-client-sdk-common';
+import { EventDispatcher } from '@eppo/js-client-sdk-common';
 import { Flag } from '@eppo/js-client-sdk-common';
 import { FlagKey } from '@eppo/js-client-sdk-common';
 import { IAssignmentDetails } from '@eppo/js-client-sdk-common';
@@ -143,12 +144,13 @@ export { IBanditLogger }
 export interface IClientConfig extends IBaseRequestConfig {
     enableOverrides?: boolean;
     eventIngestionConfig?: {
-        deliveryIntervalMs?: number;
-        retryIntervalMs?: number;
-        maxRetryDelayMs?: number;
-        maxRetries?: number;
         batchSize?: number;
+        deliveryIntervalMs?: number;
+        disabled?: boolean;
         maxQueueSize?: number;
+        maxRetries?: number;
+        maxRetryDelayMs?: number;
+        retryIntervalMs?: number;
     };
     forceReinitialize?: boolean;
     maxCacheAgeSeconds?: number;
@@ -206,6 +208,9 @@ export interface IPrecomputedClientConfigSync {
     // (undocumented)
     throwOnFailedInitialization?: boolean;
 }
+
+// @public (undocumented)
+export const NO_OP_EVENT_DISPATCHER: EventDispatcher;
 
 export { ObfuscatedFlag }
 
