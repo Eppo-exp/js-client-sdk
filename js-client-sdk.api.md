@@ -12,6 +12,7 @@ import { AttributeType } from '@eppo/js-client-sdk-common';
 import { BanditActions } from '@eppo/js-client-sdk-common';
 import { BanditSubjectAttributes } from '@eppo/js-client-sdk-common';
 import { ContextAttributes } from '@eppo/js-client-sdk-common';
+import { EppoAssignmentLogger } from '@eppo/js-client-sdk-common';
 import { EppoClient } from '@eppo/js-client-sdk-common';
 import { EppoPrecomputedClient } from '@eppo/js-client-sdk-common';
 import { EventDispatcher } from '@eppo/js-client-sdk-common';
@@ -54,6 +55,8 @@ export class ChromeStorageEngine implements IStringStorageEngine {
 }
 
 export { ContextAttributes }
+
+export { EppoAssignmentLogger }
 
 // @public
 export class EppoJSClient extends EppoClient {
