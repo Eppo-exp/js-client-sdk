@@ -10,11 +10,12 @@ Configuration settings for the event dispatcher
 
 ```typescript
 eventIngestionConfig?: {
-        deliveryIntervalMs?: number;
-        retryIntervalMs?: number;
-        maxRetryDelayMs?: number;
-        maxRetries?: number;
         batchSize?: number;
+        deliveryIntervalMs?: number;
+        disabled?: boolean;
         maxQueueSize?: number;
+        maxRetries?: number;
+        maxRetryDelayMs?: number;
+        retryIntervalMs?: number;
     };
 ```
