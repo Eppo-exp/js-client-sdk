@@ -6,7 +6,7 @@
 
 > Warning: This API is now obsolete.
 > 
-> use `getInstance()` instead.
+> Use `getInstance()` instead.
 > 
 
 **Signature:**

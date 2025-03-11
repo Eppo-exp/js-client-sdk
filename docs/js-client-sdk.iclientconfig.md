@@ -65,7 +65,7 @@ _(Optional)_ Enable the Overrides Store for local flag overrides. (default: fals
 
 </td><td>
 
-{ deliveryIntervalMs?: number; retryIntervalMs?: number; maxRetryDelayMs?: number; maxRetries?: number; batchSize?: number; maxQueueSize?: number; }
+{ batchSize?: number; deliveryIntervalMs?: number; disabled?: boolean; maxQueueSize?: number; maxRetries?: number; maxRetryDelayMs?: number; retryIntervalMs?: number; }
 
 
 </td><td>
