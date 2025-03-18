@@ -158,13 +158,13 @@ export interface IClientConfig extends IBaseRequestConfig {
   forceReinitialize?: boolean;
 
   /** Configuration settings for the event dispatcher */
-  eventIngestionConfig?: {
+  eventTracking?: {
     /** Maximum number of events to send per delivery request. Defaults to 1000 events. */
     batchSize?: number;
     /** Number of milliseconds to wait between each batch delivery. Defaults to 10 seconds. */
     deliveryIntervalMs?: number;
-    /** Whether to disable event ingestion. Defaults to false. */
-    disabled?: boolean;
+    /** Whether to enable event ingestion. Defaults to false. */
+    enabled?: boolean;
     /**
      * Maximum number of events to queue in memory before starting to drop events.
      * Note: This is only used if localStorage is not available.

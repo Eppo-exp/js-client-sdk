@@ -146,10 +146,10 @@ export { IBanditLogger }
 // @public
 export interface IClientConfig extends IBaseRequestConfig {
     enableOverrides?: boolean;
-    eventIngestionConfig?: {
+    eventTracking?: {
         batchSize?: number;
         deliveryIntervalMs?: number;
-        disabled?: boolean;
+        enabled?: boolean;
         maxQueueSize?: number;
         maxRetries?: number;
         maxRetryDelayMs?: number;
