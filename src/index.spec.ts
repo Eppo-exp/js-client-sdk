@@ -1451,7 +1451,8 @@ describe('EppoClient config', () => {
       forceReinitialize: true,
       apiKey: 'zCsQuoHJxVPp895.ZWg9MTIzNDU2LmUudGVzdGluZy5lcHBvLmNsb3Vk',
       assignmentLogger: td.object<IAssignmentLogger>(),
-      eventIngestionConfig: {
+      eventTracking: {
+        enabled: true,
         deliveryIntervalMs: 1,
         retryIntervalMs: 2,
         maxRetryDelayMs: 3,
@@ -1758,28 +1759,25 @@ describe('enableOverrides', () => {
     expect(assignment).toBe('override-value');
   });
 
-  describe('eventIngestionConfig', () => {
-    it('should not be used if eventIngestionConfig.disabled is true', async () => {
+  describe('eventTracking', () => {
+    it('should be disabled by default', async () => {
       const client = await init({
         apiKey,
         baseUrl: `http://127.0.0.1`,
         assignmentLogger: td.object<IAssignmentLogger>(),
         forceReinitialize: true,
-        eventIngestionConfig: {
-          disabled: true,
-        },
       });
       expect(client['eventDispatcher']).toEqual(NO_OP_EVENT_DISPATCHER);
     });
 
-    it('should be used if eventIngestionConfig.disabled is false', async () => {
+    it('should be used if eventTracking.enabled is true', async () => {
       const client = await init({
         apiKey,
         baseUrl: `http://127.0.0.1`,
         assignmentLogger: td.object<IAssignmentLogger>(),
         forceReinitialize: true,
-        eventIngestionConfig: {
-          disabled: false,
+        eventTracking: {
+          enabled: true,
         },
       });
       expect(client['eventDispatcher']).not.toEqual(NO_OP_EVENT_DISPATCHER);

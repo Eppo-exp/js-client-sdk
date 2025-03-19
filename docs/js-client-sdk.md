@@ -227,3 +227,27 @@ This interface is used for cases where precomputed assignments are available fro
 
 </td></tr>
 </tbody></table>
+
+## Variables
+
+<table><thead><tr><th>
+
+Variable
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[NO\_OP\_EVENT\_DISPATCHER](./js-client-sdk.no_op_event_dispatcher.md)
+
+
+</td><td>
+
+
+</td></tr>
+</tbody></table>

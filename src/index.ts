@@ -305,7 +305,7 @@ export class EppoJSClient extends EppoClient {
       pollAfterSuccessfulInitialization = false,
       pollAfterFailedInitialization = false,
       skipInitialRequest = false,
-      eventIngestionConfig,
+      eventTracking,
       enableOverrides = false,
     } = config;
     try {
@@ -386,7 +386,7 @@ export class EppoJSClient extends EppoClient {
         skipInitialPoll: skipInitialRequest,
       };
       this.setConfigurationRequestParameters(requestConfiguration);
-      this.setEventDispatcher(newEventDispatcher(apiKey, eventIngestionConfig));
+      this.setEventDispatcher(newEventDispatcher(apiKey, eventTracking));
 
       // We have two at-bats for initialization: from the configuration store and from fetching
       // We can resolve the initialization promise as soon as either one succeeds
@@ -980,19 +980,19 @@ export function getPrecomputedInstance(): EppoPrecomputedClient {
 
 function newEventDispatcher(
   sdkKey: string,
-  config: IClientConfig['eventIngestionConfig'] = {},
+  config: IClientConfig['eventTracking'] = {},
 ): EventDispatcher {
   // initialize config with default values
   const {
     batchSize = 1_000,
     deliveryIntervalMs = 10_000,
-    disabled = false,
+    enabled = false,
     maxQueueSize = 10_000,
     maxRetries = 3,
     maxRetryDelayMs = 30_000,
     retryIntervalMs = 5_000,
   } = config;
-  if (disabled) {
+  if (!enabled) {
     return NO_OP_EVENT_DISPATCHER;
   }
   const eventQueue = hasWindowLocalStorage()

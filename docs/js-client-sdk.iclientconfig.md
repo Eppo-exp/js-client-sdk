@@ -57,7 +57,7 @@ _(Optional)_ Enable the Overrides Store for local flag overrides. (default: fals
 </td></tr>
 <tr><td>
 
-[eventIngestionConfig?](./js-client-sdk.iclientconfig.eventingestionconfig.md)
+[eventTracking?](./js-client-sdk.iclientconfig.eventtracking.md)
 
 
 </td><td>
@@ -65,7 +65,7 @@ _(Optional)_ Enable the Overrides Store for local flag overrides. (default: fals
 
 </td><td>
 
-{ deliveryIntervalMs?: number; retryIntervalMs?: number; maxRetryDelayMs?: number; maxRetries?: number; batchSize?: number; maxQueueSize?: number; }
+{ batchSize?: number; deliveryIntervalMs?: number; enabled?: boolean; maxQueueSize?: number; maxRetries?: number; maxRetryDelayMs?: number; retryIntervalMs?: number; }
 
 
 </td><td>
