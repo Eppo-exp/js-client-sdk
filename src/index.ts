@@ -59,6 +59,9 @@ export interface IClientConfigSync {
 
   banditLogger?: IBanditLogger;
 
+  /**
+   * @deprecated This field will be removed in the next version. The obfuscation state is inferred automatically.
+   */
   isObfuscated?: boolean;
 
   throwOnFailedInitialization?: boolean;
@@ -313,8 +316,6 @@ export class EppoJSClient extends EppoClient {
       if (config.banditLogger) {
         this.setBanditLogger(config.banditLogger);
       }
-      // Default to obfuscated mode when requesting configuration from the server.
-      this.setIsObfuscated(true);
 
       const storageKeySuffix = buildStorageKeySuffix(apiKey);
 
@@ -340,7 +341,6 @@ export class EppoJSClient extends EppoClient {
       // We do this because we don't store any metadata in the persistent store and can make the assumption that entries
       // in the persistent store are obfuscated since the reason behind obfuscation is to obfuscate any data stored on a
       // user device.
-      this.setIsObfuscated(true); // Use deprecated method to silence warning logs.
       configurationStore.setFormat(FormatEnum.CLIENT);
       this.setFlagConfigurationStore(configurationStore);
 
@@ -523,7 +523,7 @@ export class EppoJSClient extends EppoClient {
    * @internal
    */
   offlineInit(config: IClientConfigSync) {
-    const isObfuscated = config.isObfuscated ?? false;
+    const isObfuscated = config.isObfuscated ?? undefined;
     const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
     const enableOverrides = config.enableOverrides ?? false;
 
@@ -554,11 +554,6 @@ export class EppoJSClient extends EppoClient {
       } else {
         this.unsetOverrideStore();
       }
-
-      // Allow the caller to override the default obfuscated mode, which is false
-      // since the purpose of this method is to bootstrap the SDK from an external source,
-      // which is likely a server that has not-obfuscated flag values.
-      this.setIsObfuscated(isObfuscated);
 
       if (config.assignmentLogger) {
         this.setAssignmentLogger(config.assignmentLogger);
