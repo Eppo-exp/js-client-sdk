@@ -523,7 +523,7 @@ export class EppoJSClient extends EppoClient {
    * @internal
    */
   offlineInit(config: IClientConfigSync) {
-    const isObfuscated = config.isObfuscated ?? undefined;
+    const isObfuscated = config.isObfuscated ?? true;
     const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
     const enableOverrides = config.enableOverrides ?? false;
 
@@ -681,7 +681,7 @@ export function getInstance(): EppoJSClient {
  * @returns a URL string
  * @public
  */
-export function getConfigUrl(apiKey: string, baseUrl?: string): URL {
+export function getConfigUrl(apiKey: string, baseUrl?: string): string {
   const queryParams = { sdkName, sdkVersion, apiKey };
   return new ApiEndpoints({ baseUrl, queryParams }).ufcEndpoint();
 }

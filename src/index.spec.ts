@@ -387,12 +387,12 @@ describe('EppoJSClient E2E test', () => {
 describe('sync init', () => {
   it('initializes with flags in obfuscated mode', () => {
     const client = offlineInit({
-      isObfuscated: true,
       flagsConfiguration: {
         [obfuscatedFlagKey]: mockObfuscatedUfcFlagConfig,
       },
     });
 
+    expect(Object.keys(client.getFlagConfigurations())).toEqual([]);
     expect(client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
       'variant-1',
     );
@@ -1223,20 +1223,20 @@ describe('getConfigUrl function', () => {
 
   it('should return a URL using the default base URL when no base URL is provided', () => {
     const url = getConfigUrl(apiKey);
-    expect(url.toString()).toContain(defaultBaseUrl);
-    expect(url.toString()).not.toContain(customBaseUrl);
-    expect(url.toString()).toContain(`apiKey=${apiKey}`);
-    expect(url.toString()).toContain('sdkName=');
-    expect(url.toString()).toContain('sdkVersion=');
+    expect(url).toContain(defaultBaseUrl);
+    expect(url).not.toContain(customBaseUrl);
+    expect(url).toContain(`apiKey=${apiKey}`);
+    expect(url).toContain('sdkName=');
+    expect(url).toContain('sdkVersion=');
   });
 
   it('should return a URL using the provided base URL', () => {
     const url = getConfigUrl(apiKey, customBaseUrl);
-    expect(url.toString()).toContain(customBaseUrl);
-    expect(url.toString()).not.toContain(defaultBaseUrl);
-    expect(url.toString()).toContain(`apiKey=${apiKey}`);
-    expect(url.toString()).toContain('sdkName=');
-    expect(url.toString()).toContain('sdkVersion=');
+    expect(url).toContain(customBaseUrl);
+    expect(url).not.toContain(defaultBaseUrl);
+    expect(url).toContain(`apiKey=${apiKey}`);
+    expect(url).toContain('sdkName=');
+    expect(url).toContain('sdkVersion=');
   });
 });
 
