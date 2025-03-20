@@ -519,7 +519,7 @@ export class EppoJSClient extends EppoClient {
    * @internal
    */
   offlineInit(config: IClientConfigSync) {
-    const isObfuscated = config.isObfuscated ?? true;
+    const isObfuscated = config.isObfuscated ?? false;
     const throwOnFailedInitialization = config.throwOnFailedInitialization ?? true;
     const enableOverrides = config.enableOverrides ?? false;
 
@@ -528,8 +528,12 @@ export class EppoJSClient extends EppoClient {
         forceMemoryOnly: true,
       });
 
+      // Allow the caller to override the default obfuscated mode, which is false
+      // since the purpose of this method is to bootstrap the SDK from an external source,
+      // which is likely a server that has not-obfuscated flag values.
       // This is the equivalent of setIsObfuscated
       memoryOnlyConfigurationStore.setFormat(isObfuscated ? FormatEnum.CLIENT : FormatEnum.SERVER);
+
       memoryOnlyConfigurationStore
         .setEntries(config.flagsConfiguration)
         .catch((err) =>
