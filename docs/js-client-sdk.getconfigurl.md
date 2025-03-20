@@ -9,7 +9,7 @@ Used to build the URL for fetching the flag configuration.
 **Signature:**
 
 ```typescript
-export declare function getConfigUrl(apiKey: string, baseUrl?: string): URL;
+export declare function getConfigUrl(apiKey: string, baseUrl?: string): string;
 ```
 
 ## Parameters
@@ -63,7 +63,7 @@ _(Optional)_
 </tbody></table>
 **Returns:**
 
-URL
+string
 
 a URL string
 

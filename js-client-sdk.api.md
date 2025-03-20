@@ -121,7 +121,7 @@ export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
 export { Flag }
 
 // @public
-export function getConfigUrl(apiKey: string, baseUrl?: string): URL;
+export function getConfigUrl(apiKey: string, baseUrl?: string): string;
 
 // @public
 export function getInstance(): EppoJSClient;
