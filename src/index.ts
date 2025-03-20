@@ -59,9 +59,6 @@ export interface IClientConfigSync {
 
   banditLogger?: IBanditLogger;
 
-  /**
-   * @deprecated This field will be removed in the next version. The obfuscation state is inferred automatically.
-   */
   isObfuscated?: boolean;
 
   throwOnFailedInitialization?: boolean;
@@ -123,7 +120,6 @@ export class EppoJSClient extends EppoClient {
    */
   public static instance = new EppoJSClient({
     flagConfigurationStore,
-    isObfuscated: true,
   });
 
   public static initialized = false;
@@ -531,6 +527,8 @@ export class EppoJSClient extends EppoClient {
       const memoryOnlyConfigurationStore = configurationStorageFactory({
         forceMemoryOnly: true,
       });
+
+      // This is the equivalent of setIsObfuscated
       memoryOnlyConfigurationStore.setFormat(isObfuscated ? FormatEnum.CLIENT : FormatEnum.SERVER);
       memoryOnlyConfigurationStore
         .setEntries(config.flagsConfiguration)

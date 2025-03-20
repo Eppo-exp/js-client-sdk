@@ -387,12 +387,15 @@ describe('EppoJSClient E2E test', () => {
 describe('sync init', () => {
   it('initializes with flags in obfuscated mode', () => {
     const client = offlineInit({
+      isObfuscated: true,
       flagsConfiguration: {
         [obfuscatedFlagKey]: mockObfuscatedUfcFlagConfig,
       },
     });
 
-    expect(Object.keys(client.getFlagConfigurations())).toEqual([]);
+    expect(Object.keys(client.getFlagConfigurations())).toEqual([
+      '76c488348976aa431acb31f4d752dde8',
+    ]);
     expect(client.getStringAssignment(flagKey, 'subject-10', {}, 'default-value')).toEqual(
       'variant-1',
     );
