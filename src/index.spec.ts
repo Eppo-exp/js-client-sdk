@@ -3,6 +3,7 @@
  */
 
 import { createHash } from 'crypto';
+import * as url from 'node:url';
 
 import {
   applicationLogger,
@@ -639,6 +640,54 @@ describe('initialization options', () => {
     });
 
     expect(callCount).toBe(1);
+  });
+
+  describe('enhanced SDK token', () => {
+    let urlsRequested: string[] = [];
+    afterEach(() => {
+      urlsRequested = [];
+    });
+
+    beforeEach(() => {
+      global.fetch = jest.fn((url) => {
+        urlsRequested.push(url);
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(mockConfigResponse),
+        });
+      }) as jest.Mock;
+    });
+
+    it('uses the provided subdomain', async () => {
+      await init({
+        apiKey: 'zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA==', // subdomain=experiment
+        assignmentLogger: mockLogger,
+      });
+      expect(urlsRequested).toHaveLength(1);
+      expect(urlsRequested[0]).toContain('https://experiment.fscdn.eppo.cloud');
+    });
+
+    it('uses the provided customer baseUrl', async () => {
+      await init({
+        apiKey: 'zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA==',
+        baseUrl: 'custom-base-url.com',
+        assignmentLogger: mockLogger,
+      });
+
+      expect(urlsRequested).toHaveLength(1);
+      expect(urlsRequested[0]).toContain('custom-base-url.com/flag-config');
+    });
+
+    it('falls back to the default url', async () => {
+      await init({
+        apiKey: 'old style key',
+        assignmentLogger: mockLogger,
+      });
+
+      expect(urlsRequested).toHaveLength(1);
+      expect(urlsRequested[0]).toContain('https://fscdn.eppo.cloud');
+    });
   });
 
   it('force reinitialize', async () => {
