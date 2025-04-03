@@ -32,6 +32,7 @@ import {
 
 import { IClientConfig } from './i-client-config';
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
+import { sdkVersion } from './sdk-data';
 
 import {
   EppoPrecomputedJSClient,
@@ -47,6 +48,8 @@ import {
 } from './index';
 
 const { DEFAULT_POLL_INTERVAL_MS, POLL_JITTER_PCT } = constants;
+
+const expectedSdkParams = `&sdkName=js-client-sdk&sdkVersion=${sdkVersion}`;
 
 function md5Hash(input: string): string {
   return createHash('md5').update(input).digest('hex');
@@ -643,6 +646,7 @@ describe('initialization options', () => {
 
   describe('enhanced SDK token', () => {
     let urlsRequested: string[] = [];
+
     afterEach(() => {
       urlsRequested = [];
     });
@@ -664,11 +668,10 @@ describe('initialization options', () => {
         assignmentLogger: mockLogger,
       });
       expect(urlsRequested).toHaveLength(1);
-      expect(
-        urlsRequested[0].startsWith(
-          'https://experiment.fscdn.eppo.cloud/api/flag-config/v1/config?apiKey=zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA%3D%3D',
-        ),
-      ).toBeTruthy();
+      expect(urlsRequested[0]).toEqual(
+        'https://experiment.fscdn.eppo.cloud/api/flag-config/v1/config?apiKey=zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA%3D%3D' +
+          expectedSdkParams,
+      );
     });
 
     it('uses the provided custom relative baseUrl', async () => {
@@ -679,11 +682,10 @@ describe('initialization options', () => {
       });
 
       expect(urlsRequested).toHaveLength(1);
-      expect(
-        urlsRequested[0].startsWith(
-          '//custom-base-url.com/flag-config/v1/config?apiKey=zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA%3D%3D',
-        ),
-      ).toBeTruthy();
+      expect(urlsRequested[0]).toEqual(
+        '//custom-base-url.com/flag-config/v1/config?apiKey=zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA%3D%3D' +
+          expectedSdkParams,
+      );
     });
 
     it('uses the provided custom baseUrl and prepends https', async () => {
@@ -694,11 +696,10 @@ describe('initialization options', () => {
       });
 
       expect(urlsRequested).toHaveLength(1);
-      expect(
-        urlsRequested[0].startsWith(
-          'https://custom-base-url.com/flag-config/v1/config?apiKey=zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA%3D%3D',
-        ),
-      ).toBeTruthy();
+      expect(urlsRequested[0]).toEqual(
+        'https://custom-base-url.com/flag-config/v1/config?apiKey=zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA%3D%3D' +
+          expectedSdkParams,
+      );
     });
 
     it('falls back to the default url', async () => {
@@ -708,11 +709,10 @@ describe('initialization options', () => {
       });
 
       expect(urlsRequested).toHaveLength(1);
-      expect(
-        urlsRequested[0].startsWith(
-          'https://fscdn.eppo.cloud/api/flag-config/v1/config?apiKey=old+style+key',
-        ),
-      ).toBeTruthy();
+      expect(urlsRequested[0]).toEqual(
+        'https://fscdn.eppo.cloud/api/flag-config/v1/config?apiKey=old+style+key' +
+          expectedSdkParams,
+      );
     });
   });
 
@@ -1415,6 +1415,7 @@ describe('EppoPrecomputedJSClient E2E test', () => {
 
   describe('with an enhanced SDK token', () => {
     let urlsRequested: string[] = [];
+
     afterEach(() => {
       urlsRequested = [];
     });
@@ -1447,8 +1448,9 @@ describe('EppoPrecomputedJSClient E2E test', () => {
       });
 
       expect(urlsRequested).toHaveLength(1);
-      expect(urlsRequested[0]).toContain(
-        'https://experiment.fs-edge-assignment.eppo.cloud/assignments?apiKey=zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA%3D%3D',
+      expect(urlsRequested[0]).toEqual(
+        'https://experiment.fs-edge-assignment.eppo.cloud/assignments?apiKey=zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA%3D%3D' +
+          expectedSdkParams,
       );
     });
 
@@ -1464,8 +1466,9 @@ describe('EppoPrecomputedJSClient E2E test', () => {
       });
 
       expect(urlsRequested).toHaveLength(1);
-      expect(urlsRequested[0]).toContain(
-        '//custom-base-url.com/assignments?apiKey=zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA%3D%3D',
+      expect(urlsRequested[0]).toEqual(
+        '//custom-base-url.com/assignments?apiKey=zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA%3D%3D' +
+          expectedSdkParams,
       );
     });
 
@@ -1481,8 +1484,9 @@ describe('EppoPrecomputedJSClient E2E test', () => {
       });
 
       expect(urlsRequested).toHaveLength(1);
-      expect(urlsRequested[0]).toContain(
-        '//custom-base-url.com/assignments?apiKey=zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA%3D%3D',
+      expect(urlsRequested[0]).toEqual(
+        '//custom-base-url.com/assignments?apiKey=zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA%3D%3D' +
+          expectedSdkParams,
       );
     });
 
@@ -1497,8 +1501,9 @@ describe('EppoPrecomputedJSClient E2E test', () => {
       });
 
       expect(urlsRequested).toHaveLength(1);
-      expect(urlsRequested[0]).toContain(
-        'https://fs-edge-assignment.eppo.cloud/assignments?apiKey=Y3M9ZXhwZXJpbWVudA%3D%3D',
+      expect(urlsRequested[0]).toEqual(
+        'https://fs-edge-assignment.eppo.cloud/assignments?apiKey=Y3M9ZXhwZXJpbWVudA%3D%3D' +
+          expectedSdkParams,
       );
     });
   });
