@@ -100,6 +100,9 @@ const flagConfigurationStore = configurationStorageFactory({
 const memoryOnlyPrecomputedFlagsStore = precomputedFlagsStorageFactory();
 const memoryOnlyPrecomputedBanditsStore = precomputedBanditStoreFactory();
 
+/**
+ * @internal
+ */
 export const NO_OP_EVENT_DISPATCHER: EventDispatcher = {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   attachContext: () => {},
