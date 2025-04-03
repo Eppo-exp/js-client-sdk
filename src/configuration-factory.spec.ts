@@ -35,6 +35,7 @@ describe('configurationStorageFactory', () => {
       clear: jest.fn(),
       getBytesInUse: jest.fn(),
       setAccessLevel: jest.fn(),
+      getKeys: jest.fn(),
       onChanged: {
         addListener: jest.fn(),
         removeListener: jest.fn(),
