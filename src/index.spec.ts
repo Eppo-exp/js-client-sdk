@@ -32,6 +32,7 @@ import {
 
 import { IClientConfig } from './i-client-config';
 import { ServingStoreUpdateStrategy } from './isolatable-hybrid.store';
+import { sdkVersion } from './sdk-data';
 
 import {
   EppoPrecomputedJSClient,
@@ -47,6 +48,8 @@ import {
 } from './index';
 
 const { DEFAULT_POLL_INTERVAL_MS, POLL_JITTER_PCT } = constants;
+
+const expectedSdkParams = `&sdkName=js-client-sdk&sdkVersion=${sdkVersion}`;
 
 function md5Hash(input: string): string {
   return createHash('md5').update(input).digest('hex');
@@ -641,6 +644,78 @@ describe('initialization options', () => {
     expect(callCount).toBe(1);
   });
 
+  describe('enhanced SDK token', () => {
+    let urlsRequested: string[] = [];
+
+    afterEach(() => {
+      urlsRequested = [];
+    });
+
+    beforeEach(() => {
+      global.fetch = jest.fn((url) => {
+        urlsRequested.push(url);
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(mockConfigResponse),
+        });
+      }) as jest.Mock;
+    });
+
+    it('uses the provided subdomain', async () => {
+      await init({
+        apiKey: 'zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA==', // subdomain=experiment
+        assignmentLogger: mockLogger,
+      });
+      expect(urlsRequested).toHaveLength(1);
+      expect(urlsRequested[0]).toEqual(
+        'https://experiment.fscdn.eppo.cloud/api/flag-config/v1/config?apiKey=zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA%3D%3D' +
+          expectedSdkParams,
+      );
+    });
+
+    it('uses the provided custom relative baseUrl', async () => {
+      await init({
+        apiKey: 'zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA==',
+        baseUrl: '//custom-base-url.com',
+        assignmentLogger: mockLogger,
+      });
+
+      expect(urlsRequested).toHaveLength(1);
+      expect(urlsRequested[0]).toEqual(
+        '//custom-base-url.com/flag-config/v1/config?apiKey=zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA%3D%3D' +
+          expectedSdkParams,
+      );
+    });
+
+    it('uses the provided custom baseUrl and prepends https', async () => {
+      await init({
+        apiKey: 'zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA==',
+        baseUrl: 'custom-base-url.com',
+        assignmentLogger: mockLogger,
+      });
+
+      expect(urlsRequested).toHaveLength(1);
+      expect(urlsRequested[0]).toEqual(
+        'https://custom-base-url.com/flag-config/v1/config?apiKey=zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA%3D%3D' +
+          expectedSdkParams,
+      );
+    });
+
+    it('falls back to the default url', async () => {
+      await init({
+        apiKey: 'old style key',
+        assignmentLogger: mockLogger,
+      });
+
+      expect(urlsRequested).toHaveLength(1);
+      expect(urlsRequested[0]).toEqual(
+        'https://fscdn.eppo.cloud/api/flag-config/v1/config?apiKey=old+style+key' +
+          expectedSdkParams,
+      );
+    });
+  });
+
   it('force reinitialize', async () => {
     let callCount = 0;
 
@@ -1172,7 +1247,7 @@ describe('initialization options', () => {
         async entries() {
           return entriesPromise.promise;
         },
-        async setEntries(entries) {
+        async setEntries() {
           // pass
         },
       };
@@ -1335,6 +1410,101 @@ describe('EppoPrecomputedJSClient E2E test', () => {
     expect(td.explain(mockLogger.logAssignment).calls[0]?.args[0]).toMatchObject({
       featureFlag: 'string-flag',
       subject: 'test-subject',
+    });
+  });
+
+  describe('with an enhanced SDK token', () => {
+    let urlsRequested: string[] = [];
+
+    afterEach(() => {
+      urlsRequested = [];
+    });
+
+    beforeEach(() => {
+      EppoPrecomputedJSClient.initialized = false;
+
+      global.fetch = jest.fn((url) => {
+        urlsRequested.push(url);
+        const precomputedConfiguration = readMockPrecomputedResponse(MOCK_PRECOMPUTED_WIRE_FILE);
+        const precomputedResponse: IPrecomputedConfigurationResponse = JSON.parse(
+          JSON.parse(precomputedConfiguration).precomputed.response,
+        );
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(precomputedResponse),
+        });
+      }) as jest.Mock;
+    });
+
+    it('uses the provided subdomain', async () => {
+      await precomputedInit({
+        apiKey: 'zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA==', // subdomain=experiment
+        assignmentLogger: mockLogger,
+        precompute: {
+          subjectKey: 'test-subject',
+          subjectAttributes: { attr1: 'value1' },
+        },
+      });
+
+      expect(urlsRequested).toHaveLength(1);
+      expect(urlsRequested[0]).toEqual(
+        'https://experiment.fs-edge-assignment.eppo.cloud/assignments?apiKey=zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA%3D%3D' +
+          expectedSdkParams,
+      );
+    });
+
+    it('uses the provided custom relative baseUrl', async () => {
+      await precomputedInit({
+        apiKey: 'zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA==', // subdomain=experiment
+        baseUrl: '//custom-base-url.com',
+        assignmentLogger: mockLogger,
+        precompute: {
+          subjectKey: 'test-subject',
+          subjectAttributes: { attr1: 'value1' },
+        },
+      });
+
+      expect(urlsRequested).toHaveLength(1);
+      expect(urlsRequested[0]).toEqual(
+        '//custom-base-url.com/assignments?apiKey=zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA%3D%3D' +
+          expectedSdkParams,
+      );
+    });
+
+    it('uses the provided custom baseUrl and prepends https', async () => {
+      await precomputedInit({
+        apiKey: 'zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA==', // subdomain=experiment
+        baseUrl: '//custom-base-url.com',
+        assignmentLogger: mockLogger,
+        precompute: {
+          subjectKey: 'test-subject',
+          subjectAttributes: { attr1: 'value1' },
+        },
+      });
+
+      expect(urlsRequested).toHaveLength(1);
+      expect(urlsRequested[0]).toEqual(
+        '//custom-base-url.com/assignments?apiKey=zCsQuoHJxVPp895.Y3M9ZXhwZXJpbWVudA%3D%3D' +
+          expectedSdkParams,
+      );
+    });
+
+    it('falls back to the default url', async () => {
+      await precomputedInit({
+        apiKey: 'Y3M9ZXhwZXJpbWVudA==', // no encoded subdomain
+        assignmentLogger: mockLogger,
+        precompute: {
+          subjectKey: 'test-subject',
+          subjectAttributes: { attr1: 'value1' },
+        },
+      });
+
+      expect(urlsRequested).toHaveLength(1);
+      expect(urlsRequested[0]).toEqual(
+        'https://fs-edge-assignment.eppo.cloud/assignments?apiKey=Y3M9ZXhwZXJpbWVudA%3D%3D' +
+          expectedSdkParams,
+      );
     });
   });
 });
