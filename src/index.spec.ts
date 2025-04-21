@@ -416,6 +416,24 @@ describe('sync init', () => {
       'variant-1',
     );
   });
+
+  it('sets configuration dates', () => {
+    const testStart = Date.now();
+    const client = offlineInit({
+      flagsConfiguration: {
+        [flagKey]: mockNotObfuscatedFlagConfig,
+      },
+      //TODO: set dates
+    });
+
+    const result = client.getStringAssignmentDetails(flagKey, 'subject-10', {}, 'default-value');
+
+    expect(result.variation).toBe('variant-1');
+    expect(result.evaluationDetails.configPublishedAt).toBeTruthy();
+    expect(new Date(result.evaluationDetails.configFetchedAt).getTime()).toBeGreaterThanOrEqual(
+      testStart,
+    );
+  });
 });
 
 describe('initialization options', () => {
