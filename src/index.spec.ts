@@ -418,21 +418,22 @@ describe('sync init', () => {
   });
 
   it('sets configuration dates', () => {
-    const testStart = Date.now();
+    const testStart = new Date();
+    const configPublishedAt = new Date(testStart.getTime() - 10000).toISOString();
+    const configFetchedAt = testStart.toISOString();
     const client = offlineInit({
       flagsConfiguration: {
         [flagKey]: mockNotObfuscatedFlagConfig,
       },
-      //TODO: set dates
+      configPublishedAt,
+      configFetchedAt,
     });
 
     const result = client.getStringAssignmentDetails(flagKey, 'subject-10', {}, 'default-value');
 
     expect(result.variation).toBe('variant-1');
-    expect(result.evaluationDetails.configPublishedAt).toBeTruthy();
-    expect(new Date(result.evaluationDetails.configFetchedAt).getTime()).toBeGreaterThanOrEqual(
-      testStart,
-    );
+    expect(result.evaluationDetails.configPublishedAt).toBe(configPublishedAt);
+    expect(result.evaluationDetails.configFetchedAt).toBe(configFetchedAt);
   });
 });
 
