@@ -212,7 +212,9 @@ export interface IPrecomputedClientConfigSync {
     throwOnFailedInitialization?: boolean;
 }
 
-// @public (undocumented)
+// Warning: (ae-internal-missing-underscore) The name "NO_OP_EVENT_DISPATCHER" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
 export const NO_OP_EVENT_DISPATCHER: EventDispatcher;
 
 export { ObfuscatedFlag }
