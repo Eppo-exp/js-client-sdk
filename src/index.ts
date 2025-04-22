@@ -66,6 +66,10 @@ export interface IClientConfigSync {
   enableOverrides?: boolean;
 
   overridesStorageKey?: string;
+
+  configPublishedAt?: string; // ISO Datetime String
+
+  configFetchedAt?: string; // ISO Datetime String
 }
 
 export { IClientConfig, IPrecomputedClientConfig };
@@ -543,6 +547,13 @@ export class EppoJSClient extends EppoClient {
           applicationLogger.warn('Error setting flags for memory-only configuration store', err),
         );
       this.setFlagConfigurationStore(memoryOnlyConfigurationStore);
+
+      if (config.configPublishedAt) {
+        memoryOnlyConfigurationStore.setConfigPublishedAt(config.configPublishedAt);
+      }
+      if (config.configFetchedAt) {
+        memoryOnlyConfigurationStore.setConfigFetchedAt(config.configFetchedAt);
+      }
 
       if (enableOverrides) {
         const overrideStore = overrideStorageFactory(
