@@ -750,7 +750,7 @@ export class EppoPrecomputedJSClient extends EppoPrecomputedClient {
   }
 
   private static getAssignmentInitializationCheck() {
-    if (!EppoJSClient.initialized) {
+    if (!EppoPrecomputedJSClient.initialized) {
       applicationLogger.warn('Eppo SDK assignment requested before init() completed');
     }
   }
