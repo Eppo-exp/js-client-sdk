@@ -3,6 +3,15 @@ import { HybridConfigurationStore, IAsyncStore, ISyncStore } from '@eppo/js-clie
 export type ServingStoreUpdateStrategy = 'always' | 'expired' | 'empty';
 
 /**
+ * Extension of AsyncStore where its aware it's paired with a SyncStore.
+ * Useful when providing custom persistent stores.
+ */
+export interface IPairedAsyncStore<T> extends IAsyncStore<T> {
+  // If available, will be called when HybridConfigurationStore is constructed to provide a rehydration hook for the serving store
+  registerRehydrate?(rehydrate: (entries?: Record<string, T>) => Promise<void>): void;
+}
+
+/**
  * Extension of the HybridConfigurationStore that allows optionally isolating the serving store from
  * updates.
  * This could be useful when you want to avoid updating the serving store to maintain greater
@@ -12,10 +21,15 @@ export type ServingStoreUpdateStrategy = 'always' | 'expired' | 'empty';
 export class IsolatableHybridConfigurationStore<T> extends HybridConfigurationStore<T> {
   constructor(
     servingStore: ISyncStore<T>,
-    persistentStore: IAsyncStore<T> | null,
+    persistentStore: IPairedAsyncStore<T> | null,
     private servingStoreUpdateStrategy: ServingStoreUpdateStrategy = 'always',
   ) {
     super(servingStore, persistentStore);
+
+    // Register hook if available
+    if (persistentStore?.registerRehydrate) {
+      persistentStore.registerRehydrate(this.rehydrate.bind(this));
+    }
   }
 
   /** @Override */
@@ -39,8 +53,24 @@ export class IsolatableHybridConfigurationStore<T> extends HybridConfigurationSt
       (persistentStoreIsExpired && servingStoreIsEmpty);
 
     if (updateServingStore) {
-      this.servingStore.setEntries(entries);
+      this.setServingStoreEntries(entries);
     }
     return updateServingStore;
+  }
+
+  /**
+   * Hook to rehydrate serving store entries either from the persistent store or explicitly.
+   * Useful for manually triggering a serving store update when the upstate strategy is not set to always.
+   */
+  private async rehydrate(entries?: Record<string, T>): Promise<void> {
+    const entriesToSet =
+      entries ?? (this.persistentStore ? await this.persistentStore.entries() : undefined);
+    if (entriesToSet) {
+      this.servingStore.setEntries(entriesToSet);
+    }
+  }
+
+  private setServingStoreEntries(entries: Record<string, T>): void {
+    this.servingStore.setEntries(entries);
   }
 }
