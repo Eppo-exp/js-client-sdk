@@ -66,7 +66,8 @@ export class IsolatableHybridConfigurationStore<T> extends HybridConfigurationSt
     const entriesToSet =
       entries ?? (this.persistentStore ? await this.persistentStore.entries() : undefined);
     if (entriesToSet) {
-      this.servingStore.setEntries(entriesToSet);
+      // Only rehydrate if we have a source
+      this.setServingStoreEntries(entriesToSet);
     }
   }
 
