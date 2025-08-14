@@ -172,6 +172,10 @@ export interface IClientConfigSync {
     // (undocumented)
     banditLogger?: IBanditLogger;
     // (undocumented)
+    configFetchedAt?: string;
+    // (undocumented)
+    configPublishedAt?: string;
+    // (undocumented)
     enableOverrides?: boolean;
     // (undocumented)
     flagsConfiguration: Record<string, Flag | ObfuscatedFlag>;

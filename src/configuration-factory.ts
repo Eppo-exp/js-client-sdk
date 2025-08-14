@@ -12,13 +12,16 @@ import {
 
 import ChromeStorageAsyncMap from './cache/chrome-storage-async-map';
 import { ChromeStorageEngine } from './chrome-storage-engine';
+import { ConfigurationAsyncStore } from './configuration-store';
 import {
   IsolatableHybridConfigurationStore,
   ServingStoreUpdateStrategy,
 } from './isolatable-hybrid.store';
 import { LocalStorageEngine } from './local-storage-engine';
 import { OVERRIDES_KEY } from './storage-key-constants';
+import { StorageMigration } from './storage-migration';
 import { StringValuedAsyncStore } from './string-valued.store';
+import { WebCacheStorageEngine } from './web-cache-storage-engine';
 
 export function precomputedFlagsStorageFactory(): IConfigurationStore<PrecomputedFlag> {
   return new MemoryOnlyConfigurationStore();
@@ -33,6 +36,7 @@ export function configurationStorageFactory(
     maxAgeSeconds = 0,
     servingStoreUpdateStrategy = 'always',
     hasChromeStorage = false,
+    hasWebCacheAPI = false,
     hasWindowLocalStorage = false,
     persistentStore = undefined,
     forceMemoryOnly = false,
@@ -40,6 +44,7 @@ export function configurationStorageFactory(
     maxAgeSeconds?: number;
     servingStoreUpdateStrategy?: ServingStoreUpdateStrategy;
     hasChromeStorage?: boolean;
+    hasWebCacheAPI?: boolean;
     hasWindowLocalStorage?: boolean;
     persistentStore?: IAsyncStore<Flag>;
     forceMemoryOnly?: boolean;
@@ -71,6 +76,24 @@ export function configurationStorageFactory(
     return new IsolatableHybridConfigurationStore(
       new MemoryStore<Flag>(),
       new StringValuedAsyncStore<Flag>(chromeStorageEngine, maxAgeSeconds),
+      servingStoreUpdateStrategy,
+    );
+  } else if (hasWebCacheAPI) {
+    // Web Cache API is available and preferred for better storage limits
+    // Run migration from localStorage to Cache API only if localStorage exists
+    if (windowLocalStorage) {
+      const migration = new StorageMigration(windowLocalStorage);
+      if (!migration.isMigrationCompleted()) {
+        migration.migrate().catch((error) =>
+          console.warn('Storage migration failed:', error),
+        );
+      }
+    }
+
+    const webCacheEngine = new WebCacheStorageEngine(storageKeySuffix ?? '');
+    return new IsolatableHybridConfigurationStore(
+      new MemoryStore<Flag>(),
+      new ConfigurationAsyncStore<Flag>(webCacheEngine, maxAgeSeconds),
       servingStoreUpdateStrategy,
     );
   } else if (hasWindowLocalStorage && windowLocalStorage) {
@@ -134,4 +157,14 @@ export function hasWindowLocalStorage(): boolean {
 
 export function localStorageIfAvailable(): Storage | undefined {
   return hasWindowLocalStorage() ? window.localStorage : undefined;
+}
+
+/** Returns whether Web Cache API is available */
+export function hasWebCacheAPI(): boolean {
+  try {
+    return typeof caches !== 'undefined' && typeof caches.open === 'function';
+  } catch {
+    // Some environments may throw when accessing caches
+    return false;
+  }
 }
