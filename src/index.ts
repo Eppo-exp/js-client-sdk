@@ -37,6 +37,7 @@ import {
   chromeStorageIfAvailable,
   configurationStorageFactory,
   hasChromeStorage,
+  hasWebCacheAPI,
   hasWindowLocalStorage,
   localStorageIfAvailable,
   overrideStorageFactory,
@@ -330,6 +331,7 @@ export class EppoJSClient extends EppoClient {
           servingStoreUpdateStrategy: updateOnFetch,
           persistentStore,
           hasChromeStorage: hasChromeStorage(),
+          hasWebCacheAPI: hasWebCacheAPI(),
           hasWindowLocalStorage: hasWindowLocalStorage(),
         },
         {

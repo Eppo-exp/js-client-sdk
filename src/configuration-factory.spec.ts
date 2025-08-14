@@ -55,6 +55,45 @@ describe('configurationStorageFactory', () => {
     expect(result).toBeInstanceOf(HybridConfigurationStore);
   });
 
+  it('is a HybridConfigurationStore with Web Cache API when hasWebCacheAPI is true', () => {
+    // Mock caches API
+    const mockCache = {
+      match: jest.fn(),
+      put: jest.fn(),
+      add: jest.fn(),
+      addAll: jest.fn(),
+      delete: jest.fn(),
+      keys: jest.fn(),
+    };
+    const mockCaches = {
+      open: jest.fn().mockResolvedValue(mockCache),
+      delete: jest.fn(),
+      has: jest.fn(),
+      keys: jest.fn(),
+      match: jest.fn(),
+    };
+    const originalCaches = (global as any).caches;
+    (global as any).caches = mockCaches;
+
+    const mockLocalStorage = {
+      clear: jest.fn(),
+      getItem: jest.fn(),
+      setItem: jest.fn(),
+      removeItem: jest.fn(),
+      key: jest.fn(),
+      length: 0,
+    };
+
+    const result = configurationStorageFactory(
+      { hasWebCacheAPI: true },
+      { windowLocalStorage: mockLocalStorage },
+    );
+    expect(result).toBeInstanceOf(HybridConfigurationStore);
+
+    // Clean up
+    (global as any).caches = originalCaches;
+  });
+
   it('is a HybridConfigurationStore with a LocalStorageBackedAsyncStore persistentStore when window local storage is available', () => {
     const mockLocalStorage = {
       clear: jest.fn(),
@@ -70,6 +109,45 @@ describe('configurationStorageFactory', () => {
       { windowLocalStorage: mockLocalStorage },
     );
     expect(result).toBeInstanceOf(HybridConfigurationStore);
+  });
+
+  it('prefers Web Cache API over localStorage when both are available', () => {
+    // Mock caches API
+    const mockCache = {
+      match: jest.fn(),
+      put: jest.fn(),
+      add: jest.fn(),
+      addAll: jest.fn(),
+      delete: jest.fn(),
+      keys: jest.fn(),
+    };
+    const mockCaches = {
+      open: jest.fn().mockResolvedValue(mockCache),
+      delete: jest.fn(),
+      has: jest.fn(),
+      keys: jest.fn(),
+      match: jest.fn(),
+    };
+    const originalCaches = (global as any).caches;
+    (global as any).caches = mockCaches;
+
+    const mockLocalStorage = {
+      clear: jest.fn(),
+      getItem: jest.fn(),
+      setItem: jest.fn(),
+      removeItem: jest.fn(),
+      key: jest.fn(),
+      length: 0,
+    };
+
+    const result = configurationStorageFactory(
+      { hasWebCacheAPI: true, hasWindowLocalStorage: true },
+      { windowLocalStorage: mockLocalStorage },
+    );
+    expect(result).toBeInstanceOf(HybridConfigurationStore);
+
+    // Clean up
+    (global as any).caches = originalCaches;
   });
 
   it('falls back to MemoryOnlyConfigurationStore when no persistence options are available', () => {
