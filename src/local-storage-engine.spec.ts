@@ -109,13 +109,13 @@ describe('LocalStorageEngine Compression Migration', () => {
 
       expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
         'eppo-configuration-test',
-        LZString.compress(testData),
+        LZString.compressToBase64(testData),
       );
     });
 
     it('should decompress data when reading', async () => {
       const testData = JSON.stringify({ flag: 'test-flag', value: 'test-value' });
-      const compressedData = LZString.compress(testData);
+      const compressedData = LZString.compressToBase64(testData);
 
       (mockLocalStorage.getItem as jest.Mock).mockImplementation((key) => {
         if (key === 'eppo-meta') return JSON.stringify({ version: 1, migratedAt: Date.now() });
@@ -130,7 +130,7 @@ describe('LocalStorageEngine Compression Migration', () => {
 
     it('should handle decompression errors gracefully', async () => {
       // Mock LZString.decompress to throw an error
-      const decompressSpy = jest.spyOn(LZString, 'decompress').mockImplementation(() => {
+      const decompressSpy = jest.spyOn(LZString, 'decompressFromBase64').mockImplementation(() => {
         throw new Error('Decompression failed');
       });
 
@@ -226,7 +226,7 @@ describe('LocalStorageEngine Compression Migration', () => {
       };
 
       const originalJson = JSON.stringify(largeConfig);
-      const compressedData = LZString.compress(originalJson);
+      const compressedData = LZString.compressToBase64(originalJson);
 
       // Verify compression actually reduces size
       expect(compressedData.length).toBeLessThan(originalJson.length);
