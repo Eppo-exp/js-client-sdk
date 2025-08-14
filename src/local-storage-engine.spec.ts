@@ -42,15 +42,7 @@ describe('LocalStorageEngine Compression Migration', () => {
         return keys[index] || null;
       });
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
       new LocalStorageEngine(mockLocalStorage, 'test');
-
-      // Should have logged migration
-      expect(consoleSpy).toHaveBeenCalledWith('Running storage migration from v0 to v1');
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Configuration cleanup completed - fresh configs will be compressed',
-      );
 
       // Should have removed configuration keys
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('eppo-configuration-abc123');
@@ -62,8 +54,6 @@ describe('LocalStorageEngine Compression Migration', () => {
         'eppo-meta',
         expect.stringContaining('"version":1'),
       );
-
-      consoleSpy.mockRestore();
     });
 
     it('should skip migration if already completed', () => {
@@ -73,19 +63,10 @@ describe('LocalStorageEngine Compression Migration', () => {
         return null;
       });
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
       new LocalStorageEngine(mockLocalStorage, 'test');
-
-      // Should not have logged migration
-      expect(consoleSpy).not.toHaveBeenCalledWith(
-        expect.stringContaining('Running storage migration'),
-      );
 
       // Should not have removed any keys
       expect(mockLocalStorage.removeItem).not.toHaveBeenCalled();
-
-      consoleSpy.mockRestore();
     });
 
     it('should handle migration errors gracefully', () => {
@@ -103,13 +84,8 @@ describe('LocalStorageEngine Compression Migration', () => {
       (mockLocalStorage as any)._length = 1;
       (mockLocalStorage.key as jest.Mock).mockReturnValue('eppo-configuration-test');
 
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-
-      new LocalStorageEngine(mockLocalStorage, 'test');
-
-      expect(consoleSpy).toHaveBeenCalledWith('Migration failed:', expect.any(Error));
-
-      consoleSpy.mockRestore();
+      // Should not throw error, just continue silently
+      expect(() => new LocalStorageEngine(mockLocalStorage, 'test')).not.toThrow();
     });
   });
 
@@ -153,8 +129,6 @@ describe('LocalStorageEngine Compression Migration', () => {
     });
 
     it('should handle decompression errors gracefully', async () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-
       // Mock LZString.decompress to throw an error
       const decompressSpy = jest.spyOn(LZString, 'decompress').mockImplementation(() => {
         throw new Error('Decompression failed');
@@ -169,13 +143,9 @@ describe('LocalStorageEngine Compression Migration', () => {
       const result = await engine.getContentsJsonString();
 
       expect(result).toBe(null);
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to decompress configuration, removing corrupted data',
-      );
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('eppo-configuration-test');
 
       decompressSpy.mockRestore();
-      consoleSpy.mockRestore();
     });
 
     it('should store and retrieve meta data without compression', async () => {
@@ -228,8 +198,6 @@ describe('LocalStorageEngine Compression Migration', () => {
     });
 
     it('should handle corrupted global meta', () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-
       (mockLocalStorage.getItem as jest.Mock).mockImplementation((key) => {
         if (key === 'eppo-meta') return 'invalid-json';
         return null;
@@ -237,11 +205,8 @@ describe('LocalStorageEngine Compression Migration', () => {
 
       (mockLocalStorage as any)._length = 0;
 
-      new LocalStorageEngine(mockLocalStorage, 'test');
-
-      expect(consoleSpy).toHaveBeenCalledWith('Failed to parse global meta:', expect.any(Error));
-
-      consoleSpy.mockRestore();
+      // Should not throw error, just continue silently with default version
+      expect(() => new LocalStorageEngine(mockLocalStorage, 'test')).not.toThrow();
     });
   });
 

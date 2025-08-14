@@ -42,7 +42,7 @@ export class LocalStorageEngine implements IStringStorageEngine {
     try {
       return LZString.decompress(stored) || null;
     } catch (e) {
-      console.warn('Failed to decompress configuration, removing corrupted data');
+      // Failed to decompress configuration, removing corrupted data
       this.localStorage.removeItem(this.contentsKey);
       return null;
     }
@@ -75,7 +75,6 @@ export class LocalStorageEngine implements IStringStorageEngine {
         migratedAt: Date.now(),
         version: LocalStorageEngine.MIGRATION_VERSION,
       });
-
     } catch (e) {
       // Migration failed, continue silently
     }
