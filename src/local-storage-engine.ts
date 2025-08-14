@@ -40,7 +40,7 @@ export class LocalStorageEngine implements IStringStorageEngine {
     if (!stored) return null;
 
     try {
-      return LZString.decompress(stored) || null;
+      return LZString.decompressFromBase64(stored) || null;
     } catch (e) {
       // Failed to decompress configuration, removing corrupted data
       this.localStorage.removeItem(this.contentsKey);
@@ -53,7 +53,7 @@ export class LocalStorageEngine implements IStringStorageEngine {
   };
 
   public setContentsJsonString = async (configurationJsonString: string): Promise<void> => {
-    const compressed = LZString.compress(configurationJsonString);
+    const compressed = LZString.compressToBase64(configurationJsonString);
     this.localStorage.setItem(this.contentsKey, compressed);
   };
 
