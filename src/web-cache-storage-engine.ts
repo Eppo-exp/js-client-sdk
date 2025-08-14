@@ -3,7 +3,7 @@ import { CONFIGURATION_KEY } from './storage-key-constants';
 
 /**
  * Web Cache API implementation for storing configuration data.
- * 
+ *
  * Uses the Cache API for better storage limits and performance compared to localStorage.
  * Since the configuration response includes a createdAt timestamp, no separate metadata storage is needed.
  */
@@ -26,7 +26,7 @@ export class WebCacheStorageEngine implements IConfigurationStorageEngine {
 
       const cache = await caches.open(this.cacheName);
       const response = await cache.match(this.cacheKey);
-      
+
       if (!response) {
         return null;
       }
@@ -46,7 +46,7 @@ export class WebCacheStorageEngine implements IConfigurationStorageEngine {
       }
 
       const cache = await caches.open(this.cacheName);
-      
+
       // Create a Response object to store in cache
       const response = new Response(configurationJsonString, {
         headers: {
@@ -78,7 +78,7 @@ export class WebCacheStorageEngine implements IConfigurationStorageEngine {
 
       const config = JSON.parse(configString);
       const createdAt = config.createdAt;
-      
+
       if (!createdAt) {
         return true;
       }
@@ -90,7 +90,6 @@ export class WebCacheStorageEngine implements IConfigurationStorageEngine {
       return true;
     }
   }
-
 
   /**
    * Clear all cached data for this storage engine

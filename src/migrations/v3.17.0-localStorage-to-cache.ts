@@ -1,48 +1,63 @@
+import { localStorageIfAvailable } from '../configuration-factory';
+
 /**
- * Migration utilities for moving from localStorage to Web Cache API
+ * Migration v3.17.0: localStorage to Web Cache API
+ *
+ * This migration clears localStorage keys with 'eppo-configuration' prefix
+ * when upgrading to Web Cache API storage.
  */
 
-const MIGRATION_FLAG_KEY = 'eppo-cache-migration-20250813-completed';
+const MIGRATION_VERSION = 'v3.17.0-localStorage-to-cache';
+const MIGRATION_FLAG_KEY = `eppo-migration-${MIGRATION_VERSION}-completed`;
 const CONFIGURATION_PREFIX = 'eppo-configuration';
 
 export interface MigrationResult {
   migrationNeeded: boolean;
   clearedKeys: string[];
   errors: string[];
+  version: string;
 }
 
 /**
- * Migrates configuration storage from localStorage to Web Cache API.
- * Clears all localStorage keys matching the eppo-configuration prefix.
- * Uses localStorage to track migration completion to avoid repeated migrations.
+ * Migration v3.17.0: Move from localStorage to Web Cache API
  */
-export class StorageMigration {
-  private readonly localStorage: Storage;
+export class LocalStorageToCacheMigration {
+  private readonly localStorage?: Storage;
+  public readonly version = MIGRATION_VERSION;
 
-  constructor(localStorage: Storage = window.localStorage) {
-    this.localStorage = localStorage;
+  constructor(localStorage?: Storage) {
+    this.localStorage = localStorage || localStorageIfAvailable();
   }
 
   /**
-   * Check if migration has already been completed
+   * Check if this specific migration has been completed
    */
   public isMigrationCompleted(): boolean {
+    // If no localStorage available, assume migration is completed
+    if (!this.localStorage) {
+      return true;
+    }
+
     try {
       return this.localStorage.getItem(MIGRATION_FLAG_KEY) === 'true';
     } catch (error) {
-      console.warn('Failed to check migration status:', error);
-      return false;
+      console.warn(`Failed to check migration status for ${this.version}:`, error);
+      return true; // Assume completed on error
     }
   }
 
   /**
-   * Mark migration as completed
+   * Mark this migration as completed
    */
   public markMigrationCompleted(): void {
+    if (!this.localStorage) {
+      return; // Can't persist without localStorage
+    }
+
     try {
       this.localStorage.setItem(MIGRATION_FLAG_KEY, 'true');
     } catch (error) {
-      console.warn('Failed to mark migration as completed:', error);
+      console.warn(`Failed to mark migration as completed for ${this.version}:`, error);
     }
   }
 
@@ -51,7 +66,11 @@ export class StorageMigration {
    */
   public getConfigurationKeys(): string[] {
     const keys: string[] = [];
-    
+
+    if (!this.localStorage) {
+      return keys;
+    }
+
     try {
       for (let i = 0; i < this.localStorage.length; i++) {
         const key = this.localStorage.key(i);
@@ -60,7 +79,7 @@ export class StorageMigration {
         }
       }
     } catch (error) {
-      console.warn('Failed to enumerate localStorage keys:', error);
+      console.warn(`Failed to enumerate localStorage keys for ${this.version}:`, error);
     }
 
     return keys;
@@ -73,7 +92,8 @@ export class StorageMigration {
     const result: MigrationResult = {
       migrationNeeded: false,
       clearedKeys: [],
-      errors: []
+      errors: [],
+      version: this.version,
     };
 
     // Check if migration already completed
@@ -87,7 +107,7 @@ export class StorageMigration {
     // Remove each configuration key
     for (const key of keysToRemove) {
       try {
-        this.localStorage.removeItem(key);
+        this.localStorage?.removeItem(key);
         result.clearedKeys.push(key);
       } catch (error) {
         const errorMsg = `Failed to remove key ${key}: ${error}`;
@@ -108,17 +128,22 @@ export class StorageMigration {
    * Run the complete migration process
    */
   public async migrate(): Promise<MigrationResult> {
-    console.log('Starting localStorage to Web Cache API migration...');
-    
+    console.log(`Starting migration ${this.version}...`);
+
     const result = this.clearConfigurationKeys();
-    
+
     if (result.migrationNeeded) {
-      console.log(`Migration completed: cleared ${result.clearedKeys.length} keys`, {
-        clearedKeys: result.clearedKeys,
-        errors: result.errors
-      });
+      console.log(
+        `Migration ${this.version} completed: cleared ${result.clearedKeys.length} keys`,
+        {
+          clearedKeys: result.clearedKeys,
+          errors: result.errors,
+        },
+      );
     } else {
-      console.log('No migration needed - already completed or no keys found');
+      console.log(
+        `Migration ${this.version}: No migration needed - already completed or no keys found`,
+      );
     }
 
     return result;
@@ -128,20 +153,14 @@ export class StorageMigration {
    * Force re-run migration (clears migration flag first)
    */
   public async forceMigrate(): Promise<MigrationResult> {
-    try {
-      this.localStorage.removeItem(MIGRATION_FLAG_KEY);
-    } catch (error) {
-      console.warn('Failed to clear migration flag:', error);
+    if (this.localStorage) {
+      try {
+        this.localStorage.removeItem(MIGRATION_FLAG_KEY);
+      } catch (error) {
+        console.warn(`Failed to clear migration flag for ${this.version}:`, error);
+      }
     }
-    
+
     return this.migrate();
   }
-}
-
-/**
- * Convenience function to run migration
- */
-export async function migrateStorageToCache(): Promise<MigrationResult> {
-  const migration = new StorageMigration();
-  return migration.migrate();
 }

@@ -18,8 +18,8 @@ import {
   ServingStoreUpdateStrategy,
 } from './isolatable-hybrid.store';
 import { LocalStorageEngine } from './local-storage-engine';
+import { MigrationManager } from './migrations';
 import { OVERRIDES_KEY } from './storage-key-constants';
-import { StorageMigration } from './storage-migration';
 import { StringValuedAsyncStore } from './string-valued.store';
 import { WebCacheStorageEngine } from './web-cache-storage-engine';
 
@@ -82,12 +82,10 @@ export function configurationStorageFactory(
     // Web Cache API is available and preferred for better storage limits
     // Run migration from localStorage to Cache API only if localStorage exists
     if (windowLocalStorage) {
-      const migration = new StorageMigration(windowLocalStorage);
-      if (!migration.isMigrationCompleted()) {
-        migration.migrate().catch((error) =>
-          console.warn('Storage migration failed:', error),
-        );
-      }
+      const migrationManager = new MigrationManager(windowLocalStorage);
+      migrationManager
+        .runPendingMigrations()
+        .catch((error) => console.warn('Storage migration failed:', error));
     }
 
     const webCacheEngine = new WebCacheStorageEngine(storageKeySuffix ?? '');
