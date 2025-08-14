@@ -49,16 +49,7 @@ export class LocalStorageEngine implements IStringStorageEngine {
   };
 
   public getMetaJsonString = async (): Promise<string | null> => {
-    const stored = this.localStorage.getItem(this.metaKey);
-    if (!stored) return null;
-
-    try {
-      return LZString.decompress(stored) || null;
-    } catch (e) {
-      console.warn('Failed to decompress meta, removing corrupted data');
-      this.localStorage.removeItem(this.metaKey);
-      return null;
-    }
+    return this.localStorage.getItem(this.metaKey);
   };
 
   public setContentsJsonString = async (configurationJsonString: string): Promise<void> => {
@@ -67,8 +58,7 @@ export class LocalStorageEngine implements IStringStorageEngine {
   };
 
   public setMetaJsonString = async (metaJsonString: string): Promise<void> => {
-    const compressed = LZString.compress(metaJsonString);
-    this.localStorage.setItem(this.metaKey, compressed);
+    this.localStorage.setItem(this.metaKey, metaJsonString);
   };
 
   private ensureCompressionMigration(): void {
@@ -78,10 +68,6 @@ export class LocalStorageEngine implements IStringStorageEngine {
       return; // Already migrated
     }
 
-    console.log(
-      `Running storage migration from v${globalMeta.version} to v${LocalStorageEngine.MIGRATION_VERSION}`,
-    );
-
     try {
       this.deleteAllConfigurations();
 
@@ -90,9 +76,8 @@ export class LocalStorageEngine implements IStringStorageEngine {
         version: LocalStorageEngine.MIGRATION_VERSION,
       });
 
-      console.log('Configuration cleanup completed - fresh configs will be compressed');
     } catch (e) {
-      console.warn('Migration failed:', e);
+      // Migration failed, continue silently
     }
   }
 
@@ -112,7 +97,7 @@ export class LocalStorageEngine implements IStringStorageEngine {
       this.localStorage.removeItem(key);
     });
 
-    console.log(`Deleted ${keysToDelete.length} old configuration keys.`);
+    // Deleted old configuration keys for compression migration
   }
 
   private getGlobalMeta(): EppoGlobalMeta {
@@ -122,7 +107,7 @@ export class LocalStorageEngine implements IStringStorageEngine {
         return JSON.parse(stored);
       }
     } catch (e) {
-      console.warn('Failed to parse global meta:', e);
+      // Failed to parse global meta, will use default
     }
 
     return { version: 0 }; // Default to version 0

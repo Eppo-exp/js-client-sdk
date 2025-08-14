@@ -178,21 +178,21 @@ describe('LocalStorageEngine Compression Migration', () => {
       consoleSpy.mockRestore();
     });
 
-    it('should compress and decompress meta data', async () => {
+    it('should store and retrieve meta data without compression', async () => {
       const metaData = JSON.stringify({ lastUpdated: Date.now() });
 
       await engine.setMetaJsonString(metaData);
 
+      // Meta data should be stored uncompressed
       expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
         'eppo-configuration-meta-test',
-        LZString.compress(metaData),
+        metaData,
       );
 
       // Test reading back
-      const compressedMeta = LZString.compress(metaData);
       (mockLocalStorage.getItem as jest.Mock).mockImplementation((key) => {
         if (key === 'eppo-meta') return JSON.stringify({ version: 1, migratedAt: Date.now() });
-        if (key === 'eppo-configuration-meta-test') return compressedMeta;
+        if (key === 'eppo-configuration-meta-test') return metaData;
         return null;
       });
 
