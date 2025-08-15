@@ -75,6 +75,44 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
+[configFetchedAt?](./js-client-sdk.iclientconfigsync.configfetchedat.md)
+
+
+</td><td>
+
+
+</td><td>
+
+string
+
+
+</td><td>
+
+_(Optional)_
+
+
+</td></tr>
+<tr><td>
+
+[configPublishedAt?](./js-client-sdk.iclientconfigsync.configpublishedat.md)
+
+
+</td><td>
+
+
+</td><td>
+
+string
+
+
+</td><td>
+
+_(Optional)_
+
+
+</td></tr>
+<tr><td>
+
 [enableOverrides?](./js-client-sdk.iclientconfigsync.enableoverrides.md)
 
 

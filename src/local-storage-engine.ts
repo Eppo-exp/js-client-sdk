@@ -29,10 +29,44 @@ export class LocalStorageEngine implements IStringStorageEngine {
   };
 
   public setContentsJsonString = async (configurationJsonString: string): Promise<void> => {
-    this.localStorage.setItem(this.contentsKey, configurationJsonString);
+    try {
+      this.localStorage.setItem(this.contentsKey, configurationJsonString);
+    } catch (error) {
+      if (error instanceof DOMException) {
+        // Check for quota exceeded error
+        if (error.code === DOMException.QUOTA_EXCEEDED_ERR || error.name === 'QuotaExceededError') {
+          this.clearEppoConfigurationKeys();
+          // Retry setting the item after clearing
+          try {
+            this.localStorage.setItem(this.contentsKey, configurationJsonString);
+            return;
+          } catch {
+            // If retry fails, silently ignore; we've done what we can.
+            return;
+          }
+        }
+      }
+    }
   };
 
   public setMetaJsonString = async (metaJsonString: string): Promise<void> => {
     this.localStorage.setItem(this.metaKey, metaJsonString);
   };
+
+  private clearEppoConfigurationKeys(): void {
+    const keysToDelete: string[] = [];
+
+    // Collect all keys that start with 'eppo-configuration'
+    for (let i = 0; i < this.localStorage.length; i++) {
+      const key = this.localStorage.key(i);
+      if (key && key.startsWith('eppo-configuration')) {
+        keysToDelete.push(key);
+      }
+    }
+
+    // Delete collected keys
+    keysToDelete.forEach((key) => {
+      this.localStorage.removeItem(key);
+    });
+  }
 }
