@@ -16,7 +16,7 @@ describe('LocalStorageEngine', () => {
       key: jest.fn(),
       removeItem: jest.fn(),
       setItem: jest.fn(),
-    } as any;
+    } as Storage & { _length: number };
     engine = new LocalStorageEngine(mockLocalStorage, 'test');
   });
 
@@ -35,7 +35,7 @@ describe('LocalStorageEngine', () => {
       Object.defineProperty(quotaError, 'code', { value: DOMException.QUOTA_EXCEEDED_ERR });
 
       // Mock localStorage to have some eppo-configuration keys
-      (mockLocalStorage as any)._length = 3;
+      (mockLocalStorage as Storage & { _length: number })._length = 3;
       (mockLocalStorage.key as jest.Mock)
         .mockReturnValueOnce('eppo-configuration-old')
         .mockReturnValueOnce('other-key')
@@ -67,7 +67,7 @@ describe('LocalStorageEngine', () => {
       const quotaError = new DOMException('Quota exceeded', 'QuotaExceededError');
       Object.defineProperty(quotaError, 'code', { value: DOMException.QUOTA_EXCEEDED_ERR });
 
-      (mockLocalStorage as any)._length = 1;
+      (mockLocalStorage as Storage & { _length: number })._length = 1;
       (mockLocalStorage.key as jest.Mock).mockReturnValue('eppo-configuration-old');
 
       // Both calls fail with quota error
@@ -76,7 +76,9 @@ describe('LocalStorageEngine', () => {
       });
 
       // Should throw StorageFullUnableToWrite
-      await expect(engine.setContentsJsonString('test-config')).rejects.toThrow(StorageFullUnableToWrite);
+      await expect(engine.setContentsJsonString('test-config')).rejects.toThrow(
+        StorageFullUnableToWrite,
+      );
 
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('eppo-configuration-old');
       expect(mockLocalStorage.setItem).toHaveBeenCalledTimes(2);
@@ -86,7 +88,7 @@ describe('LocalStorageEngine', () => {
       const quotaError = new DOMException('Quota exceeded');
       Object.defineProperty(quotaError, 'name', { value: 'QuotaExceededError' });
 
-      (mockLocalStorage as any)._length = 1;
+      (mockLocalStorage as Storage & { _length: number })._length = 1;
       (mockLocalStorage.key as jest.Mock).mockReturnValue('eppo-configuration-test-key');
 
       (mockLocalStorage.setItem as jest.Mock)
@@ -109,7 +111,7 @@ describe('LocalStorageEngine', () => {
       });
 
       // Should throw LocalStorageUnknownFailure for non-quota errors with original error preserved
-      const error = await engine.setContentsJsonString('test-config').catch(e => e);
+      const error = await engine.setContentsJsonString('test-config').catch((e) => e);
       expect(error).toBeInstanceOf(LocalStorageUnknownFailure);
       expect(error.message).toContain('Security error');
       expect(error.originalError).toBeTruthy();
@@ -125,7 +127,7 @@ describe('LocalStorageEngine', () => {
       const quotaError = new DOMException('Quota exceeded', 'QuotaExceededError');
       Object.defineProperty(quotaError, 'code', { value: DOMException.QUOTA_EXCEEDED_ERR });
 
-      (mockLocalStorage as any)._length = 5;
+      (mockLocalStorage as Storage & { _length: number })._length = 5;
       (mockLocalStorage.key as jest.Mock)
         .mockReturnValueOnce('eppo-configuration')
         .mockReturnValueOnce('eppo-configuration-meta')
