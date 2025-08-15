@@ -84,7 +84,7 @@ export class LocalStorageEngine implements IStringStorageEngine {
     // Collect all keys that start with 'eppo-configuration'
     for (let i = 0; i < this.localStorage.length; i++) {
       const key = this.localStorage.key(i);
-      if (key && key.startsWith(CONFIGURATION_KEY)) {
+      if (key?.startsWith(CONFIGURATION_KEY)) {
         keysToDelete.push(key);
       }
     }
