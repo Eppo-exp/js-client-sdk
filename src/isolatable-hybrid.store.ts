@@ -1,4 +1,9 @@
-import { HybridConfigurationStore, IAsyncStore, ISyncStore } from '@eppo/js-client-sdk-common';
+import {
+  applicationLogger,
+  HybridConfigurationStore,
+  IAsyncStore,
+  ISyncStore,
+} from '@eppo/js-client-sdk-common';
 
 export type ServingStoreUpdateStrategy = 'always' | 'expired' | 'empty';
 
@@ -25,7 +30,7 @@ export class IsolatableHybridConfigurationStore<T> extends HybridConfigurationSt
         // always update persistent store
         await this.persistentStore.setEntries(entries);
       } catch (e) {
-        console.warn(`Failed to setEntries on persistent store: ${e}`);
+        applicationLogger.warn(`Failed to setEntries on persistent store: ${e}`);
       }
     }
 
