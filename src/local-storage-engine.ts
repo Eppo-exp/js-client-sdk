@@ -1,5 +1,9 @@
 import { CONFIGURATION_KEY, META_KEY } from './storage-key-constants';
-import { IStringStorageEngine } from './string-valued.store';
+import {
+  IStringStorageEngine,
+  StorageFullUnableToWrite,
+  LocalStorageUnknownFailure,
+} from './string-valued.store';
 
 /**
  * Local storage implementation of a string-valued store for storing a configuration and its metadata.
@@ -28,38 +32,59 @@ export class LocalStorageEngine implements IStringStorageEngine {
     return this.localStorage.getItem(this.metaKey);
   };
 
+  /**
+   * @throws StorageFullUnableToWrite
+   * @throws LocalStorageUnknownFailure
+   */
   public setContentsJsonString = async (configurationJsonString: string): Promise<void> => {
+    this.safeWrite(this.contentsKey, configurationJsonString);
+  };
+
+  /**
+   * @throws StorageFullUnableToWrite
+   * @throws LocalStorageUnknownFailure
+   */
+  public setMetaJsonString = async (metaJsonString: string): Promise<void> => {
+    this.safeWrite(this.metaKey, metaJsonString);
+  };
+
+  /**
+   * @throws StorageFullUnableToWrite
+   * @throws LocalStorageUnknownFailure
+   */
+  private safeWrite(key: string, value: string): void {
     try {
-      this.localStorage.setItem(this.contentsKey, configurationJsonString);
+      this.localStorage.setItem(key, value);
     } catch (error) {
       if (error instanceof DOMException) {
         // Check for quota exceeded error
         if (error.code === DOMException.QUOTA_EXCEEDED_ERR || error.name === 'QuotaExceededError') {
-          this.clearEppoConfigurationKeys();
+          this.clear();
           // Retry setting the item after clearing
           try {
-            this.localStorage.setItem(this.contentsKey, configurationJsonString);
+            this.localStorage.setItem(key, value);
             return;
           } catch {
-            // If retry fails, silently ignore; we've done what we can.
-            return;
+            throw new StorageFullUnableToWrite();
           }
         }
       }
+      // For any other error, wrap it in our custom exception
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new LocalStorageUnknownFailure(
+        `Failed to write to localStorage: ${errorMessage}`,
+        error instanceof Error ? error : (error as Error),
+      );
     }
-  };
+  }
 
-  public setMetaJsonString = async (metaJsonString: string): Promise<void> => {
-    this.localStorage.setItem(this.metaKey, metaJsonString);
-  };
-
-  private clearEppoConfigurationKeys(): void {
+  public clear(): void {
     const keysToDelete: string[] = [];
 
     // Collect all keys that start with 'eppo-configuration'
     for (let i = 0; i < this.localStorage.length; i++) {
       const key = this.localStorage.key(i);
-      if (key && key.startsWith('eppo-configuration')) {
+      if (key && key.startsWith(CONFIGURATION_KEY)) {
         keysToDelete.push(key);
       }
     }

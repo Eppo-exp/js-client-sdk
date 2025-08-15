@@ -1,4 +1,5 @@
 import { LocalStorageEngine } from './local-storage-engine';
+import { StorageFullUnableToWrite, LocalStorageUnknownFailure } from './string-valued.store';
 
 describe('LocalStorageEngine', () => {
   let mockLocalStorage: Storage;
@@ -62,7 +63,7 @@ describe('LocalStorageEngine', () => {
       );
     });
 
-    it('should handle retry failure silently', async () => {
+    it('should throw StorageFullUnableToWrite when retry fails', async () => {
       const quotaError = new DOMException('Quota exceeded', 'QuotaExceededError');
       Object.defineProperty(quotaError, 'code', { value: DOMException.QUOTA_EXCEEDED_ERR });
 
@@ -74,8 +75,8 @@ describe('LocalStorageEngine', () => {
         throw quotaError;
       });
 
-      // Should not throw
-      await expect(engine.setContentsJsonString('test-config')).resolves.toBeUndefined();
+      // Should throw StorageFullUnableToWrite
+      await expect(engine.setContentsJsonString('test-config')).rejects.toThrow(StorageFullUnableToWrite);
 
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('eppo-configuration-old');
       expect(mockLocalStorage.setItem).toHaveBeenCalledTimes(2);
@@ -100,15 +101,19 @@ describe('LocalStorageEngine', () => {
       expect(mockLocalStorage.setItem).toHaveBeenCalledTimes(2);
     });
 
-    it('should not handle non-quota errors', async () => {
+    it('should throw LocalStorageUnknownFailure for non-quota errors', async () => {
       const securityError = new DOMException('Security error', 'SecurityError');
 
       (mockLocalStorage.setItem as jest.Mock).mockImplementation(() => {
         throw securityError;
       });
 
-      // Should not clear keys for non-quota errors
-      await engine.setContentsJsonString('test-config');
+      // Should throw LocalStorageUnknownFailure for non-quota errors with original error preserved
+      const error = await engine.setContentsJsonString('test-config').catch(e => e);
+      expect(error).toBeInstanceOf(LocalStorageUnknownFailure);
+      expect(error.message).toContain('Security error');
+      expect(error.originalError).toBeTruthy();
+      expect(error.originalError.message).toBe('Security error');
 
       expect(mockLocalStorage.removeItem).not.toHaveBeenCalled();
       expect(mockLocalStorage.setItem).toHaveBeenCalledTimes(1);
