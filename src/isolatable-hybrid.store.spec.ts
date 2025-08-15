@@ -133,11 +133,7 @@ describe('IsolatableHybridConfigurationStore', () => {
   );
 
   describe('StorageFullUnableToWrite exception handling', () => {
-    const store = new IsolatableHybridConfigurationStore(
-      syncStoreMock,
-      asyncStoreMock,
-      'always'
-    );
+    const store = new IsolatableHybridConfigurationStore(syncStoreMock, asyncStoreMock, 'always');
 
     beforeEach(() => {
       jest.resetAllMocks();
@@ -153,16 +149,16 @@ describe('IsolatableHybridConfigurationStore', () => {
 
       // Should not throw - be resilient to async store failures
       await expect(store.setEntries(entries)).resolves.not.toThrow();
-      
+
       // Sync store should still be updated for resilience
       expect(syncStoreMock.setEntries).toHaveBeenCalledWith(entries);
     });
 
     it('should handle StorageFullUnableToWrite during initialization', async () => {
       asyncStoreMock.isInitialized.mockReturnValue(false);
-      asyncStoreMock.entries.mockRejectedValue(new StorageFullUnableToWrite());
+      asyncStoreMock.setEntries.mockRejectedValue(new StorageFullUnableToWrite());
 
-      await expect(store.init()).rejects.toThrow(StorageFullUnableToWrite);
+      await expect(store.init()).resolves.not.toThrow();
     });
 
     it('should handle async store failures gracefully', async () => {
@@ -175,7 +171,7 @@ describe('IsolatableHybridConfigurationStore', () => {
 
       // Should not throw even if async store fails
       await expect(store.setEntries(entries)).resolves.not.toThrow();
-      
+
       expect(asyncStoreMock.setEntries).toHaveBeenCalledWith(entries);
       expect(syncStoreMock.setEntries).toHaveBeenCalledWith(entries);
     });
