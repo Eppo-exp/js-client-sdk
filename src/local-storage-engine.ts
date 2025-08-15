@@ -59,9 +59,9 @@ export class LocalStorageEngine implements IStringStorageEngine {
       if (error instanceof DOMException) {
         // Check for quota exceeded error
         if (error.code === DOMException.QUOTA_EXCEEDED_ERR || error.name === 'QuotaExceededError') {
-          this.clear();
-          // Retry setting the item after clearing
           try {
+            this.clear();
+            // Retry setting the item after clearing
             this.localStorage.setItem(key, value);
             return;
           } catch {
