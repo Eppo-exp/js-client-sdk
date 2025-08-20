@@ -85,6 +85,7 @@ number
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 IAssignmentDetails&lt;number&gt;
