@@ -139,6 +139,7 @@ describe('LocalStorageEngine', () => {
         .mockImplementationOnce(() => {
           throw quotaError;
         })
+
         .mockImplementationOnce(jest.fn()); // Success on retry
 
       await engine.setContentsJsonString('test-config');
