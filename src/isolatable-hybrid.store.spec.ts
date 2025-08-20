@@ -2,6 +2,7 @@ import {
   IsolatableHybridConfigurationStore,
   ServingStoreUpdateStrategy,
 } from './isolatable-hybrid.store';
+import { StorageFullUnableToWrite } from './string-valued.store';
 
 describe('IsolatableHybridConfigurationStore', () => {
   const syncStoreMock = {
@@ -130,4 +131,49 @@ describe('IsolatableHybridConfigurationStore', () => {
       });
     },
   );
+
+  describe('StorageFullUnableToWrite exception handling', () => {
+    const store = new IsolatableHybridConfigurationStore(syncStoreMock, asyncStoreMock, 'always');
+
+    beforeEach(() => {
+      jest.resetAllMocks();
+    });
+
+    it('should continue operating even when async store fails with StorageFullUnableToWrite', async () => {
+      const entries = { key1: 'value1' };
+      asyncStoreMock.isInitialized.mockReturnValue(true);
+      asyncStoreMock.isExpired.mockReturnValue(true);
+      asyncStoreMock.setEntries.mockRejectedValue(new StorageFullUnableToWrite());
+      syncStoreMock.setEntries.mockResolvedValue(undefined);
+      syncStoreMock.getKeys.mockReturnValue([]);
+
+      // Should not throw - be resilient to async store failures
+      await expect(store.setEntries(entries)).resolves.not.toThrow();
+
+      // Sync store should still be updated for resilience
+      expect(syncStoreMock.setEntries).toHaveBeenCalledWith(entries);
+    });
+
+    it('should handle StorageFullUnableToWrite during initialization', async () => {
+      asyncStoreMock.isInitialized.mockReturnValue(false);
+      asyncStoreMock.setEntries.mockRejectedValue(new StorageFullUnableToWrite());
+
+      await expect(store.init()).resolves.not.toThrow();
+    });
+
+    it('should handle async store failures gracefully', async () => {
+      const entries = { key1: 'value1' };
+      asyncStoreMock.isInitialized.mockReturnValue(true);
+      asyncStoreMock.isExpired.mockReturnValue(true);
+      asyncStoreMock.setEntries.mockRejectedValue(new StorageFullUnableToWrite());
+      syncStoreMock.setEntries.mockResolvedValue(undefined);
+      syncStoreMock.getKeys.mockReturnValue([]);
+
+      // Should not throw even if async store fails
+      await expect(store.setEntries(entries)).resolves.not.toThrow();
+
+      expect(asyncStoreMock.setEntries).toHaveBeenCalledWith(entries);
+      expect(syncStoreMock.setEntries).toHaveBeenCalledWith(entries);
+    });
+  });
 });

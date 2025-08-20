@@ -1,5 +1,22 @@
 import { IAsyncStore } from '@eppo/js-client-sdk-common';
 
+export class StorageFullUnableToWrite extends Error {
+  constructor(message = 'Storage is full and unable to write.') {
+    super(message);
+    this.name = 'StorageFullUnableToWrite';
+  }
+}
+
+export class LocalStorageUnknownFailure extends Error {
+  constructor(
+    message = 'Local storage operation failed for unknown reason.',
+    public originalError?: Error,
+  ) {
+    super(message);
+    this.name = 'LocalStorageUnknownFailure';
+  }
+}
+
 /**
  * Interface for a string-based storage engine which stores string contents as well as metadata
  * about those contents (e.g., when it was last updated)
@@ -49,6 +66,10 @@ export class StringValuedAsyncStore<T> implements IAsyncStore<T> {
     return contentsJsonString ? JSON.parse(contentsJsonString) : {};
   }
 
+  /**
+   * @param entries
+   * @throws StorageFullUnableToWrite
+   */
   public async setEntries(entries: Record<string, T>): Promise<void> {
     // String-based storage takes a dictionary of key-value string pairs,
     // so we write the entire configuration and meta to a single location for each.

@@ -1,7 +1,11 @@
 import * as LZString from 'lz-string';
 
 import { CONFIGURATION_KEY, META_KEY } from './storage-key-constants';
-import { IStringStorageEngine } from './string-valued.store';
+import {
+  IStringStorageEngine,
+  StorageFullUnableToWrite,
+  LocalStorageUnknownFailure,
+} from './string-valued.store';
 
 interface EppoGlobalMeta {
   migratedAt?: number;
@@ -52,14 +56,52 @@ export class LocalStorageEngine implements IStringStorageEngine {
     return this.localStorage.getItem(this.metaKey);
   };
 
+  /**
+   * @throws StorageFullUnableToWrite
+   * @throws LocalStorageUnknownFailure
+   */
   public setContentsJsonString = async (configurationJsonString: string): Promise<void> => {
     const compressed = LZString.compressToBase64(configurationJsonString);
-    this.localStorage.setItem(this.contentsKey, compressed);
+    this.safeWrite(this.contentsKey, compressed);
   };
 
+  /**
+   * @throws StorageFullUnableToWrite
+   * @throws LocalStorageUnknownFailure
+   */
   public setMetaJsonString = async (metaJsonString: string): Promise<void> => {
-    this.localStorage.setItem(this.metaKey, metaJsonString);
+    this.safeWrite(this.metaKey, metaJsonString);
   };
+
+  /**
+   * @throws StorageFullUnableToWrite
+   * @throws LocalStorageUnknownFailure
+   */
+  private safeWrite(key: string, value: string): void {
+    try {
+      this.localStorage.setItem(key, value);
+    } catch (error) {
+      if (error instanceof DOMException) {
+        // Check for quota exceeded error
+        if (error.code === DOMException.QUOTA_EXCEEDED_ERR || error.name === 'QuotaExceededError') {
+          try {
+            this.clear();
+            // Retry setting the item after clearing
+            this.localStorage.setItem(key, value);
+            return;
+          } catch {
+            throw new StorageFullUnableToWrite();
+          }
+        }
+      }
+      // For any other error, wrap it in our custom exception
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new LocalStorageUnknownFailure(
+        `Failed to write to localStorage: ${errorMessage}`,
+        error instanceof Error ? error : (error as Error),
+      );
+    }
+  }
 
   private ensureCompressionMigration(): void {
     const globalMeta = this.getGlobalMeta();
@@ -114,5 +156,22 @@ export class LocalStorageEngine implements IStringStorageEngine {
 
   private setGlobalMeta(meta: EppoGlobalMeta): void {
     this.localStorage.setItem(LocalStorageEngine.GLOBAL_META_KEY, JSON.stringify(meta));
+  }
+
+  public clear(): void {
+    const keysToDelete: string[] = [];
+
+    // Collect all keys that start with 'eppo-configuration'
+    for (let i = 0; i < this.localStorage.length; i++) {
+      const key = this.localStorage.key(i);
+      if (key?.startsWith(CONFIGURATION_KEY)) {
+        keysToDelete.push(key);
+      }
+    }
+
+    // Delete collected keys
+    keysToDelete.forEach((key) => {
+      this.localStorage.removeItem(key);
+    });
   }
 }
