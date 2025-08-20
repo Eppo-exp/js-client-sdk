@@ -47,7 +47,6 @@ The API key to build the suffix from
 
 </td></tr>
 </tbody></table>
-
 **Returns:**
 
 string

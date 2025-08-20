@@ -71,7 +71,6 @@ Record&lt;string, AttributeType&gt;
 
 </td></tr>
 </tbody></table>
-
 **Returns:**
 
 T

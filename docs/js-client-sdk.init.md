@@ -47,7 +47,6 @@ client configuration
 
 </td></tr>
 </tbody></table>
-
 **Returns:**
 
 Promise&lt;[EppoJSClient](./js-client-sdk.eppojsclient.md)<!-- -->&gt;

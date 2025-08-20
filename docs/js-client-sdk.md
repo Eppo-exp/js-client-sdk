@@ -227,4 +227,3 @@ This interface is used for cases where precomputed assignments are available fro
 
 </td></tr>
 </tbody></table>
-

@@ -85,7 +85,6 @@ boolean
 
 </td></tr>
 </tbody></table>
-
 **Returns:**
 
 IAssignmentDetails&lt;boolean&gt;

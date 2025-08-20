@@ -51,7 +51,6 @@ client configuration
 
 </td></tr>
 </tbody></table>
-
 **Returns:**
 
 EppoClient

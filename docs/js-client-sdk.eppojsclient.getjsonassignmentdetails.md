@@ -85,7 +85,6 @@ object
 
 </td></tr>
 </tbody></table>
-
 **Returns:**
 
 IAssignmentDetails&lt;object&gt;
