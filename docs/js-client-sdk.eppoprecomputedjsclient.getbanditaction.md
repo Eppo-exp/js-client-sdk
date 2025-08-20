@@ -57,6 +57,7 @@ string
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 Omit&lt;IAssignmentDetails&lt;string&gt;, 'evaluationDetails'&gt;
