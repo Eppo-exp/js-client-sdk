@@ -3,7 +3,11 @@
  */
 
 import { LocalStorageEngine } from './local-storage-engine';
-import { StringValuedAsyncStore, StorageFullUnableToWrite, LocalStorageUnknownFailure } from './string-valued.store';
+import {
+  StringValuedAsyncStore,
+  StorageFullUnableToWrite,
+  LocalStorageUnknownFailure,
+} from './string-valued.store';
 
 describe('LocalStorageStore', () => {
   // Note: window.localStorage is mocked for the node environment via the jsdom jest environment
@@ -101,55 +105,63 @@ describe('LocalStorageStore', () => {
   });
 
   describe('StorageFullUnableToWrite exception handling', () => {
-    let mockLocalStorage: Storage;
+    // We need to mock localStorage with a controllable length property for testing
+    // The Storage interface has a read-only 'length' property, so we extend it with
+    // a private '_length' property that we can modify in tests
+    let mockLocalStorage: Storage & { _length: number };
     let localStorageEngineWithMock: LocalStorageEngine;
 
     beforeEach(() => {
       mockLocalStorage = {
+        get length() {
+          return this._length || 0;
+        },
+        _length: 0,
         getItem: jest.fn(),
         setItem: jest.fn(),
         removeItem: jest.fn(),
         clear: jest.fn(),
-        length: 0,
         key: jest.fn(),
-      };
+      } as Storage & { _length: number };
       localStorageEngineWithMock = new LocalStorageEngine(mockLocalStorage, 'test');
     });
 
     it('should throw StorageFullUnableToWrite when setContentsJsonString fails after clear and retry', async () => {
       const quotaError = new DOMException('QuotaExceededError', 'QuotaExceededError');
       Object.defineProperty(quotaError, 'code', { value: DOMException.QUOTA_EXCEEDED_ERR });
-      
+
       (mockLocalStorage.setItem as jest.Mock).mockImplementation(() => {
         throw quotaError;
       });
       (mockLocalStorage.key as jest.Mock).mockReturnValue(null);
-      (mockLocalStorage.length as any) = 0;
+      // Simulate empty storage by setting length to 0
+      mockLocalStorage._length = 0;
 
-      await expect(
-        localStorageEngineWithMock.setContentsJsonString('test-config')
-      ).rejects.toThrow(StorageFullUnableToWrite);
+      await expect(localStorageEngineWithMock.setContentsJsonString('test-config')).rejects.toThrow(
+        StorageFullUnableToWrite,
+      );
     });
 
     it('should throw StorageFullUnableToWrite when setMetaJsonString fails after clear and retry', async () => {
       const quotaError = new DOMException('QuotaExceededError', 'QuotaExceededError');
       Object.defineProperty(quotaError, 'code', { value: DOMException.QUOTA_EXCEEDED_ERR });
-      
+
       (mockLocalStorage.setItem as jest.Mock).mockImplementation(() => {
         throw quotaError;
       });
       (mockLocalStorage.key as jest.Mock).mockReturnValue(null);
-      (mockLocalStorage.length as any) = 0;
+      // Simulate empty storage by setting length to 0
+      mockLocalStorage._length = 0;
 
-      await expect(
-        localStorageEngineWithMock.setMetaJsonString('test-meta')
-      ).rejects.toThrow(StorageFullUnableToWrite);
+      await expect(localStorageEngineWithMock.setMetaJsonString('test-meta')).rejects.toThrow(
+        StorageFullUnableToWrite,
+      );
     });
 
     it('should succeed after clearing when retry works', async () => {
       const quotaError = new DOMException('QuotaExceededError', 'QuotaExceededError');
       Object.defineProperty(quotaError, 'code', { value: DOMException.QUOTA_EXCEEDED_ERR });
-      
+
       let callCount = 0;
       (mockLocalStorage.setItem as jest.Mock).mockImplementation(() => {
         callCount++;
@@ -159,14 +171,16 @@ describe('LocalStorageStore', () => {
         // Second call succeeds
       });
       (mockLocalStorage.key as jest.Mock).mockReturnValue('eppo-configuration-old');
-      (mockLocalStorage.length as any) = 1;
+      // Simulate storage with one item by setting length to 1
+      mockLocalStorage._length = 1;
 
       await expect(
-        localStorageEngineWithMock.setContentsJsonString('test-config')
+        localStorageEngineWithMock.setContentsJsonString('test-config'),
       ).resolves.not.toThrow();
-      
+
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('eppo-configuration-old');
-      expect(mockLocalStorage.setItem).toHaveBeenCalledTimes(2);
+      // setItem is called 3 times: 1) migration during construction, 2) first attempt (fails), 3) retry after clearing (succeeds)
+      expect(mockLocalStorage.setItem).toHaveBeenCalledTimes(3);
     });
 
     it('should throw LocalStorageUnknownFailure for non-quota errors', async () => {
@@ -175,7 +189,9 @@ describe('LocalStorageStore', () => {
         throw otherError;
       });
 
-      const error = await localStorageEngineWithMock.setContentsJsonString('test-config').catch(e => e);
+      const error = await localStorageEngineWithMock
+        .setContentsJsonString('test-config')
+        .catch((e) => e);
       expect(error).toBeInstanceOf(LocalStorageUnknownFailure);
       expect(error.originalError).toBe(otherError);
       expect(error.message).toContain('Some other error');
