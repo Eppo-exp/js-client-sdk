@@ -111,7 +111,7 @@ export class LocalStorageEngine implements IStringStorageEngine {
     }
 
     try {
-      this.deleteAllConfigurations();
+      this.clear();
 
       this.setGlobalMeta({
         migratedAt: Date.now(),
@@ -120,25 +120,6 @@ export class LocalStorageEngine implements IStringStorageEngine {
     } catch (e) {
       // Migration failed, continue silently
     }
-  }
-
-  private deleteAllConfigurations(): void {
-    const keysToDelete: string[] = [];
-
-    // Find all eppo-configuration keys (both data and meta)
-    for (let i = 0; i < this.localStorage.length; i++) {
-      const key = this.localStorage.key(i);
-      if (key?.startsWith('eppo-configuration')) {
-        keysToDelete.push(key);
-      }
-    }
-
-    // Delete all at once
-    keysToDelete.forEach((key) => {
-      this.localStorage.removeItem(key);
-    });
-
-    // Deleted old configuration keys for compression migration
   }
 
   private getGlobalMeta(): EppoGlobalMeta {
