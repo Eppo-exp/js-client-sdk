@@ -44,8 +44,18 @@ export class LocalStorageEngine implements IStringStorageEngine {
     if (!stored) return null;
 
     try {
-      return LZString.decompressFromBase64(stored) || null;
+      const decompressed = LZString.decompressFromBase64(stored);
+      if (decompressed) {
+        console.log(
+          `[Eppo LocalStorage] Successfully decompressed configuration: ${stored.length} → ${decompressed.length} bytes`,
+        );
+      }
+      return decompressed || null;
     } catch (e) {
+      console.warn(
+        '[Eppo LocalStorage] Failed to decompress configuration, removing corrupted data:',
+        e,
+      );
       // Failed to decompress configuration, removing corrupted data
       this.localStorage.removeItem(this.contentsKey);
       return null;
@@ -61,7 +71,15 @@ export class LocalStorageEngine implements IStringStorageEngine {
    * @throws LocalStorageUnknownFailure
    */
   public setContentsJsonString = async (configurationJsonString: string): Promise<void> => {
+    const originalSize = configurationJsonString.length;
     const compressed = LZString.compressToBase64(configurationJsonString);
+    const compressedSize = compressed.length;
+    const compressionRatio = (((originalSize - compressedSize) / originalSize) * 100).toFixed(1);
+
+    console.log(
+      `[Eppo LocalStorage] Compressing configuration data: ${originalSize} → ${compressedSize} bytes (${compressionRatio}% reduction)`,
+    );
+
     this.safeWrite(this.contentsKey, compressed);
   };
 
@@ -84,18 +102,27 @@ export class LocalStorageEngine implements IStringStorageEngine {
       if (error instanceof DOMException) {
         // Check for quota exceeded error
         if (error.code === DOMException.QUOTA_EXCEEDED_ERR || error.name === 'QuotaExceededError') {
+          console.log('[Eppo LocalStorage] Quota exceeded, clearing old data and retrying...');
           try {
             this.clear();
+            console.log(
+              '[Eppo LocalStorage] Successfully cleared old data, retrying write operation',
+            );
             // Retry setting the item after clearing
             this.localStorage.setItem(key, value);
+            console.log('[Eppo LocalStorage] Write operation succeeded after clearing old data');
             return;
           } catch {
+            console.error(
+              '[Eppo LocalStorage] Write operation failed even after clearing old data',
+            );
             throw new StorageFullUnableToWrite();
           }
         }
       }
       // For any other error, wrap it in our custom exception
       const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('[Eppo LocalStorage] Non-quota error during write operation:', errorMessage);
       throw new LocalStorageUnknownFailure(
         `Failed to write to localStorage: ${errorMessage}`,
         error instanceof Error ? error : (error as Error),
@@ -107,17 +134,32 @@ export class LocalStorageEngine implements IStringStorageEngine {
     const globalMeta = this.getGlobalMeta();
 
     if (globalMeta.version >= LocalStorageEngine.MIGRATION_VERSION) {
+      console.log(
+        '[Eppo LocalStorage] Compression migration already completed (version:',
+        globalMeta.version,
+        ')',
+      );
       return; // Already migrated
     }
 
+    console.log(
+      '[Eppo LocalStorage] Starting compression migration from version',
+      globalMeta.version,
+      'to',
+      LocalStorageEngine.MIGRATION_VERSION,
+    );
+
     try {
       this.clear();
+      console.log('[Eppo LocalStorage] Cleared old uncompressed data for migration');
 
       this.setGlobalMeta({
         migratedAt: Date.now(),
         version: LocalStorageEngine.MIGRATION_VERSION,
       });
+      console.log('[Eppo LocalStorage] Compression migration completed successfully');
     } catch (e) {
+      console.warn('[Eppo LocalStorage] Compression migration failed, continuing silently:', e);
       // Migration failed, continue silently
     }
   }
@@ -148,6 +190,13 @@ export class LocalStorageEngine implements IStringStorageEngine {
       if (key?.startsWith(CONFIGURATION_KEY)) {
         keysToDelete.push(key);
       }
+    }
+
+    if (keysToDelete.length > 0) {
+      console.log(
+        `[Eppo LocalStorage] Clearing ${keysToDelete.length} old configuration keys:`,
+        keysToDelete,
+      );
     }
 
     // Delete collected keys
