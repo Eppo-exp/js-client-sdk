@@ -182,7 +182,8 @@ describe('LocalStorageStore', () => {
       ).resolves.not.toThrow();
 
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('eppo-configuration-old');
-      expect(mockLocalStorage.setItem).toHaveBeenCalledTimes(2);
+      // setItem is called 3 times: 1) migration during construction, 2) first attempt (fails), 3) retry after clearing (succeeds)
+      expect(mockLocalStorage.setItem).toHaveBeenCalledTimes(3);
     });
 
     it('should throw LocalStorageUnknownFailure for non-quota errors', async () => {
