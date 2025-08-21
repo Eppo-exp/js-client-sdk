@@ -113,9 +113,12 @@ describe('LocalStorageStore', () => {
 
     beforeEach(() => {
       mockLocalStorage = {
+        // Getter that returns the mockable length value
+        // This allows us to control the length for testing different scenarios
         get length() {
           return this._length || 0;
         },
+        // Private property that we can modify to simulate different storage states
         _length: 0,
         getItem: jest.fn(),
         setItem: jest.fn(),
