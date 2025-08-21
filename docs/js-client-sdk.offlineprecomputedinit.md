@@ -51,6 +51,7 @@ precomputed client configuration
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 EppoPrecomputedClient

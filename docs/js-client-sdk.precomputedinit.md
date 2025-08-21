@@ -47,6 +47,7 @@ client configuration
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 Promise&lt;EppoPrecomputedClient&gt;
