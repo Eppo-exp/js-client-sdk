@@ -139,7 +139,7 @@ describe('LocalStorageEngine', () => {
     });
   });
 
-  describe('Key Clearing', () => {
+  describe('clearEppoConfigurationKeys', () => {
     it('should only remove keys starting with eppo-configuration', async () => {
       const quotaError = new DOMException('Quota exceeded', 'QuotaExceededError');
       Object.defineProperty(quotaError, 'code', { value: DOMException.QUOTA_EXCEEDED_ERR });
