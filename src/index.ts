@@ -49,6 +49,12 @@ import { IClientConfig, IPrecomputedClientConfig } from './i-client-config';
 import { sdkName, sdkVersion } from './sdk-data';
 
 /**
+ * Valid log levels for the Eppo SDK logger.
+ * @public
+ */
+export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent';
+
+/**
  * Configuration interface for synchronous client initialization.
  * @public
  */
@@ -1003,6 +1009,25 @@ function shutdownEppoPrecomputedClient() {
  */
 export function getPrecomputedInstance(): EppoPrecomputedClient {
   return EppoPrecomputedJSClient.instance;
+}
+
+/**
+ * Sets the log level for the Eppo SDK logger globally.
+ * This affects all logging across the entire SDK, including both
+ * EppoJSClient and EppoPrecomputedJSClient instances.
+ *
+ * @param level - The log level to set:
+ *   - 'trace': Most verbose, logs everything
+ *   - 'debug': Detailed debugging information
+ *   - 'info': General informational messages
+ *   - 'warn': Warning messages (default in production)
+ *   - 'error': Error messages only
+ *   - 'silent': Disable all logging
+ *
+ * @public
+ */
+export function setLogLevel(level: LogLevel): void {
+  applicationLogger.level = level;
 }
 
 function newEventDispatcher(

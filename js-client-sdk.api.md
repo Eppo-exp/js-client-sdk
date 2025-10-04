@@ -216,6 +216,9 @@ export interface IPrecomputedClientConfigSync {
     throwOnFailedInitialization?: boolean;
 }
 
+// @public
+export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent';
+
 // Warning: (ae-internal-missing-underscore) The name "NO_OP_EVENT_DISPATCHER" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
@@ -231,6 +234,9 @@ export function offlinePrecomputedInit(config: IPrecomputedClientConfigSync): Ep
 
 // @public
 export function precomputedInit(config: IPrecomputedClientConfig): Promise<EppoPrecomputedClient>;
+
+// @public
+export function setLogLevel(level: LogLevel): void;
 
 // (No @packageDocumentation comment for this package)
 
