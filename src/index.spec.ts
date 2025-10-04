@@ -1679,9 +1679,15 @@ describe('EppoClient config', () => {
     });
 
     expect(client).toBe(EppoPrecomputedJSClient.instance);
-    td.verify(applicationLogger.error('[Eppo SDK] Invalid precomputed configuration wire'), {
-      times: 1,
-    });
+    td.verify(
+      applicationLogger.error(
+        td.matchers.contains({ err: td.matchers.anything() }),
+        '[Eppo SDK] Invalid precomputed configuration wire',
+      ),
+      {
+        times: 1,
+      },
+    );
   });
 });
 
