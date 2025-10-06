@@ -402,8 +402,10 @@
   dependencies:
     tslib "^2.4.0"
 
-"@eppo/js-client-sdk-common@/tmp/packages/js-sdk-common":
+"@eppo/js-client-sdk-common@4.15.3":
   version "4.15.3"
+  resolved "https://registry.yarnpkg.com/@eppo/js-client-sdk-common/-/js-client-sdk-common-4.15.3.tgz#70fa31a240b5b482d3f0d654b16ec946525c26d2"
+  integrity sha512-boO/HetQAN5Qi+MAEzCetNteb+h5J4iC4qUcijaqlxLtWx2hUpAcAgRgUEQ4OpRtXSg3HjIgZWJzmhMj+zyYgg==
   dependencies:
     buffer "npm:@eppo/buffer@6.2.0"
     js-base64 "^3.7.7"
