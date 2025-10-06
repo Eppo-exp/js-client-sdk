@@ -165,6 +165,17 @@ Initializes the Eppo precomputed client with configuration parameters. This meth
 
 
 </td></tr>
+<tr><td>
+
+[setLogLevel(level)](./js-client-sdk.setloglevel.md)
+
+
+</td><td>
+
+Sets the log level for the Eppo SDK logger globally. This affects all logging across the entire SDK, including both EppoJSClient and EppoPrecomputedJSClient instances.
+
+
+</td></tr>
 </tbody></table>
 
 ## Interfaces
@@ -223,6 +234,32 @@ Configuration for Eppo precomputed client initialization
 Configuration parameters for initializing the Eppo precomputed client.
 
 This interface is used for cases where precomputed assignments are available from an external process that can bootstrap the SDK client.
+
+
+</td></tr>
+</tbody></table>
+
+## Type Aliases
+
+<table><thead><tr><th>
+
+Type Alias
+
+
+</th><th>
+
+Description
+
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[LogLevel](./js-client-sdk.loglevel.md)
+
+
+</td><td>
+
+Valid log levels for the Eppo SDK logger.
 
 
 </td></tr>

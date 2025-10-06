@@ -29,8 +29,8 @@ export class IsolatableHybridConfigurationStore<T> extends HybridConfigurationSt
       try {
         // always update persistent store
         await this.persistentStore.setEntries(entries);
-      } catch (e) {
-        applicationLogger.warn(`Failed to setEntries on persistent store: ${e}`);
+      } catch (err) {
+        applicationLogger.warn({ err }, `Failed to setEntries on persistent store`);
       }
     }
 

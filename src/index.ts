@@ -49,6 +49,12 @@ import { IClientConfig, IPrecomputedClientConfig } from './i-client-config';
 import { sdkName, sdkVersion } from './sdk-data';
 
 /**
+ * Valid log levels for the Eppo SDK logger.
+ * @public
+ */
+export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent';
+
+/**
  * Configuration interface for synchronous client initialization.
  * @public
  */
@@ -424,12 +430,12 @@ export class EppoJSClient extends EppoClient {
 
           return ConfigLoaderStatus.COMPLETED;
         })
-        .catch((e) => {
+        .catch((err) => {
           applicationLogger.warn(
+            { err },
             'Eppo SDK encountered an error initializing from the configuration store',
-            e,
           );
-          initFromConfigStoreError = e;
+          initFromConfigStoreError = err;
           return ConfigLoaderStatus.FAILED;
         })
         .then((status) => {
@@ -457,10 +463,13 @@ export class EppoJSClient extends EppoClient {
             return ConfigLoaderStatus.DID_NOT_PRODUCE;
           }
         })
-        .catch((e) => {
-          applicationLogger.warn('Eppo SDK encountered an error initializing from fetching', e);
+        .catch((err) => {
+          applicationLogger.warn(
+            { err },
+            'Eppo SDK encountered an error initializing from fetching',
+          );
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          initFromFetchError = e;
+          initFromFetchError = err;
           return ConfigLoaderStatus.FAILED;
         })
         .then((status) => {
@@ -501,7 +510,7 @@ export class EppoJSClient extends EppoClient {
             ? initFromConfigStoreError
             : new Error('Eppo SDK: No configuration source produced a valid configuration');
       }
-      applicationLogger.debug('Initialization source', initializationSource);
+      applicationLogger.debug(`Initialization source: ${initializationSource}`);
     } catch (error: unknown) {
       initializationError = error instanceof Error ? error : new Error(String(error));
     }
@@ -544,7 +553,10 @@ export class EppoJSClient extends EppoClient {
       memoryOnlyConfigurationStore
         .setEntries(config.flagsConfiguration)
         .catch((err) =>
-          applicationLogger.warn('Error setting flags for memory-only configuration store', err),
+          applicationLogger.warn(
+            { err },
+            'Error setting flags for memory-only configuration store',
+          ),
         );
       this.setFlagConfigurationStore(memoryOnlyConfigurationStore);
 
@@ -591,12 +603,13 @@ export class EppoJSClient extends EppoClient {
         forceMemoryOnly: true,
       });
       this.useCustomAssignmentCache(assignmentCache);
-    } catch (error) {
+    } catch (err) {
       applicationLogger.warn(
+        { err },
         'Eppo SDK encountered an error initializing, assignment calls will return the default value and not be logged',
       );
       if (throwOnFailedInitialization) {
-        throw error;
+        throw err;
       }
     }
 
@@ -893,12 +906,12 @@ export function offlinePrecomputedInit(
   try {
     configurationWire = JSON.parse(config.precomputedConfiguration);
     if (!configurationWire.precomputed) throw new Error();
-  } catch (error) {
+  } catch (err) {
     const errorMessage = 'Invalid precomputed configuration wire';
     if (throwOnFailedInitialization) {
       throw new Error(errorMessage);
     }
-    applicationLogger.error(`[Eppo SDK] ${errorMessage}`);
+    applicationLogger.error({ err }, `[Eppo SDK] ${errorMessage}`);
     return EppoPrecomputedJSClient.instance;
   }
   const { subjectKey, subjectAttributes, response } = configurationWire.precomputed;
@@ -909,7 +922,10 @@ export function offlinePrecomputedInit(
     memoryOnlyPrecomputedStore
       .setEntries(parsedResponse.flags)
       .catch((err) =>
-        applicationLogger.warn('Error setting precomputed assignments for memory-only store', err),
+        applicationLogger.warn(
+          { err },
+          'Error setting precomputed assignments for memory-only store',
+        ),
       );
     memoryOnlyPrecomputedStore.salt = parsedResponse.salt;
 
@@ -917,7 +933,7 @@ export function offlinePrecomputedInit(
     memoryOnlyPrecomputedBanditStore
       .setEntries(parsedResponse.bandits)
       .catch((err) =>
-        applicationLogger.warn('Error setting precomputed bandits for memory-only store', err),
+        applicationLogger.warn({ err }, 'Error setting precomputed bandits for memory-only store'),
       );
     memoryOnlyPrecomputedBanditStore.salt = parsedResponse.salt;
 
@@ -963,12 +979,13 @@ export function offlinePrecomputedInit(
       EppoPrecomputedJSClient.instance.setBanditLogger(config.banditLogger);
     }
     EppoPrecomputedJSClient.instance.useCustomAssignmentCache(assignmentCache);
-  } catch (error) {
+  } catch (err) {
     applicationLogger.warn(
+      { err },
       '[Eppo SDK] Encountered an error initializing precomputed client, assignment calls will return the default value and not be logged',
     );
     if (throwOnFailedInitialization) {
-      throw error;
+      throw err;
     }
   }
 
@@ -992,6 +1009,25 @@ function shutdownEppoPrecomputedClient() {
  */
 export function getPrecomputedInstance(): EppoPrecomputedClient {
   return EppoPrecomputedJSClient.instance;
+}
+
+/**
+ * Sets the log level for the Eppo SDK logger globally.
+ * This affects all logging across the entire SDK, including both
+ * EppoJSClient and EppoPrecomputedJSClient instances.
+ *
+ * @param level - The log level to set:
+ *   - 'trace': Most verbose, logs everything
+ *   - 'debug': Detailed debugging information
+ *   - 'info': General informational messages
+ *   - 'warn': Warning messages (default in production)
+ *   - 'error': Error messages only
+ *   - 'silent': Disable all logging
+ *
+ * @public
+ */
+export function setLogLevel(level: LogLevel): void {
+  applicationLogger.level = level;
 }
 
 function newEventDispatcher(
