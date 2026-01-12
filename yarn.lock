@@ -1045,10 +1045,10 @@
   dependencies:
     "@babel/types" "^7.3.0"
 
-"@types/chrome@^0.0.313":
-  version "0.0.313"
-  resolved "https://registry.yarnpkg.com/@types/chrome/-/chrome-0.0.313.tgz#86487f51072c181a12495ae3e63a6701ade1a296"
-  integrity sha512-9R5T7gTaYZhkxlu+Ho4wk9FL+y/werWQY2yjGWSqCuiTsqS7nL/BE5UMTP6rU7J+oIG2FRKqrEycHhJATeltVA==
+"@types/chrome@^0.1.33":
+  version "0.1.33"
+  resolved "https://registry.yarnpkg.com/@types/chrome/-/chrome-0.1.33.tgz#951b6b00ba25b8378601ec4d682c48b9e15f610a"
+  integrity sha512-hSwcseKjWilz8bq93kLyIfSTvFLypRbO5iRhSXdJyVFFMV9aeqIjisBI6P/0J5+FiIKMo2NejyhHXfQLN0c0tQ==
   dependencies:
     "@types/filesystem" "*"
     "@types/har-format" "*"
