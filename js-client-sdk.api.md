@@ -199,6 +199,7 @@ export interface IPrecomputedClientConfig extends IBaseRequestConfig {
     //
     // (undocumented)
     precompute: IPrecompute;
+    useIndexedDB?: boolean;
 }
 
 // @public

@@ -71,6 +71,10 @@ export class IndexedDBStorageEngine implements IStringStorageEngine {
         if (!db.objectStoreNames.contains(IndexedDBStorageEngine.META_STORE)) {
           db.createObjectStore(IndexedDBStorageEngine.META_STORE);
         }
+        // Create assignments store for assignment cache (if not already created)
+        if (!db.objectStoreNames.contains('assignments')) {
+          db.createObjectStore('assignments');
+        }
       };
     });
 

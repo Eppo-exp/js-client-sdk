@@ -376,6 +376,7 @@ export class EppoJSClient extends EppoClient {
       const assignmentCache = assignmentCacheFactory({
         chromeStorage: chromeStorageIfAvailable(),
         storageKeySuffix,
+        useIndexedDB: config.useIndexedDB,
       });
       if (assignmentCache instanceof HybridAssignmentCache) {
         await assignmentCache.init();
@@ -808,6 +809,7 @@ export async function precomputedInit(
   const assignmentCache = assignmentCacheFactory({
     chromeStorage: chromeStorageIfAvailable(),
     storageKeySuffix,
+    useIndexedDB: config.useIndexedDB,
   });
   if (assignmentCache instanceof HybridAssignmentCache) {
     await assignmentCache.init();

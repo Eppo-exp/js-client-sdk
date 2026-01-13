@@ -207,5 +207,24 @@ _(Optional)_ Whether initialization will be considered successfully complete if 
 
 
 </td></tr>
+<tr><td>
+
+[useIndexedDB?](./js-client-sdk.iclientconfig.useindexeddb.md)
+
+
+</td><td>
+
+
+</td><td>
+
+boolean
+
+
+</td><td>
+
+_(Optional)_ Use IndexedDB for storing flag configurations instead of localStorage. IndexedDB provides larger storage capacity (\~50MB+) compared to localStorage (\~5-10MB). (default: false)
+
+
+</td></tr>
 </tbody></table>
 
