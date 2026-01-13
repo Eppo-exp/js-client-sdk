@@ -189,4 +189,11 @@ export interface IClientConfig extends IBaseRequestConfig {
    * The key to use for the overrides store.
    */
   overridesStorageKey?: string;
+
+  /**
+   * Use IndexedDB for storing flag configurations instead of localStorage.
+   * IndexedDB provides larger storage capacity (~50MB+) compared to localStorage (~5-10MB).
+   * (default: false)
+   */
+  useIndexedDB?: boolean;
 }

@@ -37,6 +37,7 @@ import {
   chromeStorageIfAvailable,
   configurationStorageFactory,
   hasChromeStorage,
+  hasIndexedDB,
   hasWindowLocalStorage,
   localStorageIfAvailable,
   overrideStorageFactory,
@@ -337,6 +338,8 @@ export class EppoJSClient extends EppoClient {
           persistentStore,
           hasChromeStorage: hasChromeStorage(),
           hasWindowLocalStorage: hasWindowLocalStorage(),
+          hasIndexedDB: hasIndexedDB(),
+          useIndexedDB: config.useIndexedDB,
         },
         {
           chromeStorage: chromeStorageIfAvailable(),
