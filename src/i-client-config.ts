@@ -112,6 +112,15 @@ export interface IPrecomputedClientConfig extends IBaseRequestConfig {
    * The key to use for the overrides store.
    */
   overridesStorageKey?: string;
+
+  /**
+   * Use IndexedDB for storing flag configurations and assignment cache instead of localStorage.
+   * IndexedDB provides significantly larger storage capacity (gigabytes, browser-dependent)
+   * compared to localStorage (~5-10MB). Data is stored as native JavaScript objects using
+   * IndexedDB's structured clone algorithm for efficient storage and retrieval.
+   * (default: false)
+   */
+  useIndexedDB?: boolean;
 }
 
 /**
@@ -189,4 +198,13 @@ export interface IClientConfig extends IBaseRequestConfig {
    * The key to use for the overrides store.
    */
   overridesStorageKey?: string;
+
+  /**
+   * Use IndexedDB for storing flag configurations and assignment cache instead of localStorage.
+   * IndexedDB provides significantly larger storage capacity (gigabytes, browser-dependent)
+   * compared to localStorage (~5-10MB). Data is stored as native JavaScript objects using
+   * IndexedDB's structured clone algorithm for efficient storage and retrieval.
+   * (default: false)
+   */
+  useIndexedDB?: boolean;
 }
