@@ -100,26 +100,27 @@ describe('IndexedDBStorageEngine', () => {
     jest.clearAllMocks();
   });
 
-  describe('Native Object Storage', () => {
-    it('should store configuration as native object', async () => {
+  describe('JSON String Storage', () => {
+    it('should store configuration as JSON string', async () => {
       const testConfig = { flag1: { key: 'flag1', enabled: true }, flag2: { key: 'flag2', enabled: false } };
       const configJson = JSON.stringify(testConfig);
 
       await engine.setContentsJsonString(configJson);
 
-      // Verify the native object was stored (not a string)
+      // Verify the JSON string was stored directly
       const storedValue = storedData.get('eppo-configuration-test');
-      expect(storedValue).toEqual(testConfig);
-      expect(typeof storedValue).toBe('object');
+      expect(storedValue).toBe(configJson);
+      expect(typeof storedValue).toBe('string');
     });
 
-    it('should retrieve configuration and return as JSON string', async () => {
+    it('should retrieve configuration as JSON string', async () => {
       const testConfig = { flag1: { key: 'flag1', enabled: true } };
-      storedData.set('eppo-configuration-test', testConfig);
+      const configJson = JSON.stringify(testConfig);
+      storedData.set('eppo-configuration-test', configJson);
 
       const result = await engine.getContentsJsonString();
 
-      expect(result).toBe(JSON.stringify(testConfig));
+      expect(result).toBe(configJson);
     });
 
     it('should return null when no configuration exists', async () => {
@@ -146,7 +147,7 @@ describe('IndexedDBStorageEngine', () => {
       expect(JSON.parse(result!)).toEqual(testConfig);
     });
 
-    it('should handle complex nested configuration objects', async () => {
+    it('should handle complex nested configuration', async () => {
       const complexConfig = {
         flag1: {
           key: 'flag1',
@@ -169,6 +170,7 @@ describe('IndexedDBStorageEngine', () => {
       await engine.setContentsJsonString(configJson);
       const result = await engine.getContentsJsonString();
 
+      expect(result).toBe(configJson);
       expect(JSON.parse(result!)).toEqual(complexConfig);
     });
   });
@@ -192,17 +194,6 @@ describe('IndexedDBStorageEngine', () => {
   });
 
   describe('Error Handling', () => {
-    it('should handle corrupted data gracefully', async () => {
-      // Store something that will fail JSON.stringify
-      const circularObj: Record<string, unknown> = {};
-      circularObj.self = circularObj;
-      storedData.set('eppo-configuration-test', circularObj);
-
-      // Should return null and attempt to clear corrupted data
-      const result = await engine.getContentsJsonString();
-
-      expect(result).toBe(null);
-    });
 
     it('should throw StorageFullUnableToWrite on quota exceeded', async () => {
       const quotaError = new DOMException('Quota exceeded', 'QuotaExceededError');

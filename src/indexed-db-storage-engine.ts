@@ -11,12 +11,11 @@ import {
  * This provides an alternative to localStorage with significantly larger storage capacity
  * (gigabytes, browser-dependent, typically 10GB+) compared to localStorage's ~5-10MB limit.
  *
- * Configuration is stored as a native JavaScript object using IndexedDB's structured clone
- * algorithm, which is more efficient than JSON string storage. Chrome compresses IndexedDB
- * values natively at the storage layer.
+ * Configuration and metadata are stored as JSON strings, matching the IStringStorageEngine
+ * interface contract. Chrome compresses IndexedDB values natively at the storage layer.
  *
  * The database uses a simple key-value structure with two object stores:
- * - 'contents': stores configuration data as native objects
+ * - 'contents': stores configuration data as JSON strings
  * - 'meta': stores metadata about the configuration (e.g., lastUpdatedAtMs)
  */
 export class IndexedDBStorageEngine implements IStringStorageEngine {
@@ -170,19 +169,7 @@ export class IndexedDBStorageEngine implements IStringStorageEngine {
   }
 
   public async getContentsJsonString(): Promise<string | null> {
-    const stored = await this.get(IndexedDBStorageEngine.CONTENTS_STORE, this.contentsKey);
-    if (!stored) return null;
-
-    try {
-      // stored is already a native object, stringify for interface compatibility
-      return JSON.stringify(stored);
-    } catch (e) {
-      // Failed to serialize configuration, removing corrupted data
-      await this.set(IndexedDBStorageEngine.CONTENTS_STORE, this.contentsKey, null).catch(() => {
-        // Ignore errors when trying to clean up corrupted data
-      });
-      return null;
-    }
+    return this.get(IndexedDBStorageEngine.CONTENTS_STORE, this.contentsKey);
   }
 
   public async getMetaJsonString(): Promise<string | null> {
@@ -194,9 +181,7 @@ export class IndexedDBStorageEngine implements IStringStorageEngine {
    * @throws LocalStorageUnknownFailure
    */
   public async setContentsJsonString(configurationJsonString: string): Promise<void> {
-    // Parse JSON once, then store as native object for efficient retrieval
-    const config = JSON.parse(configurationJsonString);
-    await this.set(IndexedDBStorageEngine.CONTENTS_STORE, this.contentsKey, config);
+    await this.set(IndexedDBStorageEngine.CONTENTS_STORE, this.contentsKey, configurationJsonString);
   }
 
   /**
