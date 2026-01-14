@@ -1,5 +1,3 @@
-import * as LZString from 'lz-string';
-
 import { CONFIGURATION_KEY, META_KEY } from './storage-key-constants';
 import {
   IStringStorageEngine,
@@ -10,11 +8,15 @@ import {
 /**
  * IndexedDB implementation of a string-valued store for storing a configuration and its metadata.
  *
- * This provides an alternative to localStorage with larger storage capacity (~50MB+ vs ~5-10MB).
- * Like LocalStorageEngine, it compresses data using LZ-string before storage.
+ * This provides an alternative to localStorage with significantly larger storage capacity
+ * (gigabytes, browser-dependent, typically 10GB+) compared to localStorage's ~5-10MB limit.
+ *
+ * Configuration is stored as a native JavaScript object using IndexedDB's structured clone
+ * algorithm, which is more efficient than JSON string storage. Chrome compresses IndexedDB
+ * values natively at the storage layer.
  *
  * The database uses a simple key-value structure with two object stores:
- * - 'contents': stores compressed configuration data
+ * - 'contents': stores configuration data as native objects
  * - 'meta': stores metadata about the configuration (e.g., lastUpdatedAtMs)
  */
 export class IndexedDBStorageEngine implements IStringStorageEngine {
@@ -83,15 +85,18 @@ export class IndexedDBStorageEngine implements IStringStorageEngine {
 
   /**
    * Get a value from an object store by key.
+   * Returns native objects directly from IndexedDB (no parsing needed).
    */
-  private async get(storeName: string, key: string): Promise<string | null> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private async get(storeName: string, key: string): Promise<any | null> {
     try {
       const db = await this.initDB();
       const transaction = db.transaction([storeName], 'readonly');
       const store = transaction.objectStore(storeName);
       const request = store.get(key);
 
-      return new Promise<string | null>((resolve, reject) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return new Promise<any | null>((resolve, reject) => {
         request.onsuccess = () => {
           resolve(request.result ?? null);
         };
@@ -118,10 +123,12 @@ export class IndexedDBStorageEngine implements IStringStorageEngine {
 
   /**
    * Set a value in an object store by key.
+   * Stores native objects directly in IndexedDB using structured clone algorithm.
    * @throws StorageFullUnableToWrite when quota is exceeded
    * @throws LocalStorageUnknownFailure for other errors
    */
-  private async set(storeName: string, key: string, value: string): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private async set(storeName: string, key: string, value: any): Promise<void> {
     try {
       const db = await this.initDB();
       const transaction = db.transaction([storeName], 'readwrite');
@@ -167,10 +174,11 @@ export class IndexedDBStorageEngine implements IStringStorageEngine {
     if (!stored) return null;
 
     try {
-      return LZString.decompressFromBase64(stored) || null;
+      // stored is already a native object, stringify for interface compatibility
+      return JSON.stringify(stored);
     } catch (e) {
-      // Failed to decompress configuration, removing corrupted data
-      await this.set(IndexedDBStorageEngine.CONTENTS_STORE, this.contentsKey, '').catch(() => {
+      // Failed to serialize configuration, removing corrupted data
+      await this.set(IndexedDBStorageEngine.CONTENTS_STORE, this.contentsKey, null).catch(() => {
         // Ignore errors when trying to clean up corrupted data
       });
       return null;
@@ -186,8 +194,9 @@ export class IndexedDBStorageEngine implements IStringStorageEngine {
    * @throws LocalStorageUnknownFailure
    */
   public async setContentsJsonString(configurationJsonString: string): Promise<void> {
-    const compressed = LZString.compressToBase64(configurationJsonString);
-    await this.set(IndexedDBStorageEngine.CONTENTS_STORE, this.contentsKey, compressed);
+    // Parse JSON once, then store as native object for efficient retrieval
+    const config = JSON.parse(configurationJsonString);
+    await this.set(IndexedDBStorageEngine.CONTENTS_STORE, this.contentsKey, config);
   }
 
   /**

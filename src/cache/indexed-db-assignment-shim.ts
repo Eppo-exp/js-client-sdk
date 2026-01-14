@@ -1,9 +1,12 @@
 /**
  * IndexedDB-backed Map implementation for assignment cache.
  *
- * Stores the entire assignment cache as a single blob in IndexedDB for efficiency.
- * This provides better storage capacity (~50MB+) compared to localStorage (~5-10MB)
- * and better performance for large datasets through async operations.
+ * Stores the assignment cache as a native JavaScript array in IndexedDB using the
+ * structured clone algorithm. This provides significantly larger storage capacity
+ * (gigabytes, browser-dependent, typically 10GB+) compared to localStorage's ~5-10MB limit.
+ *
+ * Chrome compresses IndexedDB values natively at the storage layer. The cache is loaded
+ * into memory at initialization for fast synchronous access during flag evaluations.
  */
 export class IndexedDBAssignmentShim implements Map<string, string> {
   private static readonly DB_NAME = 'eppo-sdk-storage';
@@ -104,8 +107,8 @@ export class IndexedDBAssignmentShim implements Map<string, string> {
   }
 
   /**
-   * Persist the cache to IndexedDB as a blob.
-   * Stores the Map as a JSON-serialized array of entries.
+   * Persist the cache to IndexedDB.
+   * Stores the Map as a native array of entries using IndexedDB's structured clone algorithm.
    */
   private async setCache(cache: Map<string, string>): Promise<void> {
     this.cache = cache;
@@ -115,7 +118,7 @@ export class IndexedDBAssignmentShim implements Map<string, string> {
       const transaction = db.transaction([IndexedDBAssignmentShim.ASSIGNMENTS_STORE], 'readwrite');
       const store = transaction.objectStore(IndexedDBAssignmentShim.ASSIGNMENTS_STORE);
 
-      // Serialize the Map as an array of entries for efficient blob storage
+      // Store the Map as a native array of entries
       const data = Array.from(cache.entries());
       const request = store.put(data, this.assignmentKey);
 
