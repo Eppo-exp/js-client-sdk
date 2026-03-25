@@ -1,6 +1,6 @@
 {
   "name": "@eppo/js-client-sdk",
-  "version": "3.18.0",
+  "version": "3.18.1",
   "description": "Eppo SDK for client-side JavaScript applications",
   "main": "dist/index.js",
   "files": [
@@ -34,7 +34,7 @@
   "devDependencies": {
     "@microsoft/api-documenter": "^7.28.2",
     "@microsoft/api-extractor": "^7.48.1",
-    "@types/jest": "^29.5.11",
+    "@types/jest": "^29.5.14",
     "@types/spark-md5": "^3.0.5",
     "@typescript-eslint/eslint-plugin": "^5.13.0",
     "@typescript-eslint/parser": "^5.13.0",
@@ -63,6 +63,7 @@
     "@types/chrome": "^0.0.313",
     "lz-string": "^1.5.0"
   },
+  "//jest": "jest 30+ drops Node 23 support; pinned to ^29.x until we drop Node 23 from CI",
   "resolutions": {
     "//": "CVE-2025-7783: form-data package has a vulnerability that can be exploited to execute arbitrary code; GHSA-mh29-5h37-fv8m: js-yaml security vulnerability",
     "form-data": "^4.0.4",
