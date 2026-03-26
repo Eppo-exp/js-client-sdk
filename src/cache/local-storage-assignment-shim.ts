@@ -28,7 +28,9 @@ export class LocalStorageAssignmentShim implements Map<string, string> {
     this.getCache().forEach(callbackfn, thisArg);
   }
 
-  size: number = this.getCache().size;
+  get size(): number {
+    return this.getCache().size;
+  }
 
   entries(): IterableIterator<[string, string]> {
     return this.getCache().entries();
@@ -46,7 +48,9 @@ export class LocalStorageAssignmentShim implements Map<string, string> {
     return this.getCache()[Symbol.iterator]();
   }
 
-  [Symbol.toStringTag]: string = this.getCache()[Symbol.toStringTag];
+  get [Symbol.toStringTag](): string {
+    return 'Map';
+  }
 
   public has(key: string): boolean {
     return this.getCache().has(key);
