@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="chrome" />
-
 import { AsyncMap } from '@eppo/js-client-sdk-common';
 import { Attributes } from '@eppo/js-client-sdk-common';
 import { AttributeType } from '@eppo/js-client-sdk-common';
