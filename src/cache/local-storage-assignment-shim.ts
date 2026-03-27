@@ -48,9 +48,7 @@ export class LocalStorageAssignmentShim implements Map<string, string> {
     return this.getCache()[Symbol.iterator]();
   }
 
-  get [Symbol.toStringTag](): string {
-    return 'Map';
-  }
+  [Symbol.toStringTag]: string = 'Map';
 
   public has(key: string): boolean {
     return this.getCache().has(key);
