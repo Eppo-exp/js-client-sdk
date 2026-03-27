@@ -402,10 +402,10 @@
   dependencies:
     tslib "^2.4.0"
 
-"@eppo/js-client-sdk-common@4.15.3":
-  version "4.15.3"
-  resolved "https://registry.yarnpkg.com/@eppo/js-client-sdk-common/-/js-client-sdk-common-4.15.3.tgz#70fa31a240b5b482d3f0d654b16ec946525c26d2"
-  integrity sha512-boO/HetQAN5Qi+MAEzCetNteb+h5J4iC4qUcijaqlxLtWx2hUpAcAgRgUEQ4OpRtXSg3HjIgZWJzmhMj+zyYgg==
+"@eppo/js-client-sdk-common@4.15.5":
+  version "4.15.5"
+  resolved "https://registry.yarnpkg.com/@eppo/js-client-sdk-common/-/js-client-sdk-common-4.15.5.tgz#6ca7bb4d27bc2ae63ab4a97e25b15ff61be2777c"
+  integrity sha512-pRQG3fWiyOTAfjAvQ818aRMJryaDQXUNfcXzTy4czKFFBzPRTSUhaCDS1wGFU0zBLg2ZjMLBDt71km6q/wnztg==
   dependencies:
     buffer "npm:@eppo/buffer@6.2.0"
     js-base64 "^3.7.7"
