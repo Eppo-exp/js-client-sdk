@@ -5,6 +5,15 @@
 import { LocalStorageAssignmentCache } from './local-storage-assignment-cache';
 
 describe('LocalStorageAssignmentCache', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  it('does not crash when localStorage contains a key named "undefined"', () => {
+    window.localStorage.setItem('undefined', 'not-json');
+    expect(() => new LocalStorageAssignmentCache('test')).not.toThrow();
+  });
+
   it('typical behavior', () => {
     const cache = new LocalStorageAssignmentCache('test');
     expect(
