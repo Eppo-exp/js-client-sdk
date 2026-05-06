@@ -45,7 +45,7 @@ export class LocalStorageEngine implements IStringStorageEngine {
 
     try {
       return LZString.decompressFromBase64(stored) || null;
-    } catch (e) {
+    } catch {
       // Failed to decompress configuration, removing corrupted data
       this.localStorage.removeItem(this.contentsKey);
       return null;
@@ -117,7 +117,7 @@ export class LocalStorageEngine implements IStringStorageEngine {
         migratedAt: Date.now(),
         version: LocalStorageEngine.MIGRATION_VERSION,
       });
-    } catch (e) {
+    } catch {
       // Migration failed, continue silently
     }
   }
@@ -128,7 +128,7 @@ export class LocalStorageEngine implements IStringStorageEngine {
       if (stored) {
         return JSON.parse(stored);
       }
-    } catch (e) {
+    } catch {
       // Failed to parse global meta, will use default
     }
 
