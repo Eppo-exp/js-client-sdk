@@ -12,6 +12,7 @@ import {
 
 import ChromeStorageAsyncMap from './cache/chrome-storage-async-map';
 import { ChromeStorageEngine } from './chrome-storage-engine';
+import { IndexedDBStorageEngine } from './indexed-db-storage-engine';
 import {
   IsolatableHybridConfigurationStore,
   ServingStoreUpdateStrategy,
@@ -34,6 +35,8 @@ export function configurationStorageFactory(
     servingStoreUpdateStrategy = 'always',
     hasChromeStorage = false,
     hasWindowLocalStorage = false,
+    hasIndexedDB = false,
+    useIndexedDB = false,
     persistentStore = undefined,
     forceMemoryOnly = false,
   }: {
@@ -41,6 +44,8 @@ export function configurationStorageFactory(
     servingStoreUpdateStrategy?: ServingStoreUpdateStrategy;
     hasChromeStorage?: boolean;
     hasWindowLocalStorage?: boolean;
+    hasIndexedDB?: boolean;
+    useIndexedDB?: boolean;
     persistentStore?: IAsyncStore<Flag>;
     forceMemoryOnly?: boolean;
   },
@@ -60,6 +65,14 @@ export function configurationStorageFactory(
     return new IsolatableHybridConfigurationStore(
       new MemoryStore<Flag>(),
       persistentStore,
+      servingStoreUpdateStrategy,
+    );
+  } else if (useIndexedDB && hasIndexedDB) {
+    // IndexedDB is available and user has opted in
+    const indexedDBStorageEngine = new IndexedDBStorageEngine(storageKeySuffix ?? '');
+    return new IsolatableHybridConfigurationStore(
+      new MemoryStore<Flag>(),
+      new StringValuedAsyncStore<Flag>(indexedDBStorageEngine, maxAgeSeconds),
       servingStoreUpdateStrategy,
     );
   } else if (hasChromeStorage && chromeStorage) {
@@ -134,4 +147,14 @@ export function hasWindowLocalStorage(): boolean {
 
 export function localStorageIfAvailable(): Storage | undefined {
   return hasWindowLocalStorage() ? window.localStorage : undefined;
+}
+
+/** Returns whether IndexedDB is available */
+export function hasIndexedDB(): boolean {
+  try {
+    return typeof window !== 'undefined' && typeof window.indexedDB !== 'undefined' && !!window.indexedDB;
+  } catch {
+    // Some environments may throw when accessing indexedDB
+    return false;
+  }
 }
