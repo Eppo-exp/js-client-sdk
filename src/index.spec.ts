@@ -449,15 +449,13 @@ describe('initialization options', () => {
     },
   } as unknown as Record<'flags', Record<string, Flag>>;
 
-  // eslint-disable-next-line @typescript-eslint/ban-types
   let init: (config: IClientConfig) => Promise<EppoClient>;
-  // eslint-disable-next-line @typescript-eslint/ban-types
   let getInstance: () => EppoClient;
 
   beforeEach(async () => {
     jest.isolateModules(() => {
       // Isolate and re-require so that the static instance is reset to it's default state
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const reloadedModule = require('./index');
       init = reloadedModule.init;
       getInstance = reloadedModule.getInstance;
@@ -1193,14 +1191,12 @@ describe('initialization options', () => {
   );
 
   describe('With reloaded index module', () => {
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    let init: Function;
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    let getInstance: Function;
+    let init: (config: IClientConfig) => Promise<EppoClient>;
+    let getInstance: () => EppoClient;
     beforeEach(async () => {
       jest.isolateModules(() => {
         // Isolate and re-require so that the static instance is reset to it's default state
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const reloadedModule = require('./index');
         init = reloadedModule.init;
         getInstance = reloadedModule.getInstance;

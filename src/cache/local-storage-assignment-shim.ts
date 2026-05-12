@@ -32,19 +32,19 @@ export class LocalStorageAssignmentShim implements Map<string, string> {
     return this.getCache().size;
   }
 
-  entries(): IterableIterator<[string, string]> {
+  entries() {
     return this.getCache().entries();
   }
 
-  keys(): IterableIterator<string> {
+  keys() {
     return this.getCache().keys();
   }
 
-  values(): IterableIterator<string> {
+  values() {
     return this.getCache().values();
   }
 
-  [Symbol.iterator](): IterableIterator<[string, string]> {
+  [Symbol.iterator]() {
     return this.getCache()[Symbol.iterator]();
   }
 
