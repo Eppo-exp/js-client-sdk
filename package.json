@@ -32,7 +32,7 @@
   },
   "homepage": "https://github.com/Eppo-exp/js-client-sdk#readme",
   "engines": {
-    "node": ">=20.0.0"
+    "node": "^20.19.0 || ^22.13.0 || >=24"
   },
   "devDependencies": {
     "@microsoft/api-documenter": "^7.30.16",
