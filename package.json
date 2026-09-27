@@ -1,6 +1,6 @@
 {
   "name": "@eppo/js-client-sdk",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Eppo SDK for client-side JavaScript applications",
   "main": "dist/index.js",
   "files": [
@@ -32,34 +32,34 @@
   },
   "homepage": "https://github.com/Eppo-exp/js-client-sdk#readme",
   "engines": {
-    "node": ">=20.0.0"
+    "node": "^20.19.0 || ^22.13.0 || >=24"
   },
   "devDependencies": {
-    "@microsoft/api-documenter": "^7.30.5",
-    "@microsoft/api-extractor": "^7.58.7",
-    "@types/jest": "^30",
+    "@microsoft/api-documenter": "^7.30.16",
+    "@microsoft/api-extractor": "^7.59.2",
+    "@types/jest": "^30.0.0",
     "@types/spark-md5": "^3.0.5",
-    "@typescript-eslint/eslint-plugin": "^8",
-    "@typescript-eslint/parser": "^8",
-    "eslint": "^8",
-    "eslint-config-prettier": "^10.1.1",
-    "eslint-import-resolver-typescript": "^4.3.1",
-    "eslint-plugin-import": "^2.25.4",
-    "eslint-plugin-prettier": "^5.2.1",
-    "eslint-plugin-promise": "^7",
+    "@typescript-eslint/eslint-plugin": "^8.70.1",
+    "@typescript-eslint/parser": "^8.70.1",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.6",
+    "eslint-plugin-promise": "^7.3.0",
     "husky": "^9.1.7",
-    "jest": "^30",
-    "jest-environment-jsdom": "^30",
-    "lint-staged": "^16",
-    "prettier": "^3",
-    "terser-webpack-plugin": "^5",
-    "testdouble": "^3.20.2",
-    "ts-jest": "^29",
-    "ts-loader": "^9",
+    "jest": "^30.5.2",
+    "jest-environment-jsdom": "^30.5.2",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.9.9",
+    "terser-webpack-plugin": "^5.6.1",
+    "testdouble": "^3.21.0",
+    "ts-jest": "^29.4.14",
+    "ts-loader": "^9.6.2",
     "ts-node": "^10.9.2",
-    "typescript": "^5",
-    "webpack": "^5",
-    "webpack-cli": "^6"
+    "typescript": "^5.9.3",
+    "webpack": "^5.111.1",
+    "webpack-cli": "^7.2.3"
   },
   "dependencies": {
     "@eppo/js-client-sdk-common": "^5",
@@ -68,6 +68,6 @@
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
   "resolutions": {
-    "@microsoft/api-documenter/js-yaml": "^4.2.0"
+    "@microsoft/api-documenter/js-yaml": "^4.3.2"
   }
 }
