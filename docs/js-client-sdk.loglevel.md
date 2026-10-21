@@ -9,5 +9,5 @@ Valid log levels for the Eppo SDK logger.
 **Signature:**
 
 ```typescript
-export declare type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent';
+export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent';
 ```

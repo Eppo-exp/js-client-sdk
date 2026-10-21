@@ -42,7 +42,7 @@ level
 
 </td><td>
 
-The log level to set: - 'trace': Most verbose, logs everything - 'debug': Detailed debugging information - 'info': General informational messages - 'warn': Warning messages (default in production) - 'error': Error messages only - 'silent': Disable all logging
+The log level to set:  - 'trace': Most verbose, logs everything  - 'debug': Detailed debugging information  - 'info': General informational messages  - 'warn': Warning messages (default in production)  - 'error': Error messages only  - 'silent': Disable all logging
 
 
 </td></tr>
