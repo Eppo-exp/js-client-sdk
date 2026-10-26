@@ -161,6 +161,7 @@ export interface IClientConfig extends IBaseRequestConfig {
     // Warning: (ae-forgotten-export) The symbol "ServingStoreUpdateStrategy" needs to be exported by the entry point index.d.ts
     updateOnFetch?: ServingStoreUpdateStrategy;
     useExpiredCache?: boolean;
+    useIndexedDB?: boolean;
 }
 
 // @public
@@ -196,6 +197,7 @@ export interface IPrecomputedClientConfig extends IBaseRequestConfig {
     //
     // (undocumented)
     precompute: IPrecompute;
+    useIndexedDB?: boolean;
 }
 
 // @public
