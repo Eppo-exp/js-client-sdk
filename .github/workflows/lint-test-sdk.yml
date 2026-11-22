@@ -34,12 +34,12 @@ jobs:
           echo "Running SDK Test using"
           echo "Test Data: sdk-test-data@${TEST_DATA_BRANCH_NAME}"
           echo "SDK Branch: js-client-sdk@${SDK_BRANCH_NAME}"
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: Eppo-exp/js-client-sdk
           ref: ${{ env.SDK_BRANCH_NAME }}
       - name: Use Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
       - name: Get yarn cache directory path
@@ -67,12 +67,12 @@ jobs:
       matrix:
         node-version: [ '20', '22', '24' ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: Eppo-exp/js-client-sdk
           ref: ${{ env.SDK_BRANCH_NAME }}
       - name: Use Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
       - name: Get yarn cache directory path

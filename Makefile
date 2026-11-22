@@ -42,7 +42,7 @@ test-data:
 ## prepare
 .PHONY: prepare
 prepare: test-data
-	 yarn husky install
+	 yarn husky
 	 rm -rf dist/
 	 yarn tsc
 	 yarn webpack
@@ -50,5 +50,5 @@ prepare: test-data
 
 ## test
 .PHONY: test
-test: test test-data
+test: test-data
 	yarn test:unit

@@ -7,7 +7,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Parse version from tag
         id: version
@@ -31,10 +31,10 @@ jobs:
           echo -e "${RED}Pre-release label in semver but GitHub release is not marked as pre-release or vice-versa${NC}"
           exit 1;
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: '22.x'
-      - run: yarn install
+      - run: yarn install --frozen-lockfile
       - run: yarn test
 
       - name: Publish latest
